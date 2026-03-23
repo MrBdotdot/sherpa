@@ -13,7 +13,7 @@ import {
   TemplateId,
 } from "@/app/_lib/authoring-types";
 
-export const APP_VERSION = "v0.5.1";
+export const APP_VERSION = "v0.5.3";
 
 export type PatchNote = {
   version: string;
@@ -22,6 +22,22 @@ export type PatchNote = {
 };
 
 export const PATCH_NOTES: PatchNote[] = [
+  {
+    version: "v0.5.3",
+    date: "2026-03-22",
+    changes: [
+      "Fixed live preview — edits to text, container size, and content blocks now reflect instantly without clicking away",
+      "Creating a hotspot now automatically opens the Content tab in the inspector",
+    ],
+  },
+  {
+    version: "v0.5.2",
+    date: "2026-03-22",
+    changes: [
+      "Fixed changelog modal parse error causing sidebar to break",
+      "Removed duplicate Display style selector from Setup tab (it lives in Content tab)",
+    ],
+  },
   {
     version: "v0.5.1",
     date: "2026-03-22",

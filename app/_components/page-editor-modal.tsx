@@ -291,7 +291,6 @@ export function PageEditorModal({
           ) : (
             <SetupTab
               onHeroUpload={onHeroUpload}
-              onDisplayStyleChange={onDisplayStyleChange}
               onPageButtonPlacementChange={onPageButtonPlacementChange}
               onPageHeroUrlChange={onPageHeroUrlChange}
               onResetPagePosition={onResetPagePosition}

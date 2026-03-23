@@ -116,6 +116,7 @@ export function AuthoringStudio() {
     isPreviewMode,
     setIsPreviewMode,
     setIsContentModalOpen,
+    setInspectorTab,
     pushPagesHistory,
     setSelectedFeatureId,
     showLayoutHelp,

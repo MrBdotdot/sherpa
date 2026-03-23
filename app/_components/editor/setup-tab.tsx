@@ -1,13 +1,12 @@
 "use client";
 
 import { ChangeEvent } from "react";
-import { DisplayStyleKey, PageButtonPlacement, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
-import { applyDisplayStyle, DISPLAY_STYLE_OPTIONS, getDisplayStyleKey, getPlacementLabel } from "@/app/_lib/authoring-utils";
+import { PageButtonPlacement, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
+import { getPlacementLabel } from "@/app/_lib/authoring-utils";
 import { EditorSection, EditorSubsection, SelectField } from "@/app/_components/editor/editor-ui";
 
 export function SetupTab({
   onHeroUpload,
-  onDisplayStyleChange,
   onPageButtonPlacementChange,
   onPageHeroUrlChange,
   onResetPagePosition,
@@ -16,7 +15,6 @@ export function SetupTab({
   systemSettings,
 }: {
   onHeroUpload: (event: ChangeEvent<HTMLInputElement>) => void;
-  onDisplayStyleChange: (style: DisplayStyleKey) => void;
   onPageButtonPlacementChange: (value: PageButtonPlacement) => void;
   onPageHeroUrlChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onResetPagePosition: () => void;
@@ -24,31 +22,11 @@ export function SetupTab({
   selectedPage: PageItem;
   systemSettings: SystemSettings;
 }) {
-  const currentDisplayStyle = getDisplayStyleKey(selectedPage);
-  const currentStyleOption = DISPLAY_STYLE_OPTIONS.find((o) => o.key === currentDisplayStyle);
-
   return (
     <div className="divide-y divide-neutral-200">
       {/* This page */}
       <EditorSection title="This page">
         <div className="space-y-4">
-          <EditorSubsection
-            title="Display style"
-            description="How this container appears when triggered."
-          >
-            <div className="space-y-1.5">
-              <SelectField
-                label="Style"
-                value={currentDisplayStyle}
-                onChange={onDisplayStyleChange}
-                options={DISPLAY_STYLE_OPTIONS.map((o) => ({ label: o.label, value: o.key }))}
-              />
-              {currentStyleOption ? (
-                <div className="px-0.5 text-xs text-neutral-400">{currentStyleOption.description}</div>
-              ) : null}
-            </div>
-          </EditorSubsection>
-
           {selectedPage.kind === "page" ? (
             <EditorSubsection
               title="Button placement"

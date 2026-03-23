@@ -34,6 +34,7 @@ interface UseDragProps {
   isPreviewMode: boolean;
   setIsPreviewMode: React.Dispatch<React.SetStateAction<boolean>>;
   setIsContentModalOpen: (v: boolean) => void;
+  setInspectorTab: (tab: "surface" | "content" | "setup") => void;
   pushPagesHistory: () => void;
   setSelectedFeatureId: (id: string | null) => void;
   showLayoutHelp: boolean;
@@ -54,6 +55,7 @@ export function useDrag({
   isPreviewMode,
   setIsPreviewMode,
   setIsContentModalOpen,
+  setInspectorTab,
   pushPagesHistory,
   setSelectedFeatureId,
   showLayoutHelp,
@@ -198,6 +200,7 @@ export function useDrag({
 
     setPages((prev) => [...prev, newHotspot]);
     setSelectedPageId(newHotspot.id);
+    setInspectorTab("content");
     setIsContentModalOpen(true);
   };
 

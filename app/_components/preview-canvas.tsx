@@ -211,21 +211,19 @@ export function PreviewCanvas({
 
   useEffect(() => {
     if (activePage.kind !== "home") {
-      if (
-        modulePageRef.current?.id !== activePage.id ||
-        isModuleExitingRef.current
-      ) {
+      if (modulePageRef.current?.id !== activePage.id || isModuleExitingRef.current) {
         syncModuleState(activePage, false);
+      } else if (!isModuleExitingRef.current) {
+        // Same page — data changed, update without re-animating
+        modulePageRef.current = activePage;
+        setModulePage(activePage);
       }
-    } else if (
-      modulePageRef.current !== null &&
-      !isModuleExitingRef.current
-    ) {
+    } else if (modulePageRef.current !== null && !isModuleExitingRef.current) {
       isModuleExitingRef.current = true;
       setIsModuleExiting(true);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activePage.id, activePage.kind]);
+  }, [activePage]);
 
   function handleModuleExitEnd() {
     syncModuleState(null, false);

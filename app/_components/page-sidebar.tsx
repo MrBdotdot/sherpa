@@ -281,7 +281,6 @@ export function PageSidebar({
   const sharedItemProps = { onOpenPage, onPublishStatusChange };
 
   return (
-    <>
     <aside className="h-full border-r border-neutral-200 bg-white">
       <div className="h-full overflow-y-auto p-5">
         <div className="mb-6 flex items-center gap-2.5">
@@ -577,9 +576,7 @@ export function PageSidebar({
         </div>
       </div>
 
+      <ChangelogModal isOpen={changelogOpen} onClose={() => setChangelogOpen(false)} />
     </aside>
-
-    <ChangelogModal isOpen={changelogOpen} onClose={() => setChangelogOpen(false)} />
-    </>
   );
 }
