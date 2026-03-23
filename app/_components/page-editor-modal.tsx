@@ -71,7 +71,6 @@ type PageEditorModalProps = {
     field: "label" | "url",
     value: string
   ) => void;
-  onSummaryChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onSystemSettingChange: <K extends keyof SystemSettings>(
     field: K,
     value: SystemSettings[K]
@@ -129,7 +128,6 @@ export function PageEditorModal({
   onResetPagePosition,
   onSelectPage,
   onSocialLinkChange,
-  onSummaryChange,
   onSystemSettingChange,
   onTitleChange,
   onOpenPage,
@@ -285,7 +283,6 @@ export function PageEditorModal({
               onRemoveBlock={onRemoveBlock}
               onRemoveSocialLink={onRemoveSocialLink}
               onSocialLinkChange={onSocialLinkChange}
-              onSummaryChange={onSummaryChange}
               selectedPage={selectedPage}
             />
           ) : (

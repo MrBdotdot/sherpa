@@ -134,10 +134,6 @@ export function usePageHandlers({
     updateSelectedPage((page) => ({ ...page, title: event.target.value }));
   };
 
-  const handleSummaryChange = (event: ChangeEvent<HTMLInputElement>) => {
-    updateSelectedPage((page) => ({ ...page, summary: event.target.value }));
-  };
-
   const handleInteractionTypeChange = (value: InteractionType) => {
     updateSelectedPage((page) => ({ ...page, interactionType: value }));
   };
@@ -240,7 +236,6 @@ export function usePageHandlers({
     handlePageHeroUrlChange,
     handlePageHeroUpload,
     handleTitleChange,
-    handleSummaryChange,
     handleInteractionTypeChange,
     handleDisplayStyleChange,
     handlePageButtonPlacementChange,
