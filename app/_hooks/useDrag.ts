@@ -176,6 +176,13 @@ export function useDrag({
       return;
     }
 
+    // Dismiss an open page-kind container (side-sheet, full-page, modal…) on
+    // any canvas background click rather than creating a new hotspot beneath it.
+    if (selectedPage?.kind === "page") {
+      setSelectedPageId(HOME_PAGE_ID);
+      return;
+    }
+
     const rect = event.currentTarget.getBoundingClientRect();
     const x = ((event.clientX - rect.left) / rect.width) * 100;
     const y = ((event.clientY - rect.top) / rect.height) * 100;

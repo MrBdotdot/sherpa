@@ -13,7 +13,7 @@ import {
   TemplateId,
 } from "@/app/_lib/authoring-types";
 
-export const APP_VERSION = "v0.5.8";
+export const APP_VERSION = "v0.5.9";
 
 export type PatchNote = {
   version: string;
@@ -22,6 +22,15 @@ export type PatchNote = {
 };
 
 export const PATCH_NOTES: PatchNote[] = [
+  {
+    version: "v0.5.9",
+    date: "2026-03-23",
+    changes: [
+      "Fixed side-sheet and full-page animation — wrong transform was applied when pages of hotspot kind used these styles",
+      "Canvas background click now dismisses an open container instead of creating a new hotspot",
+      "Removed touchAction:none from side-sheet/full-page so touch-scroll works inside them",
+    ],
+  },
   {
     version: "v0.5.8",
     date: "2026-03-22",

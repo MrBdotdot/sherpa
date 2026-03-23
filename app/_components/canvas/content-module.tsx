@@ -92,11 +92,17 @@ export function ContentModule({
       : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50",
   ].join(" ");
 
-  const entryClass = isHotspotSelection
-    ? "hotspot-preview-modal"
-    : page.kind === "page"
-    ? getContainerAnimClass(ctype)
-    : "";
+  // side-sheet and full-page always use their own slide animations — the
+  // hotspot-preview-modal animation applies translate(-50%,-50%) which
+  // completely breaks the edge-anchored positioning of these layouts.
+  const entryClass =
+    ctype === "side-sheet" || ctype === "full-page"
+      ? getContainerAnimClass(ctype)
+      : isHotspotSelection
+      ? "hotspot-preview-modal"
+      : page.kind === "page"
+      ? getContainerAnimClass(ctype)
+      : "";
   const animClass = isExiting ? getContainerExitClass(ctype) : entryClass;
   const pointerEventsStyle: React.CSSProperties = isExiting
     ? { pointerEvents: "none" }
@@ -242,7 +248,7 @@ export function ContentModule({
     return (
       <div
         className={moduleClass}
-        style={{ touchAction: "none", ...tintStyle, ...pointerEventsStyle }}
+        style={{ ...tintStyle, ...pointerEventsStyle }}
         onClick={(e) => e.stopPropagation()}
         onAnimationEnd={handleAnimEnd}
       >
