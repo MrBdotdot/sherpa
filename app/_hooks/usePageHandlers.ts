@@ -134,7 +134,7 @@ export function usePageHandlers({
     updateSelectedPage((page) => ({ ...page, title: event.target.value }));
   };
 
-  const handleSummaryChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+  const handleSummaryChange = (event: ChangeEvent<HTMLInputElement>) => {
     updateSelectedPage((page) => ({ ...page, summary: event.target.value }));
   };
 

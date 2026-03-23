@@ -71,7 +71,7 @@ type PageEditorModalProps = {
     field: "label" | "url",
     value: string
   ) => void;
-  onSummaryChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
+  onSummaryChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onSystemSettingChange: <K extends keyof SystemSettings>(
     field: K,
     value: SystemSettings[K]

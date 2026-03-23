@@ -13,7 +13,7 @@ import {
   TemplateId,
 } from "@/app/_lib/authoring-types";
 
-export const APP_VERSION = "v0.5.6";
+export const APP_VERSION = "v0.5.7";
 
 export type PatchNote = {
   version: string;
@@ -22,6 +22,13 @@ export type PatchNote = {
 };
 
 export const PATCH_NOTES: PatchNote[] = [
+  {
+    version: "v0.5.7",
+    date: "2026-03-22",
+    changes: [
+      "Replaced multi-line intro text areas with single-line text inputs in Content tab and Setup tab",
+    ],
+  },
   {
     version: "v0.5.6",
     date: "2026-03-22",

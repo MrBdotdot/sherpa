@@ -19,7 +19,7 @@ export function PageSetupSection({
   onPageButtonPlacementChange: (value: PageButtonPlacement) => void;
   onPageHeroUrlChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onResetPagePosition: () => void;
-  onSummaryChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
+  onSummaryChange: (event: ChangeEvent<HTMLInputElement>) => void;
   selectedPage: PageItem;
 }) {
   return (
@@ -162,12 +162,12 @@ export function PageSetupSection({
               <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
                 Intro text
               </div>
-              <textarea
+              <input
+                type="text"
                 value={selectedPage.summary}
                 onChange={onSummaryChange}
-                placeholder="Opening text players see when this page loads — keep it short and orienting"
-                rows={4}
-                className="w-full resize-none rounded-2xl border border-neutral-300 px-4 py-3 text-sm leading-6 outline-none transition focus:border-black"
+                placeholder="Opening text players see when this page loads"
+                className="w-full rounded-2xl border border-neutral-300 px-4 py-3 text-sm outline-none transition focus:border-black"
               />
             </div>
           </div>

@@ -103,7 +103,7 @@ export function ContentTab({
   onRemoveBlock: (blockId: string) => void;
   onRemoveSocialLink: (socialId: string) => void;
   onSocialLinkChange: (socialId: string, field: "label" | "url", value: string) => void;
-  onSummaryChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
+  onSummaryChange: (event: ChangeEvent<HTMLInputElement>) => void;
   selectedPage: PageItem;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -121,12 +121,12 @@ export function ContentTab({
           <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
             Intro text
           </div>
-          <textarea
+          <input
+            type="text"
             value={selectedPage.summary}
             onChange={onSummaryChange}
-            placeholder="Opening text visitors see when this page loads — keep it short and orienting"
-            rows={3}
-            className="w-full resize-none rounded-2xl border border-neutral-300 px-4 py-3 text-sm leading-6 outline-none transition focus:border-black"
+            placeholder="Opening text visitors see when this page loads"
+            className="w-full rounded-2xl border border-neutral-300 px-4 py-3 text-sm outline-none transition focus:border-black"
           />
         </div>
       ) : null}
