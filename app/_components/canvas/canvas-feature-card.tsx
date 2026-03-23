@@ -23,7 +23,7 @@ function LogoFeatureCard({
 
   if (!feature.imageUrl) {
     return (
-      <div className="w-[180px] rounded-xl border border-dashed border-neutral-300 bg-white/80 p-3 shadow-sm backdrop-blur">
+      <div className="w-[180px] rounded-xl border border-dashed border-neutral-300 bg-white/90 p-3 shadow-sm">
         <div className="text-xs font-semibold text-neutral-900">{feature.label}</div>
         <div className="mt-2 rounded-lg border border-dashed border-neutral-300 px-3 py-3 text-[11px] text-neutral-400">
           Upload logo image
@@ -54,7 +54,7 @@ function LogoFeatureCard({
         <div
           id={menuId}
           role="menu"
-          className={`absolute left-0 top-full mt-2 w-[180px] rounded-xl border p-2 shadow-lg backdrop-blur ${surfaceStyleClass}`}
+          className={`absolute left-0 top-full mt-2 w-[180px] rounded-xl border p-2 shadow-lg ${surfaceStyleClass}`}
         >
           {linkItems.map((line, i) => {
             if (line === "---") {
@@ -112,7 +112,7 @@ function LocaleFeatureCard({
         aria-haspopup="listbox"
         aria-controls={menuId}
         aria-label={`Language: ${active}`}
-        className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm backdrop-blur transition ${surfaceStyleClass}`}
+        className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm transition ${surfaceStyleClass}`}
       >
         <span aria-hidden="true">🌐</span>
         <span>{active}</span>
@@ -123,7 +123,7 @@ function LocaleFeatureCard({
           id={menuId}
           role="listbox"
           aria-label="Select language"
-          className={`absolute right-0 top-full mt-1.5 min-w-[140px] rounded-xl border p-1.5 shadow-lg backdrop-blur ${surfaceStyleClass}`}
+          className={`absolute right-0 top-full mt-1.5 min-w-[140px] rounded-xl border p-1.5 shadow-lg ${surfaceStyleClass}`}
         >
           {options.length > 0 ? options.map(({ display, code }) => (
             <li key={code} role="option" aria-selected={active === code}>
@@ -162,7 +162,7 @@ export function CanvasFeatureCard({
         ? { borderColor: "#e5e7eb", borderWidth: 4, borderRadius: 8 }
         : {};
     return (
-      <div className={`w-[180px] rounded-xl border p-3 shadow-lg backdrop-blur ${surfaceStyleClass}`}>
+      <div className={`w-[180px] rounded-xl border p-3 shadow-lg ${surfaceStyleClass}`}>
         {feature.label ? (
           <div className="mb-2 text-xs font-semibold">{feature.label}</div>
         ) : null}
@@ -210,7 +210,7 @@ export function CanvasFeatureCard({
           </div>
         ) : null}
         {subLinks.length > 0 ? (
-          <ul role="list" className={`mt-2 rounded-xl border p-2 shadow-sm backdrop-blur ${surfaceStyleClass}`}>
+          <ul role="list" className={`mt-2 rounded-xl border p-2 shadow-sm ${surfaceStyleClass}`}>
             {subLinks.map((link) => {
               const [label] = link.split("|");
               return (
@@ -234,7 +234,7 @@ export function CanvasFeatureCard({
     return (
       <button
         type="button"
-        className="rounded-full border border-neutral-200 bg-white/96 px-4 py-2 text-xs font-semibold text-neutral-900 shadow-lg backdrop-blur hover:bg-white"
+        className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-900 shadow-lg hover:bg-neutral-50"
         style={accentColor ? { borderColor: accentColor, color: accentColor } : {}}
       >
         {feature.label}
@@ -249,7 +249,7 @@ export function CanvasFeatureCard({
       .filter(Boolean);
 
     return (
-      <div className={`w-[200px] rounded-xl border p-3 shadow-lg backdrop-blur ${surfaceStyleClass}`}>
+      <div className={`w-[200px] rounded-xl border p-3 shadow-lg ${surfaceStyleClass}`}>
         <div id={`dropdown-label-${feature.id}`} className="text-xs font-semibold">{feature.label}</div>
         <select
           aria-labelledby={`dropdown-label-${feature.id}`}
@@ -273,7 +273,7 @@ export function CanvasFeatureCard({
     return (
       <button
         type="button"
-        className="rounded-full border border-neutral-300 bg-white/95 px-3 py-2 text-xs font-medium shadow-sm backdrop-blur transition hover:bg-white"
+        className="rounded-full border border-neutral-300 bg-white px-3 py-2 text-xs font-medium shadow-sm transition hover:bg-neutral-50"
         style={accentColor ? { borderColor: accentColor, color: accentColor } : {}}
       >
         {feature.label || "Page"}
@@ -283,7 +283,7 @@ export function CanvasFeatureCard({
 
   // disclaimer
   return (
-    <div className="max-w-[220px] rounded-xl border border-neutral-200/60 bg-white/80 p-3 shadow-sm backdrop-blur">
+    <div className="max-w-[220px] rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
       <div className="text-[11px] italic leading-5 text-neutral-500">{feature.description || feature.label}</div>
     </div>
   );

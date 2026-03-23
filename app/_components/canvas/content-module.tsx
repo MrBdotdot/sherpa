@@ -74,19 +74,19 @@ export function ContentModule({
       ? "border-neutral-300 bg-white shadow-xl"
       : systemSettings.surfaceStyle === "contrast"
       ? "border-neutral-900/10 bg-neutral-950/95 text-white shadow-2xl"
-      : "border-white/60 bg-white/90 shadow-lg backdrop-blur-2xl";
+      : "border-white/60 bg-white shadow-lg";
   const mutedTextClass =
     systemSettings.surfaceStyle === "contrast" ? "text-neutral-300" : "text-neutral-600";
   const solidBg =
     systemSettings.surfaceStyle === "contrast" ? "bg-neutral-950/95 text-white"
     : systemSettings.surfaceStyle === "solid" ? "bg-white"
-    : "bg-white/95 backdrop-blur-xl";
+    : "bg-white";
   const tooltipArrowColor =
     systemSettings.surfaceStyle === "contrast" ? "rgba(10,10,10,0.95)"
     : systemSettings.surfaceStyle === "solid" ? "#ffffff"
     : "rgba(255,255,255,0.90)";
   const backBtnClass = [
-    "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition backdrop-blur shadow-sm",
+    "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition shadow-sm",
     systemSettings.surfaceStyle === "contrast"
       ? "border-white/20 bg-white/10 text-white hover:bg-white/20"
       : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50",
@@ -156,12 +156,6 @@ export function ContentModule({
   // ── Shared inner content ───────────────────────────────────────
   const innerContent = (
     <>
-      {isLayoutEditMode && !isExiting ? (
-        <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-          <span>Content module</span>
-          {isContentDraggable ? <span className="opacity-60">Move</span> : null}
-        </div>
-      ) : null}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div
           className={`text-sm font-semibold ${
@@ -275,6 +269,11 @@ export function ContentModule({
             </button>
           </div>
         )}
+        {isLayoutEditMode && !isExiting ? (
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+            <span>Content module</span>
+          </div>
+        ) : null}
         {innerContent}
       </div>
     );
@@ -295,7 +294,7 @@ export function ContentModule({
 
   return (
     <>
-      {isHotspotSelection ? (
+      {isHotspotSelection && isPreviewMode ? (
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-[26] hotspot-preview-veil"
@@ -307,6 +306,15 @@ export function ContentModule({
         onClick={(e) => e.stopPropagation()}
         onAnimationEnd={handleAnimEnd}
       >
+        {isLayoutEditMode && !isExiting ? (
+          <div
+            aria-hidden="true"
+            className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white pointer-events-none"
+          >
+            <span>Content module</span>
+            {isContentDraggable ? <span className="opacity-60">Move</span> : null}
+          </div>
+        ) : null}
         {!isExiting ? (
           <button
             type="button"

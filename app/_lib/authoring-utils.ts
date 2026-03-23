@@ -13,7 +13,7 @@ import {
   TemplateId,
 } from "@/app/_lib/authoring-types";
 
-export const APP_VERSION = "v0.5.3";
+export const APP_VERSION = "v0.5.6";
 
 export type PatchNote = {
   version: string;
@@ -22,6 +22,30 @@ export type PatchNote = {
 };
 
 export const PATCH_NOTES: PatchNote[] = [
+  {
+    version: "v0.5.6",
+    date: "2026-03-22",
+    changes: [
+      "Creating a new container now automatically adds a page button to the canvas and the Page buttons panel",
+      "Deleting a container now also removes its page button from the canvas",
+    ],
+  },
+  {
+    version: "v0.5.5",
+    date: "2026-03-22",
+    changes: [
+      "Removed all blur effects — all surface elements now use solid backgrounds",
+      "Fixed container position mismatch between layout edit mode and normal mode — 'Content module' label no longer shifts the card position",
+    ],
+  },
+  {
+    version: "v0.5.4",
+    date: "2026-03-22",
+    changes: [
+      "Fixed blurry hotspot label text on small and medium marker sizes",
+      "Fixed canvas darkening overlay appearing when exiting layout edit mode — veil now only shows when a visitor opens hotspot content in preview mode",
+    ],
+  },
   {
     version: "v0.5.3",
     date: "2026-03-22",

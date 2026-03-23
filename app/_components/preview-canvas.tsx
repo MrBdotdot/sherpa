@@ -81,7 +81,7 @@ function EmptySurfaceGuidance({
 }) {
   return (
     <div
-      className="absolute left-4 top-4 z-20 max-w-sm rounded-2xl border border-dashed border-neutral-300 bg-white/92 p-4 text-sm text-neutral-600 shadow-sm backdrop-blur"
+      className="absolute left-4 top-4 z-20 max-w-sm rounded-2xl border border-dashed border-neutral-300 bg-white p-4 text-sm text-neutral-600 shadow-sm"
       onClick={(event) => event.stopPropagation()}
     >
       <div className="flex items-start justify-between gap-3">
@@ -179,7 +179,7 @@ export function PreviewCanvas({
       ? "border-neutral-300 bg-white shadow-xl"
       : systemSettings.surfaceStyle === "contrast"
         ? "border-neutral-900/10 bg-neutral-950/95 text-white shadow-2xl"
-        : "border-white/60 bg-white/90 shadow-lg backdrop-blur-2xl";
+        : "border-white/60 bg-white shadow-lg";
 
   const accentColor = systemSettings.accentColor || "";
   const accentActiveStyle = accentColor
@@ -485,7 +485,7 @@ export function PreviewCanvas({
                       />
                     </span>
                     <span
-                      className={`rounded-full ${hotspotLabelSize} font-semibold shadow-sm backdrop-blur transition`}
+                      className={`rounded-full ${hotspotLabelSize} font-semibold shadow-sm transition`}
                       style={
                         isSelected
                           ? { backgroundColor: dotBg, color: "#fff" }

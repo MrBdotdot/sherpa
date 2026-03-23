@@ -3,6 +3,7 @@
 import { ChangeEvent, Dispatch, SetStateAction } from "react";
 import {
   applyDisplayStyle,
+  createCanvasFeature,
   createStandardPage,
   createTemplatePage,
   HOME_PAGE_ID,
@@ -91,7 +92,15 @@ export function usePageHandlers({
     }
 
     const deletedId = selectedPage.id;
-    setPages((prev) => prev.filter((page) => page.id !== deletedId));
+    setPages((prev) =>
+      prev
+        .filter((page) => page.id !== deletedId)
+        .map((page) =>
+          page.kind === "home"
+            ? { ...page, canvasFeatures: page.canvasFeatures.filter((f) => f.linkUrl !== deletedId) }
+            : page
+        )
+    );
     setSelectedPageId(HOME_PAGE_ID);
     setIsContentModalOpen(false);
     setShowDeleteModal(false);
@@ -165,7 +174,31 @@ export function usePageHandlers({
       contentTintColor,
       contentTintOpacity,
     };
-    setPages((prev) => [...prev, newPage]);
+    const placementPos: Record<string, [number, number]> = {
+      top: [50, 8],
+      bottom: [50, 88],
+      left: [12, 50],
+      right: [88, 50],
+      stack: [50, 50],
+    };
+    const [bx, by] = placementPos[newPage.pageButtonPlacement] ?? [50, 85];
+    const pageButton = {
+      ...createCanvasFeature("page-button"),
+      label: newPage.title.trim() || "Page",
+      linkUrl: newPage.id,
+      x: bx,
+      y: by,
+    };
+
+    setPages((prev) => {
+      const homeIdx = prev.findIndex((p) => p.kind === "home");
+      if (homeIdx === -1) return [...prev, newPage];
+      return prev.map((p, i) =>
+        i === homeIdx
+          ? { ...p, canvasFeatures: [...p.canvasFeatures, pageButton] }
+          : p
+      ).concat(newPage);
+    });
     setSelectedPageId(newPage.id);
     setIsContentModalOpen(true);
     if (newPage.canvasFeatures.length === 0 && (newPage.blocks.length > 0 || newPage.socialLinks.length > 0)) {
