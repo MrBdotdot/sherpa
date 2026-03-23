@@ -22,5 +22,118 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
+
+/* Accessibility violation highlight — flashes the offending element */
+@keyframes a11yHighlight {
+  0%   { outline: 3px solid transparent; outline-offset: 4px; }
+  20%  { outline: 3px solid #f97316; outline-offset: 4px; }
+  80%  { outline: 3px solid #f97316; outline-offset: 4px; }
+  100% { outline: 3px solid transparent; outline-offset: 4px; }
+}
+
+.a11y-highlight {
+  animation: a11yHighlight 1.6s ease-in-out forwards;
+  border-radius: 4px;
+}
+
+@keyframes hotspotVeilSweep {
+  0% {
+    opacity: 0;
+    transform: translateX(-18%);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes hotspotModalFade {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 20px)) scale(0.98);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.hotspot-preview-veil {
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.34), rgba(15, 23, 42, 0.12) 55%, rgba(15, 23, 42, 0));
+  animation: hotspotVeilSweep 260ms ease-out both;
+}
+
+.hotspot-preview-modal {
+  animation: hotspotModalFade 220ms ease-out 80ms both;
+}
+
+/* Container (nav page) entry and exit animations */
+@keyframes containerModalIn {
+  from { opacity: 0; transform: scale(0.93) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes containerModalOut {
+  from { opacity: 1; transform: scale(1) translateY(0); }
+  to   { opacity: 0; transform: scale(0.93) translateY(10px); }
+}
+
+@keyframes containerSideSheetIn {
+  from { opacity: 0; transform: translateX(100%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes containerSideSheetOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(100%); }
+}
+
+@keyframes containerFullPageIn {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes containerFullPageOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(100%); }
+}
+
+@keyframes containerTooltipIn {
+  from { opacity: 0; transform: scale(0.9) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes containerTooltipOut {
+  from { opacity: 1; transform: scale(1) translateY(0); }
+  to   { opacity: 0; transform: scale(0.9) translateY(6px); }
+}
+
+@keyframes containerFadeRiseIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes containerFadeRiseOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(10px) scale(0.97); }
+}
+
+/* open: expo-out — fast start, smooth settle   cubic-bezier(0.22, 1, 0.36, 1)  */
+/* close: expo-in — gentle start, snappy finish cubic-bezier(0.55, 0, 1, 0.45) */
+.container-modal-in          { animation: containerModalIn       300ms cubic-bezier(0.22, 1, 0.36, 1)  both; }
+.container-modal-out         { animation: containerModalOut      200ms cubic-bezier(0.55, 0, 1, 0.45) both; }
+.container-side-sheet-in     { animation: containerSideSheetIn   320ms cubic-bezier(0.22, 1, 0.36, 1)  both; }
+.container-side-sheet-out    { animation: containerSideSheetOut  220ms cubic-bezier(0.55, 0, 1, 0.45) both; }
+.container-full-page-in      { animation: containerFullPageIn    340ms cubic-bezier(0.22, 1, 0.36, 1)  both; }
+.container-full-page-out     { animation: containerFullPageOut   240ms cubic-bezier(0.55, 0, 1, 0.45) both; }
+.container-tooltip-in        { animation: containerTooltipIn     260ms cubic-bezier(0.22, 1, 0.36, 1)  both; }
+.container-tooltip-out       { animation: containerTooltipOut    180ms cubic-bezier(0.55, 0, 1, 0.45) both; }
+.container-external-link-in  { animation: containerFadeRiseIn    260ms cubic-bezier(0.22, 1, 0.36, 1)  both; }
+.container-external-link-out { animation: containerFadeRiseOut   180ms cubic-bezier(0.55, 0, 1, 0.45) both; }
+
+/* Inspector body: subtle slide-in when selected container changes */
+@keyframes inspectorContentIn {
+  from { opacity: 0.5; transform: translateY(6px); }
+  to   { opacity: 1;   transform: translateY(0); }
+}
+
+.inspector-content-in { animation: inspectorContentIn 180ms ease-out both; }
