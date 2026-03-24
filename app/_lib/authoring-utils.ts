@@ -13,7 +13,7 @@ import {
   TemplateId,
 } from "@/app/_lib/authoring-types";
 
-export const APP_VERSION = "v0.5.9";
+export const APP_VERSION = "v0.6.0";
 
 export type PatchNote = {
   version: string;
@@ -22,6 +22,22 @@ export type PatchNote = {
 };
 
 export const PATCH_NOTES: PatchNote[] = [
+  {
+    version: "v0.6.0",
+    date: "2026-03-23",
+    changes: [
+      "Text linking system: surround text with ((label|pageId)) to create tappable inline links that surface containers",
+      "Autocomplete dropdown appears when typing (( in text blocks, listing matching pages",
+      "Text links render bold in the accent color",
+      "Removed all canvas positioning restrictions — hotspots and elements can be placed anywhere",
+      "Moved + Template button from sidebar into the Setup tab",
+      "Add canvas element and Add content block buttons now match secondary button style",
+      "Full-page containers now center content vertically and horizontally",
+      "Hotspot dragging gated behind layout edit mode only",
+      "Dragging a hotspot or element in edit mode no longer triggers its container interaction",
+      "Content module remains visible and repositionable in edit mode",
+    ],
+  },
   {
     version: "v0.5.9",
     date: "2026-03-23",

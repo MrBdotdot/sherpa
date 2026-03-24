@@ -16,6 +16,7 @@ import {
   PageItem,
   PublishStatus,
   SystemSettings,
+  TemplateId,
 } from "@/app/_lib/authoring-types";
 import { getPageRoleDescription } from "@/app/_lib/authoring-utils";
 import { useFocusTrap } from "@/app/_hooks/useFocusTrap";
@@ -45,6 +46,7 @@ type PageEditorModalProps = {
   onBlockImageUpload: (blockId: string, event: ChangeEvent<HTMLInputElement>) => void;
   onBlockVariantChange: (blockId: string, variant: ContentBlock["variant"]) => void;
   onClose: () => void;
+  onCreatePageWithConfig: (config: { templateId: TemplateId | null; title: string; displayStyle: DisplayStyleKey; contentTintColor: string; contentTintOpacity: number }) => void;
   onDeleteRequest: () => void;
   onHeroUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onHotspotPointerDown: (
@@ -109,6 +111,7 @@ export function PageEditorModal({
   onBlockImageUpload,
   onBlockVariantChange,
   onClose,
+  onCreatePageWithConfig,
   onDeleteRequest,
   onHeroUpload,
   onHotspotPointerDown,
@@ -283,10 +286,12 @@ export function PageEditorModal({
               onRemoveBlock={onRemoveBlock}
               onRemoveSocialLink={onRemoveSocialLink}
               onSocialLinkChange={onSocialLinkChange}
+              pages={pages}
               selectedPage={selectedPage}
             />
           ) : (
             <SetupTab
+              onCreatePageWithConfig={onCreatePageWithConfig}
               onHeroUpload={onHeroUpload}
               onPageButtonPlacementChange={onPageButtonPlacementChange}
               onPageHeroUrlChange={onPageHeroUrlChange}

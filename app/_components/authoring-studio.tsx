@@ -98,6 +98,7 @@ export function AuthoringStudio() {
   const {
     canvasRef,
     dragState: _dragState,
+    dragThresholdRef,
     featureDragState,
     contentDragState,
     handleHotspotPointerDown,
@@ -270,6 +271,7 @@ export function AuthoringStudio() {
     onBlockImageUpload: handleBlockImageUpload,
     onBlockVariantChange: handleBlockVariantChange,
     onClose: () => setIsContentModalOpen(false),
+    onCreatePageWithConfig: handleCreatePageWithConfig,
     onDeleteRequest: () => setShowDeleteModal(true),
     onHeroUpload: handlePageHeroUpload,
     onHotspotPointerDown: handleHotspotPointerDown,
@@ -304,9 +306,11 @@ export function AuthoringStudio() {
     activePage: activePreviewPage,
     surfacePage: previewSurfacePage,
     canvasRef,
+    dragThresholdRef,
     contentDragState,
     featureDragState,
     hotspotPages,
+    pages,
     isLayoutEditMode,
     isMobileView,
     systemSettings,
@@ -331,7 +335,6 @@ export function AuthoringStudio() {
       <div className="flex min-h-screen">
         <div className="hidden h-screen w-[300px] shrink-0 overflow-hidden border-r border-neutral-200 bg-white lg:block">
           <PageSidebar
-            onCreatePageWithConfig={handleCreatePageWithConfig}
             onOpenPage={openPageEditor}
             onPublishStatusChange={handleSidebarPublishStatusChange}
             onSelectFeature={handleSidebarFeatureClick}

@@ -47,7 +47,7 @@ export function SurfaceTab({
       <button
         type="button"
         onClick={() => setPickerOpen(true)}
-        className="w-full rounded-2xl border border-dashed border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-600 hover:border-neutral-400 hover:bg-white"
+        className="w-full rounded-2xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
       >
         + Add canvas element
       </button>

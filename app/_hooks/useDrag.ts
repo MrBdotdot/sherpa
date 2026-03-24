@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { clamp, createHotspotPage, DEFAULT_HERO, HOME_PAGE_ID } from "@/app/_lib/authoring-utils";
 import { DragState, PageItem, PageButtonPlacement } from "@/app/_lib/authoring-types";
-import { constrainToEdgeBand } from "@/app/_lib/authoring-studio-utils";
 
 const SAFE_MARGIN = 10;
 
@@ -78,6 +77,7 @@ export function useDrag({
     page: PageItem
   ) => {
     event.stopPropagation();
+    if (!isLayoutEditMode) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -187,15 +187,6 @@ export function useDrag({
     const x = ((event.clientX - rect.left) / rect.width) * 100;
     const y = ((event.clientY - rect.top) / rect.height) * 100;
 
-    if (
-      x < SAFE_MARGIN ||
-      x > 100 - SAFE_MARGIN ||
-      y < SAFE_MARGIN ||
-      y > 100 - SAFE_MARGIN
-    ) {
-      return;
-    }
-
     pushPagesHistory();
     const newHotspot = createHotspotPage(
       hotspotPages.length + 1,
@@ -234,8 +225,8 @@ export function useDrag({
       const rect = canvas.getBoundingClientRect();
       const rawX = event.clientX - rect.left - dragState.pointerOffsetX;
       const rawY = event.clientY - rect.top - dragState.pointerOffsetY;
-      const x = clamp((rawX / rect.width) * 100, SAFE_MARGIN, 100 - SAFE_MARGIN);
-      const y = clamp((rawY / rect.height) * 100, SAFE_MARGIN, 100 - SAFE_MARGIN);
+      const x = clamp((rawX / rect.width) * 100, 0, 100);
+      const y = clamp((rawY / rect.height) * 100, 0, 100);
 
       dragThresholdRef.current = true;
 
@@ -281,16 +272,8 @@ export function useDrag({
       const rect = canvas.getBoundingClientRect();
       const rawX = event.clientX - rect.left - featureDragState.pointerOffsetX;
       const rawY = event.clientY - rect.top - featureDragState.pointerOffsetY;
-      const horizontalInset = (featureDragState.elementWidth / 2 / rect.width) * 100;
-      const verticalInset = (featureDragState.elementHeight / 2 / rect.height) * 100;
-      const edgePosition = constrainToEdgeBand(
-        (rawX / rect.width) * 100,
-        (rawY / rect.height) * 100,
-        horizontalInset,
-        verticalInset
-      );
-      const x = getSnappedValue(edgePosition.x);
-      const y = getSnappedValue(edgePosition.y);
+      const x = getSnappedValue(clamp((rawX / rect.width) * 100, 0, 100));
+      const y = getSnappedValue(clamp((rawY / rect.height) * 100, 0, 100));
 
       setPages((prev) =>
         prev.map((page) =>
@@ -372,6 +355,7 @@ export function useDrag({
   return {
     canvasRef,
     dragState,
+    dragThresholdRef,
     featureDragState,
     contentDragState,
     handleHotspotPointerDown,

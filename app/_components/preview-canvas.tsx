@@ -10,7 +10,6 @@ import {
   PageItem,
   SystemSettings,
 } from "@/app/_lib/authoring-types";
-import { PreviewBlocks } from "@/app/_components/canvas/preview-blocks";
 import { CanvasFeatureCard } from "@/app/_components/canvas/canvas-feature-card";
 import { ContentModule } from "@/app/_components/canvas/content-module";
 
@@ -29,9 +28,11 @@ type PreviewCanvasProps = {
   activePage: PageItem;
   surfacePage: PageItem;
   canvasRef?: React.RefObject<HTMLDivElement | null>;
+  dragThresholdRef?: React.RefObject<boolean>;
   contentDragState: ContentDragState | null;
   featureDragState: FeatureDragState | null;
   hotspotPages: PageItem[];
+  pages?: PageItem[];
   isLayoutEditMode: boolean;
   isMobileView: boolean;
   systemSettings: SystemSettings;
@@ -68,7 +69,6 @@ function isHotspotEmpty(page: PageItem): boolean {
 }
 
 const SNAP_LINES = [33.333, 50, 66.666];
-const SAFE_MARGIN = 10;
 
 function EmptySurfaceGuidance({
   featureCount,
@@ -150,9 +150,11 @@ export function PreviewCanvas({
   activePage,
   surfacePage,
   canvasRef,
+  dragThresholdRef,
   contentDragState,
   featureDragState,
   hotspotPages,
+  pages,
   isLayoutEditMode,
   isMobileView,
   isPreviewMode,
@@ -330,16 +332,7 @@ export function PreviewCanvas({
 
           {featureDragState || contentDragState ? (
             <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10">
-              <div
-                className="absolute border border-dashed border-white/35"
-                style={{
-                  left: `${SAFE_MARGIN}%`,
-                  top: `${SAFE_MARGIN}%`,
-                  right: `${SAFE_MARGIN}%`,
-                  bottom: `${SAFE_MARGIN}%`,
-                }}
-              />
-              {SNAP_LINES.map((line) => (
+{SNAP_LINES.map((line) => (
                 <div
                   key={`grid-v-${line}`}
                   className="absolute top-0 bottom-0 w-px bg-white/20"
@@ -436,7 +429,7 @@ export function PreviewCanvas({
                     onDragStart={(event) => event.preventDefault()}
                     onClick={(event) => {
                       event.stopPropagation();
-                      onSelectPage(page.id);
+                      if (!dragThresholdRef?.current) onSelectPage(page.id);
                     }}
                     className={`relative cursor-grab rounded-full border px-3 py-1.5 text-xs font-semibold shadow transition active:cursor-grabbing ${
                       isSelected
@@ -461,7 +454,7 @@ export function PreviewCanvas({
                     onDragStart={(event) => event.preventDefault()}
                     onClick={(event) => {
                       event.stopPropagation();
-                      onSelectPage(page.id);
+                      if (!dragThresholdRef?.current) onSelectPage(page.id);
                     }}
                     className="group flex flex-col items-center gap-1"
                     style={{ touchAction: "none" }}
@@ -505,6 +498,7 @@ export function PreviewCanvas({
             <ContentModule
               key={modulePage.id}
               page={modulePage}
+              pages={pages}
               isExiting={isModuleExiting}
               onExitEnd={handleModuleExitEnd}
               systemSettings={systemSettings}
@@ -512,6 +506,7 @@ export function PreviewCanvas({
               isLayoutEditMode={isLayoutEditMode}
               isPreviewMode={isPreviewMode}
               onDismissContent={onDismissContent}
+              onNavigate={onSelectPage}
               onContentCardPointerDown={onContentCardPointerDown}
             />
           ) : null}

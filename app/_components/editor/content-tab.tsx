@@ -87,6 +87,7 @@ export function ContentTab({
   onRemoveBlock,
   onRemoveSocialLink,
   onSocialLinkChange,
+  pages,
   selectedPage,
 }: {
   onAddBlock: (type: ContentBlockType) => void;
@@ -102,6 +103,7 @@ export function ContentTab({
   onRemoveBlock: (blockId: string) => void;
   onRemoveSocialLink: (socialId: string) => void;
   onSocialLinkChange: (socialId: string, field: "label" | "url", value: string) => void;
+  pages: PageItem[];
   selectedPage: PageItem;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -118,7 +120,7 @@ export function ContentTab({
       <button
         type="button"
         onClick={() => setPickerOpen(true)}
-        className="w-full rounded-2xl border border-dashed border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-600 hover:border-neutral-400 hover:bg-white"
+        className="w-full rounded-2xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
       >
         + Add content block
       </button>
@@ -201,6 +203,8 @@ export function ContentTab({
               index={index}
               isFirst={index === 0}
               isLast={index === selectedPage.blocks.length - 1}
+              pages={pages}
+              selectedPageId={selectedPage.id}
               onBlockChange={onBlockChange}
               onBlockFitChange={onBlockFitChange}
               onBlockImageUpload={onBlockImageUpload}

@@ -1,13 +1,73 @@
+"use client";
+
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { PageItem } from "@/app/_lib/authoring-types";
 
+// Pre-process ((label|pageId)) → [label](sherpa-link:pageId) for ReactMarkdown
+function processTextLinks(text: string): string {
+  return text.replace(/\(\(([^|)]+)\|([^)]+)\)\)/g, "[$1](sherpa-link:$2)");
+}
+
+// Render plain text with ((label|pageId)) as tappable inline buttons
+function InlineWithLinks({
+  text,
+  pages,
+  onNavigate,
+  accentColor,
+}: {
+  text: string;
+  pages: PageItem[];
+  onNavigate: (pageId: string) => void;
+  accentColor: string;
+}) {
+  const regex = /\(\(([^|)]+)\|([^)]+)\)\)/g;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match;
+  let key = 0;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    const label = match[1];
+    const pageId = match[2];
+    const exists = pages.some((p) => p.id === pageId);
+    if (exists) {
+      const color = accentColor || "#2563eb";
+      parts.push(
+        <button
+          key={key++}
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onNavigate(pageId); }}
+          className="inline cursor-pointer font-bold underline underline-offset-2"
+          style={{ color }}
+        >
+          {label}
+        </button>
+      );
+    } else {
+      parts.push(<span key={key++}>{label}</span>);
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  return <>{parts}</>;
+}
+
 export function PreviewBlocks({
   accentColor,
+  onNavigate,
   page,
+  pages,
 }: {
   accentColor: string;
+  onNavigate?: (pageId: string) => void;
   page: PageItem;
+  pages?: PageItem[];
 }) {
   const hasAnyContent =
     page.summary.trim().length > 0 ||
@@ -23,11 +83,23 @@ export function PreviewBlocks({
   }
 
   const dotColor = accentColor || "#171717";
+  const canLink = !!(onNavigate && pages);
 
   return (
     <div className="space-y-3">
       {page.summary.trim() ? (
-        <p className="text-sm leading-6 text-neutral-600">{page.summary}</p>
+        <p className="text-sm leading-6 text-neutral-600">
+          {canLink ? (
+            <InlineWithLinks
+              text={page.summary}
+              pages={pages!}
+              onNavigate={onNavigate!}
+              accentColor={accentColor}
+            />
+          ) : (
+            page.summary
+          )}
+        </p>
       ) : null}
 
       {page.blocks.map((block, blockIndex) => {
@@ -40,7 +112,35 @@ export function PreviewBlocks({
               className="rounded-xl bg-neutral-50 px-3 py-2 text-sm leading-6 text-neutral-700 prose prose-sm max-w-none prose-p:my-0 prose-headings:mb-1"
             >
               {block.value ? (
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{block.value}</ReactMarkdown>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  urlTransform={(url) => url}
+                  components={canLink ? {
+                    a: ({ href, children }) => {
+                      if (href?.startsWith("sherpa-link:")) {
+                        const pageId = href.slice("sherpa-link:".length);
+                        const exists = pages!.some((p) => p.id === pageId);
+                        if (exists) {
+                          const color = accentColor || "#2563eb";
+                          return (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); onNavigate!(pageId); }}
+                              className="cursor-pointer font-bold underline underline-offset-2"
+                              style={{ color }}
+                            >
+                              {children}
+                            </button>
+                          );
+                        }
+                        return <span>{children}</span>;
+                      }
+                      return <a href={href} target="_blank" rel="noreferrer">{children}</a>;
+                    },
+                  } : undefined}
+                >
+                  {canLink ? processTextLinks(block.value) : block.value}
+                </ReactMarkdown>
               ) : (
                 "Empty text block"
               )}
@@ -64,7 +164,14 @@ export function PreviewBlocks({
                     {i + 1}
                   </span>
                   <span className="text-sm leading-6 text-neutral-700">
-                    {item}
+                    {canLink ? (
+                      <InlineWithLinks
+                        text={item}
+                        pages={pages!}
+                        onNavigate={onNavigate!}
+                        accentColor={accentColor}
+                      />
+                    ) : item}
                   </span>
                 </li>
               ))}
@@ -103,7 +210,16 @@ export function PreviewBlocks({
               <span className="mt-0.5 shrink-0 text-[13px]">
                 {variantIcon[variant]}
               </span>
-              <span>{block.value || "Empty callout block"}</span>
+              <span>
+                {canLink ? (
+                  <InlineWithLinks
+                    text={block.value || "Empty callout block"}
+                    pages={pages!}
+                    onNavigate={onNavigate!}
+                    accentColor={accentColor}
+                  />
+                ) : (block.value || "Empty callout block")}
+              </span>
             </div>
           );
         }

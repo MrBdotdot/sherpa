@@ -30,6 +30,7 @@ export function getContainerExitClass(ctype: string): string {
 
 export type ContentModuleProps = {
   page: PageItem;
+  pages?: PageItem[];
   isExiting: boolean;
   onExitEnd: () => void;
   systemSettings: SystemSettings;
@@ -37,11 +38,13 @@ export type ContentModuleProps = {
   isLayoutEditMode: boolean;
   isPreviewMode: boolean;
   onDismissContent: () => void;
+  onNavigate?: (pageId: string) => void;
   onContentCardPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
 };
 
 export function ContentModule({
   page,
+  pages,
   isExiting,
   onExitEnd,
   systemSettings,
@@ -49,6 +52,7 @@ export function ContentModule({
   isLayoutEditMode,
   isPreviewMode,
   onDismissContent,
+  onNavigate,
   onContentCardPointerDown,
 }: ContentModuleProps) {
   const ctype = page.interactionType;
@@ -187,7 +191,7 @@ export function ContentModule({
       </div>
 
       <div className={`mt-3 ${mutedTextClass}`}>
-        <PreviewBlocks accentColor={accentColor} page={page} />
+        <PreviewBlocks accentColor={accentColor} onNavigate={onNavigate} page={page} pages={pages} />
       </div>
 
       {page.socialLinks.length > 0 || page.showQrCode ? (
@@ -241,40 +245,55 @@ export function ContentModule({
 
   // ── Full-page & side-sheet ─────────────────────────────────────
   if (ctype === "full-page" || ctype === "side-sheet") {
-    const moduleClass = ctype === "full-page"
-      ? `absolute inset-0 z-30 overflow-y-auto pt-0 pb-6 px-6 ${solidBg} ${fontThemeClass} ${animClass}`
-      : `absolute top-0 right-0 bottom-0 z-30 ${sideSheetWidth} max-w-[calc(100%-3rem)] overflow-y-auto rounded-l-2xl pt-3 pb-6 px-5 ${solidBg} border-l border-neutral-200 ${fontThemeClass} ${animClass}`;
+    if (ctype === "full-page") {
+      return (
+        <div
+          className={`absolute inset-0 z-30 flex flex-col ${solidBg} ${fontThemeClass} ${animClass}`}
+          style={{ ...tintStyle, ...pointerEventsStyle }}
+          onClick={(e) => e.stopPropagation()}
+          onAnimationEnd={handleAnimEnd}
+        >
+          <div className="shrink-0 px-6 pt-4 pb-2">
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onDismissContent(); }}
+              aria-label="Back"
+              className={backBtnClass}
+            >
+              <span aria-hidden="true">←</span> Back
+            </button>
+          </div>
+          <div className="flex flex-1 items-center justify-center overflow-y-auto px-6 pb-6">
+            <div className="w-full max-w-md py-4">
+              {isLayoutEditMode && !isExiting ? (
+                <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+                  <span>Content module</span>
+                </div>
+              ) : null}
+              {innerContent}
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div
-        className={moduleClass}
+        className={`absolute top-0 right-0 bottom-0 z-30 ${sideSheetWidth} max-w-[calc(100%-3rem)] overflow-y-auto rounded-l-2xl pt-3 pb-6 px-5 ${solidBg} border-l border-neutral-200 ${fontThemeClass} ${animClass}`}
         style={{ ...tintStyle, ...pointerEventsStyle }}
         onClick={(e) => e.stopPropagation()}
         onAnimationEnd={handleAnimEnd}
       >
-        {ctype === "full-page" ? (
-          <div className="sticky top-0 z-10 mb-4 flex pt-4">
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onDismissContent(); }}
-              aria-label="Back"
-              className={backBtnClass}
-            >
-              <span aria-hidden="true">←</span> Back
-            </button>
-          </div>
-        ) : (
-          <div className="mb-4 flex justify-end pt-2">
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onDismissContent(); }}
-              aria-label="Back"
-              className={backBtnClass}
-            >
-              <span aria-hidden="true">←</span> Back
-            </button>
-          </div>
-        )}
+        <div className="mb-4 flex justify-end pt-2">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onDismissContent(); }}
+            aria-label="Back"
+            className={backBtnClass}
+          >
+            <span aria-hidden="true">←</span> Back
+          </button>
+        </div>
         {isLayoutEditMode && !isExiting ? (
           <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
             <span>Content module</span>
