@@ -14,6 +14,7 @@ function hexToRgba(hex: string, opacity: number): string {
 
 function getContainerAnimClass(ctype: string): string {
   if (ctype === "side-sheet") return "container-side-sheet-in";
+  if (ctype === "bottom-sheet") return "container-bottom-sheet-in";
   if (ctype === "full-page") return "container-full-page-in";
   if (ctype === "tooltip") return "container-tooltip-in";
   if (ctype === "external-link") return "container-external-link-in";
@@ -22,6 +23,7 @@ function getContainerAnimClass(ctype: string): string {
 
 export function getContainerExitClass(ctype: string): string {
   if (ctype === "side-sheet") return "container-side-sheet-out";
+  if (ctype === "bottom-sheet") return "container-bottom-sheet-out";
   if (ctype === "full-page") return "container-full-page-out";
   if (ctype === "tooltip") return "container-tooltip-out";
   if (ctype === "external-link") return "container-external-link-out";
@@ -40,6 +42,8 @@ export type ContentModuleProps = {
   onDismissContent: () => void;
   onNavigate?: (pageId: string) => void;
   onContentCardPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
+  /** When true, fills the portrait content zone instead of positioning as a floating card */
+  portraitZone?: boolean;
 };
 
 export function ContentModule({
@@ -54,6 +58,7 @@ export function ContentModule({
   onDismissContent,
   onNavigate,
   onContentCardPointerDown,
+  portraitZone = false,
 }: ContentModuleProps) {
   const ctype = page.interactionType;
   const cardSize = page.cardSize ?? "medium";
@@ -64,7 +69,7 @@ export function ContentModule({
   const contentCardWidth =
     cardSize === "compact" ? "w-[360px]"
     : cardSize === "xl" ? "w-[660px]"
-    : cardSize === "large" ? "w-[70%] max-w-[1100px]"
+    : cardSize === "large" ? "w-[800px]"
     : "w-[520px]";
   const sideSheetWidth =
     cardSize === "compact" ? "w-[260px]" : cardSize === "large" ? "w-[480px]" : "w-[320px]";
@@ -100,7 +105,7 @@ export function ContentModule({
   // hotspot-preview-modal animation applies translate(-50%,-50%) which
   // completely breaks the edge-anchored positioning of these layouts.
   const entryClass =
-    ctype === "side-sheet" || ctype === "full-page"
+    ctype === "side-sheet" || ctype === "bottom-sheet" || ctype === "full-page"
       ? getContainerAnimClass(ctype)
       : isHotspotSelection
       ? "hotspot-preview-modal"
@@ -143,7 +148,7 @@ export function ContentModule({
             <span>Content module</span>
           </div>
         ) : null}
-        <div className={`w-[260px] rounded-2xl border px-4 py-4 text-center shadow-xl ${surfaceStyleClass} ${fontThemeClass}`}>
+        <div className={`w-[260px] max-w-[calc(100%-2rem)] rounded-2xl border px-4 py-4 text-center shadow-xl ${surfaceStyleClass} ${fontThemeClass}`}>
           <div className={`text-2xl ${contrastText}`}>↗</div>
           <div className={`mt-1.5 text-sm font-semibold ${contrastText}`}>
             {page.title || "External link"}
@@ -243,6 +248,58 @@ export function ContentModule({
     </>
   );
 
+  // ── Portrait content zone fill ─────────────────────────────────
+  // Fills the dedicated content zone at the top of the portrait split layout.
+  // Ignores the page's interactionType — content always fills the zone.
+  if (portraitZone) {
+    const portraitAnimClass = isExiting
+      ? "container-external-link-out"
+      : "container-external-link-in";
+    return (
+      <div
+        className={`absolute inset-0 z-10 overflow-y-auto px-5 py-5 ${solidBg} ${fontThemeClass} ${portraitAnimClass}`}
+        style={{ ...tintStyle, ...pointerEventsStyle }}
+        onClick={(e) => e.stopPropagation()}
+        onAnimationEnd={handleAnimEnd}
+      >
+        {innerContent}
+      </div>
+    );
+  }
+
+  // ── Bottom sheet ───────────────────────────────────────────────
+  if (ctype === "bottom-sheet") {
+    return (
+      <div
+        className={`absolute bottom-0 left-0 right-0 z-30 max-h-[65%] overflow-y-auto rounded-t-2xl border-t border-neutral-200 px-5 pb-6 pt-3 ${solidBg} ${fontThemeClass} ${animClass}`}
+        style={{ ...tintStyle, ...pointerEventsStyle }}
+        onClick={(e) => e.stopPropagation()}
+        onAnimationEnd={handleAnimEnd}
+      >
+        {/* Drag handle */}
+        <div className="mb-3 flex justify-center">
+          <div className={`h-1 w-10 rounded-full ${systemSettings.surfaceStyle === "contrast" ? "bg-white/20" : "bg-neutral-300"}`} />
+        </div>
+        <div className="mb-4 flex items-center justify-between">
+          {isLayoutEditMode && !isExiting ? (
+            <div className="inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+              <span>Content module</span>
+            </div>
+          ) : <div />}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onDismissContent(); }}
+            aria-label="Back"
+            className={backBtnClass}
+          >
+            <span aria-hidden="true">←</span> Back
+          </button>
+        </div>
+        {innerContent}
+      </div>
+    );
+  }
+
   // ── Full-page & side-sheet ─────────────────────────────────────
   if (ctype === "full-page" || ctype === "side-sheet") {
     if (ctype === "full-page") {
@@ -307,7 +364,7 @@ export function ContentModule({
   // ── Modal & tooltip ────────────────────────────────────────────
   const innerCardClass = ctype === "tooltip"
     ? `max-w-[220px] rounded-xl p-3 text-sm ${isContentDraggable ? "cursor-grab active:cursor-grabbing" : ""} ${fontThemeClass} ${surfaceStyleClass} ${animClass}`
-    : `rounded-2xl p-4 ${isContentDraggable ? "cursor-grab active:cursor-grabbing" : ""} ${contentCardWidth} max-w-[calc(100%-2rem)] ${fontThemeClass} ${surfaceStyleClass} ${animClass}`;
+    : `rounded-2xl p-4 ${isContentDraggable ? "cursor-grab active:cursor-grabbing" : ""} ${contentCardWidth} max-w-[calc(100%-2rem)] max-h-[80%] overflow-y-auto ${fontThemeClass} ${surfaceStyleClass} ${animClass}`;
 
   const wrapperStyle: React.CSSProperties = {
     left: `${page.contentX}%`,

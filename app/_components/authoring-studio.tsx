@@ -7,7 +7,7 @@ import { PageEditorModal } from "@/app/_components/page-editor-modal";
 import { PageSidebar } from "@/app/_components/page-sidebar";
 import { PreviewCanvas } from "@/app/_components/preview-canvas";
 import { createInitialPages, HOME_PAGE_ID } from "@/app/_lib/authoring-utils";
-import { PageItem, SystemSettings } from "@/app/_lib/authoring-types";
+import { LayoutMode, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 import {
   loadPersistedState,
   migrateLocaleFeature,
@@ -35,7 +35,7 @@ export function AuthoringStudio() {
     hotspotSize: "medium",
   });
   const [isLayoutEditMode, setIsLayoutEditMode] = useState(false);
-  const [isMobileView, setIsMobileView] = useState(false);
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>("desktop");
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [showLayoutHelp, setShowLayoutHelp] = useState(true);
   const [isContentModalOpen, setIsContentModalOpen] = useState(false);
@@ -97,6 +97,8 @@ export function AuthoringStudio() {
 
   const {
     canvasRef,
+    imageStripRef,
+    contentZoneRef,
     dragState: _dragState,
     dragThresholdRef,
     featureDragState,
@@ -123,6 +125,7 @@ export function AuthoringStudio() {
     showLayoutHelp,
     setShowLayoutHelp,
     homePage,
+    layoutMode,
   });
 
   const {
@@ -243,7 +246,7 @@ export function AuthoringStudio() {
         pagesRedoRef.current = [...pagesRedoRef.current.slice(-49), pages];
         setPages(prev);
       }
-      if ((event.ctrlKey || event.metaKey) && event.key === "z" && event.shiftKey) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z" && event.shiftKey) {
         const redoStack = pagesRedoRef.current;
         if (redoStack.length === 0) return;
         event.preventDefault();
@@ -294,6 +297,7 @@ export function AuthoringStudio() {
     onTitleChange: handleTitleChange,
     onContentTintChange: handleContentTintChange,
     onOpenPage: openPageEditor,
+    isPortraitMode: layoutMode === "mobile-portrait",
     selectedPage,
     selectedPageId,
     selectedFeatureId,
@@ -306,13 +310,15 @@ export function AuthoringStudio() {
     activePage: activePreviewPage,
     surfacePage: previewSurfacePage,
     canvasRef,
+    imageStripRef,
+    contentZoneRef,
     dragThresholdRef,
     contentDragState,
     featureDragState,
     hotspotPages,
     pages,
     isLayoutEditMode,
-    isMobileView,
+    layoutMode,
     systemSettings,
     showLayoutHelp,
     onCanvasClick: handleCanvasClick,
@@ -324,7 +330,7 @@ export function AuthoringStudio() {
     onHotspotPointerDown: handleHotspotPointerDown,
     onSelectPage: setSelectedPageId,
     onToggleLayoutEditMode: () => setIsLayoutEditMode((prev) => !prev),
-    onToggleMobileView: () => setIsMobileView((prev) => !prev),
+    onSetLayoutMode: setLayoutMode,
     onTogglePreviewMode: handleTogglePreviewMode,
     isPreviewMode,
     selectedPageId,
@@ -346,30 +352,39 @@ export function AuthoringStudio() {
 
         <section className="min-w-0 flex-1 bg-[#eef1f4] p-4 md:p-6 lg:h-screen lg:overflow-auto lg:p-8">
           <div className="mx-auto">
-            <div className="mb-4 flex items-center justify-between gap-3 lg:hidden">
-              <div>
-                <div className="text-sm font-semibold text-neutral-900">
-                  {selectedPage?.title || "Home"}
-                </div>
-                <div className="text-xs text-neutral-500">Content panel</div>
-              </div>
+            <div className="mb-4 flex items-center gap-2 xl:hidden">
+              <select
+                value={selectedPageId}
+                onChange={(e) => {
+                  setSelectedPageId(e.target.value);
+                  setIsContentModalOpen(false);
+                }}
+                aria-label="Navigate to page"
+                className="min-w-0 flex-1 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-900 outline-none focus:border-black"
+              >
+                {pages.map((page) => (
+                  <option key={page.id} value={page.id}>
+                    {page.kind === "home" ? "Home" : page.title || "Untitled"}
+                  </option>
+                ))}
+              </select>
               <button
                 type="button"
                 onClick={() => setIsContentModalOpen(true)}
-                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-800 shadow-sm hover:bg-neutral-50"
+                className="shrink-0 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-800 shadow-sm hover:bg-neutral-50"
               >
-                Open content panel
+                Inspect
               </button>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[minmax(760px,1fr)_380px] lg:items-start">
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px] xl:items-start">
               <div className="min-w-0">
-                <div className="rounded-[28px] border border-white/70 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+                <div className="rounded-[28px] border border-white/70 bg-white p-2 sm:p-4 md:p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
                   <PreviewCanvas {...sharedCanvasProps} />
                 </div>
               </div>
 
-              <div className="hidden lg:sticky lg:top-0 lg:block lg:h-screen">
+              <div className="hidden xl:sticky xl:top-0 xl:block xl:h-screen">
                 <div className="flex h-full flex-col overflow-hidden border-l border-neutral-200 bg-[#f7f7f8]">
                   <div className="border-b border-neutral-200 px-5 py-4">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
@@ -393,11 +408,12 @@ export function AuthoringStudio() {
         </section>
       </div>
 
-      {/* Mobile editor overlay */}
-      <div className="lg:hidden">
+      {/* Mobile/tablet editor overlay — hidden at xl where the sticky inspector takes over */}
+      <div className="xl:hidden">
         <PageEditorModal
           {...sharedEditorProps}
           isOpen={isContentModalOpen}
+          showPreview={false}
         />
       </div>
 

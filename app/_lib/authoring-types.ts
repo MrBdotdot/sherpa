@@ -1,9 +1,11 @@
 export type PageKind = "home" | "page" | "hotspot";
+export type LayoutMode = "desktop" | "mobile-landscape" | "mobile-portrait";
 export type ContentBlockType = "text" | "image" | "video" | "steps" | "callout";
 export type PageButtonPlacement = "top" | "bottom" | "left" | "right" | "stack";
 export type InteractionType =
   | "modal"
   | "side-sheet"
+  | "bottom-sheet"
   | "tooltip"
   | "full-page"
   | "external-link";
@@ -33,6 +35,7 @@ export type DisplayStyleKey =
   | "wide-card"
   | "side-sheet"
   | "wide-side-sheet"
+  | "bottom-sheet"
   | "full-screen"
   | "external-link";
 
@@ -61,8 +64,15 @@ export type CanvasFeature = {
   imageUrl: string;
   optionsText: string;
   logoSize?: number;
+  qrSize?: number;
+  qrBgColor?: string;
+  qrBgOpacity?: number;
   x: number;
   y: number;
+  mobileX?: number;
+  mobileY?: number;
+  /** In portrait mode, "content" renders in the content zone; undefined renders in the image strip */
+  portraitZone?: "content";
 };
 
 export type PageItem = {
@@ -73,8 +83,12 @@ export type PageItem = {
   heroImage: string;
   x: number | null;
   y: number | null;
+  mobileX?: number | null;
+  mobileY?: number | null;
   contentX: number;
   contentY: number;
+  mobileContentX?: number;
+  mobileContentY?: number;
   blocks: ContentBlock[];
   socialLinks: SocialLink[];
   publicUrl: string;
@@ -100,6 +114,12 @@ export type SystemSettings = {
   surfaceStyle: "glass" | "solid" | "contrast";
   accentColor: string;
   hotspotSize: "small" | "medium" | "large";
+  introScreen?: {
+    enabled: boolean;
+    youtubeUrl: string;
+  };
+  portraitSplitRatio?: number;  // % of canvas height for image strip (default 55, range 40–75)
+  portraitBackground?: string;  // CSS color for the content zone (default "#1a1a2e")
 };
 
 export type PageTemplate = {

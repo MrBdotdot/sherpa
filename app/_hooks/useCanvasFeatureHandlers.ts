@@ -37,14 +37,26 @@ export function useCanvasFeatureHandlers({
 
   const handleCanvasFeatureChange = (
     featureId: string,
-    field: "label" | "description" | "linkUrl" | "imageUrl" | "optionsText" | "logoSize",
+    field: "label" | "description" | "linkUrl" | "imageUrl" | "optionsText" | "logoSize" | "qrSize" | "qrBgColor" | "qrBgOpacity" | "portraitZone",
     value: string
   ) => {
     updateSelectedPage((page) => ({
       ...page,
       canvasFeatures: page.canvasFeatures.map((feature) =>
         feature.id === featureId
-          ? { ...feature, [field]: field === "logoSize" ? parseInt(value, 10) : value }
+          ? {
+              ...feature,
+              [field]:
+                field === "logoSize" || field === "qrSize"
+                  ? parseInt(value, 10)
+                  : field === "qrBgOpacity"
+                  ? parseFloat(value)
+                  : field === "qrBgColor"
+                  ? (value || undefined)
+                  : field === "portraitZone"
+                  ? (value === "content" ? "content" : undefined)
+                  : value,
+            }
           : feature
       ),
     }));

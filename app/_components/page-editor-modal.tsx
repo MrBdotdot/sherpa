@@ -32,9 +32,10 @@ type PageEditorModalProps = {
   onAddCanvasFeature: (type: CanvasFeatureType) => void;
   onAddBlock: (type: ContentBlockType) => void;
   onAddSocialLink: () => void;
+  isPortraitMode?: boolean;
   onCanvasFeatureChange: (
     featureId: string,
-    field: "label" | "description" | "linkUrl" | "imageUrl" | "optionsText" | "logoSize",
+    field: "label" | "description" | "linkUrl" | "imageUrl" | "optionsText" | "logoSize" | "qrSize" | "qrBgColor" | "qrBgOpacity" | "portraitZone",
     value: string
   ) => void;
   onCanvasFeatureImageUpload: (
@@ -133,6 +134,7 @@ export function PageEditorModal({
   onSocialLinkChange,
   onSystemSettingChange,
   onTitleChange,
+  isPortraitMode,
   onOpenPage,
   selectedFeatureId,
   selectedPage,
@@ -152,6 +154,11 @@ export function PageEditorModal({
   const titleId = `editor-title-${selectedPage.id}`;
   const surfaceBadge = selectedPage.canvasFeatures.length;
   const contentBadge = selectedPage.blocks.length + selectedPage.socialLinks.length;
+  const visibleTabs: InspectorTab[] =
+    selectedPage.kind === "home" ? ["surface", "setup"] : ["surface", "content", "setup"];
+  // If the home page is selected and the content tab is somehow active, fall back to surface
+  const activeTab: InspectorTab =
+    selectedPage.kind === "home" && inspectorTab === "content" ? "surface" : inspectorTab;
 
   const panelContent = (
     <div
@@ -212,7 +219,7 @@ export function PageEditorModal({
       {/* Tabs */}
       <div className={`border-b border-neutral-200 px-5 py-3 ${isOverlay ? "bg-white" : "bg-[#f7f7f8]"}`}>
         <div role="tablist" aria-label="Inspector tabs" className="inline-flex rounded-2xl border border-neutral-200 bg-white p-1">
-          {(["surface", "content", "setup"] as const).map((tab) => {
+          {visibleTabs.map((tab) => {
             const badge = tab === "surface" ? surfaceBadge : tab === "content" ? contentBadge : 0;
             const panelId = `inspector-panel-${tab}`;
             return (
@@ -220,12 +227,12 @@ export function PageEditorModal({
                 key={tab}
                 role="tab"
                 id={`inspector-tab-${tab}`}
-                aria-selected={inspectorTab === tab}
+                aria-selected={activeTab === tab}
                 aria-controls={panelId}
                 type="button"
                 onClick={() => onInspectorTabChange(tab)}
                 className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium transition ${
-                  inspectorTab === tab
+                  activeTab === tab
                     ? "bg-neutral-900 text-white shadow-sm"
                     : "text-neutral-600 hover:bg-neutral-100"
                 }`}
@@ -254,13 +261,13 @@ export function PageEditorModal({
         <div
           key={selectedPage.id}
           role="tabpanel"
-          id={`inspector-panel-${inspectorTab}`}
-          aria-labelledby={`inspector-tab-${inspectorTab}`}
+          id={`inspector-panel-${activeTab}`}
+          aria-labelledby={`inspector-tab-${activeTab}`}
           className={`min-h-0 overflow-y-auto inspector-content-in ${
             isOverlay ? "bg-neutral-50" : "bg-[#f7f7f8]"
           } ${showPreview ? "border-r border-neutral-200" : ""}`}
         >
-          {inspectorTab === "surface" ? (
+          {activeTab === "surface" ? (
             <SurfaceTab
               onAddCanvasFeature={onAddCanvasFeature}
               onCanvasFeatureChange={onCanvasFeatureChange}
@@ -270,8 +277,9 @@ export function PageEditorModal({
               pages={pages}
               selectedFeatureId={selectedFeatureId}
               selectedPage={selectedPage}
+              isPortraitMode={isPortraitMode}
             />
-          ) : inspectorTab === "content" ? (
+          ) : activeTab === "content" ? (
             <ContentTab
               onContentTintChange={onContentTintChange}
               onAddBlock={onAddBlock}
@@ -314,7 +322,7 @@ export function PageEditorModal({
                 featureDragState={null}
                 hotspotPages={hotspotPages}
                 isLayoutEditMode={false}
-                isMobileView={false}
+                layoutMode="desktop"
                 systemSettings={systemSettings}
                 showLayoutHelp={false}
                 isPreviewMode={false}
@@ -327,7 +335,7 @@ export function PageEditorModal({
                 onHotspotPointerDown={onHotspotPointerDown}
                 onSelectPage={onSelectPage}
                 onToggleLayoutEditMode={() => {}}
-                onToggleMobileView={() => {}}
+                onSetLayoutMode={() => {}}
                 onTogglePreviewMode={() => {}}
                 selectedPageId={selectedPageId}
               />

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { clamp, createHotspotPage, DEFAULT_HERO, HOME_PAGE_ID } from "@/app/_lib/authoring-utils";
-import { DragState, PageItem, PageButtonPlacement } from "@/app/_lib/authoring-types";
+import { DragState, LayoutMode, PageItem, PageButtonPlacement } from "@/app/_lib/authoring-types";
 
 const SAFE_MARGIN = 10;
 
@@ -14,6 +14,7 @@ type FeatureDragState = {
   pointerOffsetY: number;
   elementWidth: number;
   elementHeight: number;
+  isContentZone?: boolean;
 };
 
 type ContentDragState = {
@@ -39,6 +40,7 @@ interface UseDragProps {
   showLayoutHelp: boolean;
   setShowLayoutHelp: (v: boolean) => void;
   homePage: PageItem | undefined;
+  layoutMode: LayoutMode;
 }
 
 // Note: showLayoutHelp, setShowLayoutHelp, setSelectedFeatureId, and homePage are accepted
@@ -60,9 +62,24 @@ export function useDrag({
   showLayoutHelp,
   setShowLayoutHelp,
   homePage,
+  layoutMode,
 }: UseDragProps) {
+  const isPortraitMode = layoutMode === "mobile-portrait";
   const canvasRef = useRef<HTMLDivElement | null>(null);
+  const imageStripRef = useRef<HTMLDivElement | null>(null);
+  const contentZoneRef = useRef<HTMLDivElement | null>(null);
   const dragThresholdRef = useRef(false);
+
+  // In portrait mode, hotspot drag coordinates are relative to the image strip.
+  // Feature drag uses the zone the feature currently lives in.
+  const getCoordEl = () =>
+    isPortraitMode && imageStripRef.current ? imageStripRef.current : canvasRef.current;
+  const getFeatureCoordEl = (isContentZone?: boolean) => {
+    if (!isPortraitMode) return canvasRef.current;
+    return isContentZone
+      ? (contentZoneRef.current ?? canvasRef.current)
+      : (imageStripRef.current ?? canvasRef.current);
+  };
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [featureDragState, setFeatureDragState] = useState<FeatureDragState | null>(null);
   const [contentDragState, setContentDragState] = useState<ContentDragState | null>(null);
@@ -79,15 +96,14 @@ export function useDrag({
     event.stopPropagation();
     if (!isLayoutEditMode) return;
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
     event.currentTarget.setPointerCapture(event.pointerId);
 
-    const rect = canvas.getBoundingClientRect();
+    const activeEl = getCoordEl();
+    if (!activeEl) return;
+    const rect = activeEl.getBoundingClientRect();
 
-    let startX = page.x;
-    let startY = page.y;
+    let startX = isPortraitMode ? (page.mobileX ?? page.x) : page.x;
+    let startY = isPortraitMode ? (page.mobileY ?? page.y) : page.y;
     if (startX === null || startY === null) {
       const placementInit: Record<PageButtonPlacement, [number, number]> = {
         top: [50, 10],
@@ -122,16 +138,20 @@ export function useDrag({
     event.stopPropagation();
     if (!isLayoutEditMode) return;
 
-    const canvas = canvasRef.current;
     const feature = selectedPage?.canvasFeatures.find((item) => item.id === featureId);
-    if (!canvas || !feature) return;
+    if (!feature) return;
+    const isContentZone = isPortraitMode && feature.portraitZone === "content";
+    const activeEl = getFeatureCoordEl(isContentZone);
+    if (!activeEl) return;
 
     event.currentTarget.setPointerCapture(event.pointerId);
 
-    const rect = canvas.getBoundingClientRect();
+    const rect = activeEl.getBoundingClientRect();
     const featureRect = event.currentTarget.getBoundingClientRect();
-    const featurePixelX = (feature.x / 100) * rect.width;
-    const featurePixelY = (feature.y / 100) * rect.height;
+    const effectiveFx = isPortraitMode ? (feature.mobileX ?? feature.x) : feature.x;
+    const effectiveFy = isPortraitMode ? (feature.mobileY ?? feature.y) : feature.y;
+    const featurePixelX = (effectiveFx / 100) * rect.width;
+    const featurePixelY = (effectiveFy / 100) * rect.height;
 
     setFeatureDragState({
       id: featureId,
@@ -139,12 +159,15 @@ export function useDrag({
       pointerOffsetY: event.clientY - (rect.top + featurePixelY),
       elementWidth: featureRect.width,
       elementHeight: featureRect.height,
+      isContentZone,
     });
   };
 
   const handleContentCardPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     event.stopPropagation();
     if (!isLayoutEditMode) return;
+    // Content fills the portrait zone — no positional drag in portrait mode
+    if (isPortraitMode) return;
 
     const canvas = canvasRef.current;
     const page = selectedPage;
@@ -154,8 +177,10 @@ export function useDrag({
 
     const rect = canvas.getBoundingClientRect();
     const contentRect = event.currentTarget.getBoundingClientRect();
-    const contentPixelX = (page.contentX / 100) * rect.width;
-    const contentPixelY = (page.contentY / 100) * rect.height;
+    const effectiveCx = isPortraitMode ? (page.mobileContentX ?? page.contentX) : page.contentX;
+    const effectiveCy = isPortraitMode ? (page.mobileContentY ?? page.contentY) : page.contentY;
+    const contentPixelX = (effectiveCx / 100) * rect.width;
+    const contentPixelY = (effectiveCy / 100) * rect.height;
 
     setContentDragState({
       pointerOffsetX: event.clientX - (rect.left + contentPixelX),
@@ -195,6 +220,10 @@ export function useDrag({
 
     newHotspot.x = x;
     newHotspot.y = y;
+    if (isPortraitMode) {
+      newHotspot.mobileX = x;
+      newHotspot.mobileY = y;
+    }
 
     setPages((prev) => [...prev, newHotspot]);
     setSelectedPageId(newHotspot.id);
@@ -219,10 +248,10 @@ export function useDrag({
     if (!dragState) return;
 
     const handlePointerMove = (event: PointerEvent) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+      const el = getCoordEl();
+      if (!el) return;
 
-      const rect = canvas.getBoundingClientRect();
+      const rect = el.getBoundingClientRect();
       const rawX = event.clientX - rect.left - dragState.pointerOffsetX;
       const rawY = event.clientY - rect.top - dragState.pointerOffsetY;
       const x = clamp((rawX / rect.width) * 100, 0, 100);
@@ -232,7 +261,11 @@ export function useDrag({
 
       setPages((prev) =>
         prev.map((page) =>
-          page.id === dragState.id ? { ...page, x, y } : page
+          page.id === dragState.id
+            ? isPortraitMode
+              ? { ...page, mobileX: x, mobileY: y }
+              : { ...page, x, y }
+            : page
         )
       );
     };
@@ -266,10 +299,10 @@ export function useDrag({
     };
 
     const handlePointerMove = (event: PointerEvent) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+      const el = getFeatureCoordEl(featureDragState.isContentZone);
+      if (!el) return;
 
-      const rect = canvas.getBoundingClientRect();
+      const rect = el.getBoundingClientRect();
       const rawX = event.clientX - rect.left - featureDragState.pointerOffsetX;
       const rawY = event.clientY - rect.top - featureDragState.pointerOffsetY;
       const x = getSnappedValue(clamp((rawX / rect.width) * 100, 0, 100));
@@ -281,7 +314,11 @@ export function useDrag({
             ? {
                 ...page,
                 canvasFeatures: page.canvasFeatures.map((feature) =>
-                  feature.id === featureDragState.id ? { ...feature, x, y } : feature
+                  feature.id === featureDragState.id
+                    ? isPortraitMode
+                      ? { ...feature, mobileX: x, mobileY: y }
+                      : { ...feature, x, y }
+                    : feature
                 ),
               }
             : page
@@ -334,7 +371,11 @@ export function useDrag({
 
       setPages((prev) =>
         prev.map((page) =>
-          page.id === selectedPageId ? { ...page, contentX, contentY } : page
+          page.id === selectedPageId
+            ? isPortraitMode
+              ? { ...page, mobileContentX: contentX, mobileContentY: contentY }
+              : { ...page, contentX, contentY }
+            : page
         )
       );
     };
@@ -354,6 +395,8 @@ export function useDrag({
 
   return {
     canvasRef,
+    imageStripRef,
+    contentZoneRef,
     dragState,
     dragThresholdRef,
     featureDragState,

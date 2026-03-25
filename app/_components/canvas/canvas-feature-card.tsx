@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { CanvasFeature } from "@/app/_lib/authoring-types";
 
 function LogoFeatureCard({
@@ -24,7 +24,7 @@ function LogoFeatureCard({
   if (!feature.imageUrl) {
     return (
       <div className="w-[180px] rounded-xl border border-dashed border-neutral-300 bg-white/90 p-3 shadow-sm">
-        <div className="text-xs font-semibold text-neutral-900">{feature.label}</div>
+        <div className="truncate text-xs font-semibold text-neutral-900">{feature.label}</div>
         <div className="mt-2 rounded-lg border border-dashed border-neutral-300 px-3 py-3 text-[11px] text-neutral-400">
           Upload logo image
         </div>
@@ -66,14 +66,14 @@ function LogoFeatureCard({
                 key={i}
                 type="button"
                 role="menuitem"
-                className="w-full cursor-pointer rounded-lg px-2 py-1.5 text-left text-xs font-medium hover:bg-black/5"
+                className="w-full cursor-pointer truncate rounded-lg px-2 py-1.5 text-left text-xs font-medium hover:bg-black/5"
               >
                 {label}
               </button>
             );
           })}
           {subtext ? (
-            <div className="mt-1 border-t border-neutral-200 px-2 pt-2 text-[10px] leading-4 text-neutral-400">
+            <div className="mt-1 line-clamp-2 border-t border-neutral-200 px-2 pt-2 text-[10px] leading-4 text-neutral-400">
               {subtext}
             </div>
           ) : null}
@@ -112,11 +112,11 @@ function LocaleFeatureCard({
         aria-haspopup="listbox"
         aria-controls={menuId}
         aria-label={`Language: ${active}`}
-        className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm transition ${surfaceStyleClass}`}
+        className={`flex max-w-[140px] items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm transition ${surfaceStyleClass}`}
       >
         <span aria-hidden="true">🌐</span>
-        <span>{active}</span>
-        <span aria-hidden="true" className="opacity-50">▾</span>
+        <span className="truncate">{active}</span>
+        <span aria-hidden="true" className="shrink-0 opacity-50">▾</span>
       </button>
       {open ? (
         <ul
@@ -132,8 +132,8 @@ function LocaleFeatureCard({
                 onClick={() => { setActive(code); setOpen(false); }}
                 className={`flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-xs font-medium transition hover:bg-black/5 ${active === code ? "font-semibold" : ""}`}
               >
-                <span>{display}</span>
-                <span className="opacity-50">{code}</span>
+                <span className="truncate">{display}</span>
+                <span className="shrink-0 opacity-50">{code}</span>
               </button>
             </li>
           )) : (
@@ -155,23 +155,29 @@ export function CanvasFeatureCard({
   surfaceStyleClass: string;
 }) {
   if (feature.type === "qr") {
-    const showBg = feature.description === "bg";
-    const borderStyle = showBg && accentColor
-      ? { borderColor: accentColor, borderWidth: 4, borderRadius: 8 }
-      : showBg
-        ? { borderColor: "#e5e7eb", borderWidth: 4, borderRadius: 8 }
-        : {};
+    const qrSize = feature.qrSize ?? 120;
+    let bgStyle: React.CSSProperties = {};
+    if (feature.qrBgColor) {
+      const hex = feature.qrBgColor.replace("#", "");
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      const a = feature.qrBgOpacity ?? 1;
+      bgStyle = { backgroundColor: `rgba(${r}, ${g}, ${b}, ${a})` };
+    }
     return (
-      <div className={`w-[180px] rounded-xl border p-3 shadow-lg ${surfaceStyleClass}`}>
+      <div
+        className={`rounded-xl border p-0.5 shadow-lg ${surfaceStyleClass}`}
+        style={{ width: qrSize + 4, ...bgStyle }}
+      >
         {feature.label ? (
-          <div className="mb-2 text-xs font-semibold">{feature.label}</div>
+          <div className="mb-0.5 truncate text-center text-xs font-semibold">{feature.label}</div>
         ) : null}
         {feature.imageUrl ? (
           <img
             src={feature.imageUrl}
             alt="QR code"
             className="w-full rounded-md object-contain"
-            style={borderStyle}
           />
         ) : (
           <div className="rounded-md border border-dashed border-neutral-300 px-3 py-6 text-center text-[11px] text-neutral-400">
@@ -199,13 +205,13 @@ export function CanvasFeatureCard({
     return (
       <div className="max-w-[240px]">
         <div
-          className="text-xl font-bold leading-tight drop-shadow-sm"
+          className="line-clamp-2 text-xl font-bold leading-tight drop-shadow-sm"
           style={accentColor ? { color: accentColor } : { color: "#0a0a0a" }}
         >
           {feature.label || "Heading"}
         </div>
         {feature.description ? (
-          <div className="mt-1 text-sm leading-5 text-white drop-shadow-sm">
+          <div className="mt-1 line-clamp-2 text-sm leading-5 text-white drop-shadow-sm">
             {feature.description}
           </div>
         ) : null}
@@ -217,7 +223,7 @@ export function CanvasFeatureCard({
                 <li key={link}>
                   <button
                     type="button"
-                    className="w-full rounded-lg px-2 py-1.5 text-left text-xs font-medium hover:bg-black/5"
+                    className="w-full truncate rounded-lg px-2 py-1.5 text-left text-xs font-medium hover:bg-black/5"
                   >
                     {label}
                   </button>
@@ -234,7 +240,7 @@ export function CanvasFeatureCard({
     return (
       <button
         type="button"
-        className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-900 shadow-lg hover:bg-neutral-50"
+        className="max-w-[200px] truncate rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-900 shadow-lg hover:bg-neutral-50"
         style={accentColor ? { borderColor: accentColor, color: accentColor } : {}}
       >
         {feature.label}
@@ -250,7 +256,7 @@ export function CanvasFeatureCard({
 
     return (
       <div className={`w-[200px] rounded-xl border p-3 shadow-lg ${surfaceStyleClass}`}>
-        <div id={`dropdown-label-${feature.id}`} className="text-xs font-semibold">{feature.label}</div>
+        <div id={`dropdown-label-${feature.id}`} className="truncate text-xs font-semibold">{feature.label}</div>
         <select
           aria-labelledby={`dropdown-label-${feature.id}`}
           className="mt-2 w-full rounded-lg border border-neutral-300 bg-white px-2 py-2 text-xs text-neutral-700"
@@ -273,7 +279,7 @@ export function CanvasFeatureCard({
     return (
       <button
         type="button"
-        className="rounded-full border border-neutral-300 bg-white px-3 py-2 text-xs font-medium shadow-sm transition hover:bg-neutral-50"
+        className="max-w-[200px] truncate rounded-full border border-neutral-300 bg-white px-3 py-2 text-xs font-medium shadow-sm transition hover:bg-neutral-50"
         style={accentColor ? { borderColor: accentColor, color: accentColor } : {}}
       >
         {feature.label || "Page"}
@@ -284,7 +290,7 @@ export function CanvasFeatureCard({
   // disclaimer
   return (
     <div className="max-w-[220px] rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
-      <div className="text-[11px] italic leading-5 text-neutral-500">{feature.description || feature.label}</div>
+      <div className="line-clamp-3 text-[11px] italic leading-5 text-neutral-500">{feature.description || feature.label}</div>
     </div>
   );
 }

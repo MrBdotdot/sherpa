@@ -13,7 +13,7 @@ import {
   TemplateId,
 } from "@/app/_lib/authoring-types";
 
-export const APP_VERSION = "v0.6.0";
+export const APP_VERSION = "v0.8.4";
 
 export type PatchNote = {
   version: string;
@@ -22,6 +22,101 @@ export type PatchNote = {
 };
 
 export const PATCH_NOTES: PatchNote[] = [
+  {
+    version: "v0.8.4",
+    date: "2026-03-24",
+    changes: [
+      "QR code background color replaced border color — set any hex color with adjustable opacity",
+      "QR code card padding reduced by half for a tighter, less bulky appearance",
+    ],
+  },
+  {
+    version: "v0.8.3",
+    date: "2026-03-24",
+    changes: [
+      "QR code canvas element now has a size slider (60–240px) to control both the image and container width",
+      "QR code label is now centered below the image",
+      "Background border replaced with a border color picker — set any hex color or clear to remove the border",
+    ],
+  },
+  {
+    version: "v0.8.2",
+    date: "2026-03-24",
+    changes: [
+      "Canvas elements can now be assigned to the portrait content zone via zone toggle in the Surface inspector",
+      "Content zone features render above ContentModule (z-20) and are draggable within the content zone in layout edit mode",
+      "Image strip now only renders features assigned to the strip (not content zone features)",
+    ],
+  },
+  {
+    version: "v0.8.1",
+    date: "2026-03-24",
+    changes: [
+      "Portrait mode now renders a split canvas: content zone (top) + image strip with hotspots (bottom) — keeps tappable controls in thumb reach",
+      "ContentModule fills the portrait content zone instead of floating as an overlay card",
+      "Portrait split ratio is adjustable (35–75%) via Setup tab — defaults to 55% image strip",
+      "Portrait content zone background is configurable via Setup tab — defaults to #1a1a2e",
+      "Drag and hotspot creation coordinates in portrait are relative to the image strip, not the full canvas",
+    ],
+  },
+  {
+    version: "v0.8.0",
+    date: "2026-03-24",
+    changes: [
+      "Added dual-layout authoring: hotspots, canvas features, and content card positions can now be set independently for Desktop/Landscape and Portrait orientations",
+      "Canvas toolbar now shows a centered 3-way segmented toggle: Desktop, Landscape, Portrait — replaces the single Mobile toggle button",
+      "Portrait mode uses mobile-specific coordinates (mobileX/Y, mobileContentX/Y) with automatic fallback to desktop positions until manually adjusted",
+      "New hotspots created in portrait mode are seeded with the same position in both coordinate sets so nothing starts out of place",
+    ],
+  },
+  {
+    version: "v0.7.4",
+    date: "2026-03-24",
+    changes: [
+      "Fixed layout overflow at 1024px — canvas+inspector grid now activates at 1280px (xl) where there is enough room, preventing horizontal scroll on laptops",
+      "Added page navigation to mobile/tablet header — a select dropdown lets you switch between all pages without needing the sidebar",
+      "Inspector overlay on mobile no longer shows a redundant preview canvas inside the modal",
+      "Canvas wrapper padding reduced on small screens (8px/16px on mobile, 20px on md+) to reclaim usable canvas space",
+    ],
+  },
+  {
+    version: "v0.7.3",
+    date: "2026-03-24",
+    changes: [
+      "Modal panels now cap at 80% of canvas height and scroll internally — tall content no longer overflows the canvas on small screens",
+      "External link card now has a max-width cap to match all other form factors",
+    ],
+  },
+  {
+    version: "v0.7.2",
+    date: "2026-03-24",
+    changes: [
+      "New form factor: Bottom sheet — full-width panel that slides up from the bottom edge",
+      "Bottom sheet has a drag-handle pill, scrollable content area (capped at 65% of canvas height), and rounded top corners",
+      "Available in the display style picker for all container types",
+    ],
+  },
+  {
+    version: "v0.7.1",
+    date: "2026-03-24",
+    changes: [
+      "Fixed 'Extra wide' panel width — was using 70% of canvas (narrower than Large at 660px at typical sizes), now fixed at 800px",
+      "Renamed modal display styles to a clear size scale: Compact (360px) → Standard (520px) → Large (660px) → Extra wide (800px)",
+      "Renamed 'Side sheet' → 'Side panel' and 'Wide side sheet' → 'Wide side panel' for consistency",
+      "Display style descriptions now include pixel widths for reference",
+    ],
+  },
+  {
+    version: "v0.7.0",
+    date: "2026-03-24",
+    changes: [
+      "Intro screen: paste a YouTube URL to play a full-screen cover video before the experience opens",
+      "Black cover hides YouTube's loading UI and fades out when the video starts playing",
+      "'Tap anywhere to start' prompt at the bottom of the intro screen",
+      "Experience assets (images, videos) preload silently in the background during the intro",
+      "Intro screen can be enabled or disabled from the Setup tab — Global section",
+    ],
+  },
   {
     version: "v0.6.0",
     date: "2026-03-23",
@@ -485,6 +580,8 @@ export function getInteractionTypeLabel(interactionType: InteractionType) {
       return "Modal";
     case "side-sheet":
       return "Side sheet";
+    case "bottom-sheet":
+      return "Bottom sheet";
     case "tooltip":
       return "Tooltip";
     case "full-page":
@@ -539,12 +636,13 @@ export type DisplayStyleOption = { key: DisplayStyleKey; label: string; descript
 
 export const DISPLAY_STYLE_OPTIONS: DisplayStyleOption[] = [
   { key: "tooltip", label: "Tooltip", description: "Small pop-up attached to a hotspot" },
-  { key: "compact-card", label: "Compact card", description: "Small centered modal" },
-  { key: "card", label: "Card", description: "Medium centered modal" },
-  { key: "large-card", label: "Large card", description: "Wide centered modal" },
-  { key: "wide-card", label: "Wide card", description: "Extra-wide centered modal" },
-  { key: "side-sheet", label: "Side sheet", description: "Panel that slides in from the side" },
-  { key: "wide-side-sheet", label: "Wide side sheet", description: "Wider side panel" },
+  { key: "compact-card", label: "Compact", description: "Small centered panel — 360px" },
+  { key: "card", label: "Standard", description: "Medium centered panel — 520px" },
+  { key: "large-card", label: "Large", description: "Wide centered panel — 660px" },
+  { key: "wide-card", label: "Extra wide", description: "Extra-wide centered panel — 800px" },
+  { key: "side-sheet", label: "Side panel", description: "Narrow panel from the right edge — 320px" },
+  { key: "wide-side-sheet", label: "Wide side panel", description: "Wide panel from the right edge — 480px" },
+  { key: "bottom-sheet", label: "Bottom sheet", description: "Full-width panel that slides up from the bottom" },
   { key: "full-screen", label: "Full screen", description: "Covers the entire canvas" },
   { key: "external-link", label: "External link", description: "Opens a URL outside the app" },
 ];
@@ -554,6 +652,7 @@ export function getDisplayStyleKey(page: PageItem): DisplayStyleKey {
   if (interactionType === "tooltip") return "tooltip";
   if (interactionType === "full-page") return "full-screen";
   if (interactionType === "external-link") return "external-link";
+  if (interactionType === "bottom-sheet") return "bottom-sheet";
   if (interactionType === "modal") {
     if (cardSize === "compact") return "compact-card";
     if (cardSize === "xl") return "large-card";
@@ -576,6 +675,7 @@ export function applyDisplayStyle(style: DisplayStyleKey): { interactionType: In
     case "wide-card": return { interactionType: "modal", cardSize: "large" };
     case "side-sheet": return { interactionType: "side-sheet", cardSize: "medium" };
     case "wide-side-sheet": return { interactionType: "side-sheet", cardSize: "large" };
+    case "bottom-sheet": return { interactionType: "bottom-sheet", cardSize: "medium" };
     case "full-screen": return { interactionType: "full-page", cardSize: "medium" };
     case "external-link": return { interactionType: "external-link", cardSize: "medium" };
   }

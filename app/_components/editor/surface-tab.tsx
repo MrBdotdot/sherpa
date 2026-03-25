@@ -14,15 +14,17 @@ export function SurfaceTab({
   pages,
   selectedFeatureId,
   selectedPage,
+  isPortraitMode,
 }: {
   onAddCanvasFeature: (type: CanvasFeatureType) => void;
-  onCanvasFeatureChange: (featureId: string, field: "label" | "description" | "linkUrl" | "imageUrl" | "optionsText" | "logoSize", value: string) => void;
+  onCanvasFeatureChange: (featureId: string, field: "label" | "description" | "linkUrl" | "imageUrl" | "optionsText" | "logoSize" | "qrSize" | "qrBgColor" | "qrBgOpacity" | "portraitZone", value: string) => void;
   onCanvasFeatureImageUpload: (featureId: string, event: ChangeEvent<HTMLInputElement>) => void;
   onOpenPage: (id: string) => void;
   onRemoveCanvasFeature: (featureId: string) => void;
   pages: PageItem[];
   selectedFeatureId: string | null;
   selectedPage: PageItem;
+  isPortraitMode?: boolean;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -34,6 +36,7 @@ export function SurfaceTab({
       key={feature.id}
       feature={feature}
       isSelected={feature.id === selectedFeatureId}
+      isPortraitMode={isPortraitMode}
       onCanvasFeatureChange={onCanvasFeatureChange}
       onCanvasFeatureImageUpload={onCanvasFeatureImageUpload}
       onOpenPage={onOpenPage}

@@ -385,6 +385,95 @@ export function SetupTab({
           </div>
         </div>
       </EditorSection>
+
+      {/* Portrait layout */}
+      <EditorSection title="Portrait layout">
+        <div className="space-y-4">
+          <p className="text-xs leading-5 text-neutral-400">
+            When viewed in portrait orientation, the canvas splits into a content zone (top) and an image strip (bottom). Adjust the split and background below.
+          </p>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs text-neutral-500">
+              <span>Image strip height</span>
+              <span className="font-medium text-neutral-700">{systemSettings.portraitSplitRatio ?? 55}%</span>
+            </div>
+            <input
+              type="range"
+              min={35}
+              max={75}
+              step={1}
+              value={systemSettings.portraitSplitRatio ?? 55}
+              onChange={(e) => onSystemSettingChange("portraitSplitRatio", Number(e.target.value))}
+              className="w-full accent-neutral-900"
+            />
+            <div className="flex justify-between text-[10px] text-neutral-400">
+              <span>35% (more content)</span>
+              <span>75% (more board)</span>
+            </div>
+          </div>
+          <div>
+            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+              Content zone background
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={systemSettings.portraitBackground ?? "#1a1a2e"}
+                onChange={(e) => onSystemSettingChange("portraitBackground", e.target.value)}
+                aria-label="Portrait background color picker"
+                className="h-9 w-9 shrink-0 cursor-pointer rounded-xl border border-neutral-300 p-0.5"
+              />
+              <input
+                type="text"
+                value={systemSettings.portraitBackground ?? "#1a1a2e"}
+                onChange={(e) => onSystemSettingChange("portraitBackground", e.target.value)}
+                placeholder="#1a1a2e"
+                aria-label="Portrait background color hex value"
+                className="w-full rounded-2xl border border-neutral-300 px-4 py-3 font-mono text-sm outline-none transition focus:border-black"
+              />
+            </div>
+          </div>
+        </div>
+      </EditorSection>
+
+      {/* Intro screen */}
+      <EditorSection title="Intro screen">
+        <div className="space-y-3">
+          <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-neutral-700">
+            <input
+              type="checkbox"
+              checked={systemSettings.introScreen?.enabled ?? false}
+              onChange={(e) =>
+                onSystemSettingChange("introScreen", {
+                  enabled: e.target.checked,
+                  youtubeUrl: systemSettings.introScreen?.youtubeUrl ?? "",
+                })
+              }
+              className="rounded"
+            />
+            Show intro video before experience
+          </label>
+          {systemSettings.introScreen?.enabled ? (
+            <>
+              <input
+                type="text"
+                value={systemSettings.introScreen.youtubeUrl}
+                onChange={(e) =>
+                  onSystemSettingChange("introScreen", {
+                    enabled: true,
+                    youtubeUrl: e.target.value,
+                  })
+                }
+                placeholder="Paste YouTube URL"
+                className="w-full rounded-2xl border border-neutral-300 px-4 py-3 text-sm outline-none transition focus:border-black"
+              />
+              <p className="text-xs leading-5 text-neutral-400">
+                Plays muted, full-screen when the experience opens. Tap anywhere dismisses it. Experience assets preload in the background.
+              </p>
+            </>
+          ) : null}
+        </div>
+      </EditorSection>
     </div>
   );
 }

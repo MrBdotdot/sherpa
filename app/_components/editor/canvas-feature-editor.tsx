@@ -16,6 +16,7 @@ export const CANVAS_ELEMENT_TYPES: Array<{ type: CanvasFeatureType; label: strin
 export function CanvasFeatureEditor({
   feature,
   isSelected,
+  isPortraitMode,
   onCanvasFeatureChange,
   onCanvasFeatureImageUpload,
   onOpenPage,
@@ -24,9 +25,10 @@ export function CanvasFeatureEditor({
 }: {
   feature: CanvasFeature;
   isSelected: boolean;
+  isPortraitMode?: boolean;
   onCanvasFeatureChange: (
     featureId: string,
-    field: "label" | "description" | "linkUrl" | "imageUrl" | "optionsText" | "logoSize",
+    field: "label" | "description" | "linkUrl" | "imageUrl" | "optionsText" | "logoSize" | "qrSize" | "qrBgColor" | "qrBgOpacity" | "portraitZone",
     value: string
   ) => void;
   onCanvasFeatureImageUpload: (featureId: string, event: ChangeEvent<HTMLInputElement>) => void;
@@ -192,17 +194,70 @@ export function CanvasFeatureEditor({
                 </div>
               ) : null}
             </div>
-            <label className="flex cursor-pointer items-center gap-3">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Size</div>
+                <div className="text-xs text-neutral-500">{feature.qrSize ?? 120}px</div>
+              </div>
               <input
-                type="checkbox"
-                checked={feature.description === "bg"}
-                onChange={(event) =>
-                  onCanvasFeatureChange(feature.id, "description", event.target.checked ? "bg" : "")
-                }
-                className="rounded"
+                type="range"
+                min={60}
+                max={240}
+                step={4}
+                value={feature.qrSize ?? 120}
+                onChange={(e) => onCanvasFeatureChange(feature.id, "qrSize", e.target.value)}
+                aria-label="QR code size"
+                aria-valuetext={`${feature.qrSize ?? 120}px`}
+                className="w-full accent-neutral-900"
               />
-              <span className="text-sm text-neutral-700">Add background border</span>
-            </label>
+            </div>
+            <div className="space-y-2">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Background color</div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={feature.qrBgColor || "#ffffff"}
+                  onChange={(e) => onCanvasFeatureChange(feature.id, "qrBgColor", e.target.value)}
+                  aria-label="QR background color"
+                  className="h-8 w-10 cursor-pointer rounded border border-neutral-300 bg-white p-0.5"
+                />
+                <input
+                  type="text"
+                  value={feature.qrBgColor || ""}
+                  onChange={(e) => onCanvasFeatureChange(feature.id, "qrBgColor", e.target.value)}
+                  placeholder="None"
+                  aria-label="QR background color hex"
+                  className="w-full rounded-xl border border-neutral-300 px-3 py-2 font-mono text-xs outline-none focus:border-black"
+                />
+                {feature.qrBgColor ? (
+                  <button
+                    type="button"
+                    onClick={() => onCanvasFeatureChange(feature.id, "qrBgColor", "")}
+                    className="shrink-0 text-xs text-neutral-400 hover:text-red-500"
+                  >
+                    Clear
+                  </button>
+                ) : null}
+              </div>
+              {feature.qrBgColor ? (
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs text-neutral-400">Opacity</div>
+                    <div className="text-xs text-neutral-500">{Math.round((feature.qrBgOpacity ?? 1) * 100)}%</div>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={feature.qrBgOpacity ?? 1}
+                    onChange={(e) => onCanvasFeatureChange(feature.id, "qrBgOpacity", e.target.value)}
+                    aria-label="QR background opacity"
+                    className="w-full accent-neutral-900"
+                  />
+                </div>
+              ) : null}
+            </div>
           </>
         ) : null}
 
@@ -301,6 +356,36 @@ export function CanvasFeatureEditor({
             rows={3}
             className="w-full resize-none rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
           />
+        ) : null}
+
+        {/* Portrait zone toggle — only shown in portrait layout mode */}
+        {isPortraitMode ? (
+          <div className="space-y-1.5 border-t border-neutral-100 pt-3">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+              Portrait zone
+            </div>
+            <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
+              {(["strip", "content"] as const).map((zone) => {
+                const isActive = zone === "content"
+                  ? feature.portraitZone === "content"
+                  : !feature.portraitZone;
+                return (
+                  <button
+                    key={zone}
+                    type="button"
+                    onClick={() => onCanvasFeatureChange(feature.id, "portraitZone", zone === "content" ? "content" : "")}
+                    className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
+                      isActive
+                        ? "bg-white text-neutral-900 shadow-sm"
+                        : "text-neutral-500 hover:text-neutral-700"
+                    }`}
+                  >
+                    {zone === "strip" ? "Image strip" : "Content zone"}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         ) : null}
 
         {/* Locale */}
