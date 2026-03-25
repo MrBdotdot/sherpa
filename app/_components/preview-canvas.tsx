@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { IntroScreen } from "@/app/_components/canvas/intro-screen";
+import { CanvasBackground } from "@/app/_components/canvas/canvas-background";
+import { HotspotPin } from "@/app/_components/canvas/hotspot-pin";
 import {
-  DEFAULT_HERO,
   getFeatureTypeLabel,
   getPublishStatusClasses,
   getPublishStatusLabel,
@@ -58,19 +59,10 @@ type PreviewCanvasProps = {
   onToggleLayoutEditMode: () => void;
   onSetLayoutMode: (mode: LayoutMode) => void;
   onTogglePreviewMode: () => void;
+  onHeroUpload?: (event: ChangeEvent<HTMLInputElement>) => void;
   isPreviewMode: boolean;
   selectedPageId: string;
 };
-
-const DEFAULT_HOTSPOT_BLOCK = "Add contextual content for this hotspot.";
-
-function isHotspotEmpty(page: PageItem): boolean {
-  const hasRealSummary = page.summary.trim().length > 0;
-  const hasRealBlocks = page.blocks.some(
-    (b) => b.value.trim() !== "" && b.value.trim() !== DEFAULT_HOTSPOT_BLOCK
-  );
-  return !hasRealSummary && !hasRealBlocks;
-}
 
 const SNAP_LINES = [33.333, 50, 66.666];
 
@@ -112,7 +104,6 @@ function EmptySurfaceGuidance({
   );
 }
 
-
 function SnapGuides({
   featureDragState,
   features,
@@ -120,10 +111,8 @@ function SnapGuides({
   featureDragState: FeatureDragState | null;
   features: CanvasFeature[];
 }) {
-  const activeFeature = features.find((feature) => feature.id === featureDragState?.id);
-  if (!featureDragState || !activeFeature) {
-    return null;
-  }
+  const activeFeature = features.find((f) => f.id === featureDragState?.id);
+  if (!featureDragState || !activeFeature) return null;
 
   const showVertical = SNAP_LINES.filter((line) => Math.abs(line - activeFeature.x) <= 0.4);
   const showHorizontal = SNAP_LINES.filter((line) => Math.abs(line - activeFeature.y) <= 0.4);
@@ -131,24 +120,64 @@ function SnapGuides({
   return (
     <>
       {showVertical.map((line) => (
-        <div
-          key={`v-${line}`}
-          aria-hidden="true"
-          className="pointer-events-none absolute top-0 bottom-0 z-20 w-px bg-sky-500/80"
-          style={{ left: `${line}%` }}
-        />
+        <div key={`v-${line}`} aria-hidden="true" className="pointer-events-none absolute top-0 bottom-0 z-20 w-px bg-sky-500/80" style={{ left: `${line}%` }} />
       ))}
       {showHorizontal.map((line) => (
-        <div
-          key={`h-${line}`}
-          aria-hidden="true"
-          className="pointer-events-none absolute left-0 right-0 z-20 h-px bg-sky-500/80"
-          style={{ top: `${line}%` }}
-        />
+        <div key={`h-${line}`} aria-hidden="true" className="pointer-events-none absolute left-0 right-0 z-20 h-px bg-sky-500/80" style={{ top: `${line}%` }} />
       ))}
     </>
   );
 }
+
+/** Shared feature placer used in both portrait and landscape layouts */
+function FeaturePlacer({
+  features,
+  isLayoutEditMode,
+  accentColor,
+  surfaceStyleClass,
+  onCanvasFeaturePointerDown,
+  onSelectPage,
+}: {
+  features: CanvasFeature[];
+  isLayoutEditMode: boolean;
+  accentColor: string;
+  surfaceStyleClass: string;
+  onCanvasFeaturePointerDown: (event: React.PointerEvent<HTMLDivElement>, featureId: string) => void;
+  onSelectPage: (id: string) => void;
+}) {
+  return (
+    <>
+      {features.map((feature) => (
+        <div
+          key={feature.id}
+          data-a11y-id={feature.id}
+          data-a11y-type="feature"
+          className={`absolute z-20 ${isLayoutEditMode ? "cursor-grab active:cursor-grabbing" : ""}`}
+          style={{ left: `${feature.x}%`, top: `${feature.y}%`, transform: "translate3d(-50%, -50%, 0)", touchAction: "none" }}
+          onPointerDown={(event) => onCanvasFeaturePointerDown(event, feature.id)}
+          onClick={(event) => {
+            event.stopPropagation();
+            if (!isLayoutEditMode && feature.type === "page-button" && feature.linkUrl) onSelectPage(feature.linkUrl);
+          }}
+        >
+          {isLayoutEditMode ? (
+            <div className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+              <span>{getFeatureTypeLabel(feature.type)}</span>
+              <span className="opacity-60">Move</span>
+            </div>
+          ) : null}
+          <CanvasFeatureCard accentColor={accentColor} feature={feature} surfaceStyleClass={surfaceStyleClass} />
+        </div>
+      ))}
+    </>
+  );
+}
+
+const LAYOUT_MODES: { mode: LayoutMode; label: string }[] = [
+  { mode: "desktop", label: "Desktop" },
+  { mode: "mobile-landscape", label: "Landscape" },
+  { mode: "mobile-portrait", label: "Portrait" },
+];
 
 export function PreviewCanvas({
   activePage,
@@ -177,11 +206,9 @@ export function PreviewCanvas({
   onToggleLayoutEditMode,
   onSetLayoutMode,
   onTogglePreviewMode,
+  onHeroUpload,
   selectedPageId,
 }: PreviewCanvasProps) {
-  const isColorBackground = Boolean(surfacePage.heroImage?.startsWith("color:"));
-  const heroColorValue = isColorBackground ? surfacePage.heroImage.slice(6) : "";
-  const hasHeroImage = Boolean(surfacePage.heroImage?.trim()) && !isColorBackground;
   const surfaceStyleClass =
     systemSettings.surfaceStyle === "solid"
       ? "border-neutral-300 bg-white shadow-xl"
@@ -190,19 +217,14 @@ export function PreviewCanvas({
         : "border-white/60 bg-white shadow-lg";
 
   const accentColor = systemSettings.accentColor || "";
-  const accentActiveStyle = accentColor
-    ? { backgroundColor: accentColor, borderColor: accentColor }
-    : {};
-  const accentRingStyle = accentColor
-    ? { boxShadow: `0 0 0 4px ${accentColor}25` }
-    : {};
+  const accentActiveStyle = accentColor ? { backgroundColor: accentColor, borderColor: accentColor } : {};
+  const accentRingStyle = accentColor ? { boxShadow: `0 0 0 4px ${accentColor}25` } : {};
 
   const hotspotSize = systemSettings.hotspotSize ?? "medium";
   const hotspotContainerSize = hotspotSize === "small" ? "h-5 w-5" : hotspotSize === "large" ? "h-8 w-8" : "h-6 w-6";
   const hotspotDotSize = hotspotSize === "small" ? "h-2.5 w-2.5" : hotspotSize === "large" ? "h-5 w-5" : "h-3.5 w-3.5";
   const hotspotLabelSize = hotspotSize === "large" ? "text-xs px-2.5 py-1" : "text-[10px] px-2 py-0.5";
 
-  // ── Layout-mode resolved coordinates ──────────────────────────
   const isPortrait = layoutMode === "mobile-portrait";
   const isMobileFrame = layoutMode !== "desktop";
   const portraitSplitRatio = systemSettings.portraitSplitRatio ?? 55;
@@ -220,7 +242,6 @@ export function PreviewCanvas({
     y: isPortrait ? (f.mobileY ?? f.y) : f.y,
   }));
 
-  // In portrait mode, split features between content zone and image strip
   const contentZoneFeatures = isPortrait
     ? effectiveFeatures.filter((f) => f.portraitZone === "content")
     : [];
@@ -229,22 +250,16 @@ export function PreviewCanvas({
     : effectiveFeatures;
 
   // ── Intro screen ──────────────────────────────────────────────
-  const introEnabled = !!(
-    systemSettings.introScreen?.enabled && systemSettings.introScreen.youtubeUrl
-  );
+  const introEnabled = !!(systemSettings.introScreen?.enabled && systemSettings.introScreen.youtubeUrl);
   const [introVisible, setIntroVisible] = useState(false);
 
   useEffect(() => {
-    if (!isPreviewMode) {
-      setIntroVisible(false);
-      return;
-    }
+    if (!isPreviewMode) { setIntroVisible(false); return; }
     if (introEnabled) setIntroVisible(true);
-  // Only re-evaluate when preview mode is toggled, not on every setting change
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPreviewMode]);
 
-  // ── Content module transition state ───────────────────────────
+  // ── Content module transition ──────────────────────────────────
   const [modulePage, setModulePage] = useState<PageItem | null>(
     activePage.kind !== "home" ? activePage : null
   );
@@ -264,7 +279,6 @@ export function PreviewCanvas({
       if (modulePageRef.current?.id !== activePage.id || isModuleExitingRef.current) {
         syncModuleState(activePage, false);
       } else if (!isModuleExitingRef.current) {
-        // Same page — data changed, update without re-animating
         modulePageRef.current = activePage;
         setModulePage(activePage);
       }
@@ -279,6 +293,42 @@ export function PreviewCanvas({
     syncModuleState(null, false);
   }
 
+  const sharedHotspotPinProps = {
+    isLayoutEditMode,
+    isPreviewMode,
+    accentColor,
+    hotspotContainerSize,
+    hotspotDotSize,
+    hotspotLabelSize,
+    accentActiveStyle,
+    accentRingStyle,
+    dragThresholdRef,
+    onSelectPage,
+    onHotspotPointerDown,
+    onDeleteHotspot,
+  };
+
+  const sharedFeaturePlacerProps = {
+    isLayoutEditMode,
+    accentColor,
+    surfaceStyleClass,
+    onCanvasFeaturePointerDown,
+    onSelectPage,
+  };
+
+  const sharedContentModuleProps = {
+    pages,
+    isExiting: isModuleExiting,
+    onExitEnd: handleModuleExitEnd,
+    systemSettings,
+    accentColor,
+    isLayoutEditMode,
+    isPreviewMode,
+    onDismissContent,
+    onNavigate: onSelectPage,
+    onContentCardPointerDown,
+  };
+
   return (
     <div className={isPreviewMode ? "fixed inset-0 z-50 flex flex-col bg-black" : "relative overflow-hidden rounded-3xl border border-neutral-200 bg-[#f4f5f7]"}>
       <div className={`border-b border-neutral-200 bg-white px-4 py-3 ${isPreviewMode ? "flex shrink-0 items-center justify-end" : ""}`}>
@@ -292,40 +342,24 @@ export function PreviewCanvas({
           </button>
         ) : (
           <div className="flex items-center gap-3">
-            {/* Left: currently editing */}
             <div className="min-w-0 flex-1">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                Currently editing
-              </div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">Currently editing</div>
               <div className="mt-1 flex flex-wrap items-center gap-2">
-                <div className="text-sm font-semibold text-neutral-900">
-                  {activePage.title || "Untitled page"}
-                </div>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${getPublishStatusClasses(activePage.publishStatus)}`}
-                >
+                <div className="text-sm font-semibold text-neutral-900">{activePage.title || "Untitled page"}</div>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${getPublishStatusClasses(activePage.publishStatus)}`}>
                   {getPublishStatusLabel(activePage.publishStatus)}
                 </span>
               </div>
             </div>
 
-            {/* Center: layout mode segmented toggle */}
             <div className="flex shrink-0 items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5 shadow-sm">
-              {(
-                [
-                  { mode: "desktop", label: "Desktop" },
-                  { mode: "mobile-landscape", label: "Landscape" },
-                  { mode: "mobile-portrait", label: "Portrait" },
-                ] as { mode: LayoutMode; label: string }[]
-              ).map(({ mode, label }) => (
+              {LAYOUT_MODES.map(({ mode, label }) => (
                 <button
                   key={mode}
                   type="button"
                   onClick={() => onSetLayoutMode(mode)}
                   className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-                    layoutMode === mode
-                      ? "bg-white text-neutral-900 shadow-sm"
-                      : "text-neutral-500 hover:text-neutral-700"
+                    layoutMode === mode ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-700"
                   }`}
                 >
                   {label}
@@ -333,20 +367,16 @@ export function PreviewCanvas({
               ))}
             </div>
 
-            {/* Right: Edit layout + Preview */}
             <div className="flex flex-1 justify-end gap-2">
               <button
                 type="button"
                 onClick={onToggleLayoutEditMode}
                 className={`rounded-xl border px-3 py-2 text-xs font-medium shadow-sm ${
-                  isLayoutEditMode
-                    ? "border-black bg-black text-white"
-                    : "border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-50"
+                  isLayoutEditMode ? "border-black bg-black text-white" : "border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-50"
                 }`}
               >
                 {isLayoutEditMode ? "Done editing" : "Edit layout"}
               </button>
-
               <button
                 type="button"
                 onClick={onTogglePreviewMode}
@@ -373,18 +403,15 @@ export function PreviewCanvas({
           }`}
           style={{
             height: !isPreviewMode
-              ? layoutMode === "mobile-portrait"
-                ? 780
-                : layoutMode === "mobile-landscape"
-                ? 375
-                : undefined
+              ? layoutMode === "mobile-portrait" ? 780
+              : layoutMode === "mobile-landscape" ? 375
+              : undefined
               : undefined,
             touchAction: "none",
           }}
           onClick={isPortrait ? undefined : onCanvasClick}
         >
           {isPortrait ? (
-            // ── Portrait split layout ─────────────────────────────
             <>
               {/* Content zone — top portion */}
               <div
@@ -393,72 +420,25 @@ export function PreviewCanvas({
                 style={{ flex: 100 - portraitSplitRatio, background: portraitBackground }}
                 onClick={onDismissContent}
               >
-                {contentZoneFeatures.map((feature) => (
-                  <div
-                    key={feature.id}
-                    data-a11y-id={feature.id}
-                    data-a11y-type="feature"
-                    className={`absolute z-20 ${isLayoutEditMode ? "cursor-grab active:cursor-grabbing" : ""}`}
-                    style={{ left: `${feature.x}%`, top: `${feature.y}%`, transform: "translate3d(-50%, -50%, 0)", touchAction: "none" }}
-                    onPointerDown={(event) => onCanvasFeaturePointerDown(event, feature.id)}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      if (!isLayoutEditMode && feature.type === "page-button" && feature.linkUrl) onSelectPage(feature.linkUrl);
-                    }}
-                  >
-                    {isLayoutEditMode ? (
-                      <div className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-                        <span>{getFeatureTypeLabel(feature.type)}</span>
-                        <span className="opacity-60">Move</span>
-                      </div>
-                    ) : null}
-                    <CanvasFeatureCard accentColor={accentColor} feature={feature} surfaceStyleClass={surfaceStyleClass} />
-                  </div>
-                ))}
+                <FeaturePlacer features={contentZoneFeatures} {...sharedFeaturePlacerProps} />
                 {modulePage ? (
-                  <ContentModule
-                    key={modulePage.id}
-                    page={modulePage}
-                    pages={pages}
-                    isExiting={isModuleExiting}
-                    onExitEnd={handleModuleExitEnd}
-                    systemSettings={systemSettings}
-                    accentColor={accentColor}
-                    isLayoutEditMode={isLayoutEditMode}
-                    isPreviewMode={isPreviewMode}
-                    onDismissContent={onDismissContent}
-                    onNavigate={onSelectPage}
-                    onContentCardPointerDown={onContentCardPointerDown}
-                    portraitZone
-                  />
+                  <ContentModule key={modulePage.id} page={modulePage} {...sharedContentModuleProps} portraitZone />
                 ) : (
                   <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
                     <div className="text-xl opacity-20 text-white">↓</div>
-                    <p className="text-xs font-medium opacity-30 text-white">
-                      Tap a hotspot on the board below
-                    </p>
+                    <p className="text-xs font-medium opacity-30 text-white">Tap a hotspot on the board below</p>
                   </div>
                 )}
               </div>
 
-              {/* Image strip — bottom portion, contains board + hotspots */}
+              {/* Image strip — bottom portion */}
               <div
                 ref={imageStripRef}
                 className="relative overflow-hidden"
                 style={{ flex: portraitSplitRatio }}
                 onClick={onCanvasClick}
               >
-                {isColorBackground ? (
-                  <div className="absolute inset-0" style={{ backgroundColor: heroColorValue || "#e5e5e5" }} />
-                ) : hasHeroImage ? (
-                  <img src={surfacePage.heroImage || DEFAULT_HERO} alt="Preview background" className="h-full w-full select-none object-cover" draggable={false} />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top,_#fafafa,_#e5e5e5)]">
-                    <div className="rounded-2xl border border-dashed border-neutral-300 bg-white/90 px-4 py-3 text-xs text-neutral-600 shadow-sm">
-                      No hero image yet.
-                    </div>
-                  </div>
-                )}
+                <CanvasBackground heroImage={surfacePage.heroImage} isPreviewMode={isPreviewMode} onHeroUpload={onHeroUpload} compact />
 
                 {featureDragState ? (
                   <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10">
@@ -472,58 +452,12 @@ export function PreviewCanvas({
                 ) : null}
 
                 <SnapGuides featureDragState={featureDragState} features={stripFeatures} />
-
-                {stripFeatures.map((feature) => (
-                  <div
-                    key={feature.id}
-                    data-a11y-id={feature.id}
-                    data-a11y-type="feature"
-                    className={`absolute z-20 ${isLayoutEditMode ? "cursor-grab active:cursor-grabbing" : ""}`}
-                    style={{ left: `${feature.x}%`, top: `${feature.y}%`, transform: "translate3d(-50%, -50%, 0)", touchAction: "none" }}
-                    onPointerDown={(event) => onCanvasFeaturePointerDown(event, feature.id)}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      if (!isLayoutEditMode && feature.type === "page-button" && feature.linkUrl) onSelectPage(feature.linkUrl);
-                    }}
-                  >
-                    {isLayoutEditMode ? (
-                      <div className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-                        <span>{getFeatureTypeLabel(feature.type)}</span>
-                        <span className="opacity-60">Move</span>
-                      </div>
-                    ) : null}
-                    <CanvasFeatureCard accentColor={accentColor} feature={feature} surfaceStyleClass={surfaceStyleClass} />
-                  </div>
-                ))}
+                <FeaturePlacer features={stripFeatures} {...sharedFeaturePlacerProps} />
 
                 {surfacePage.kind === "home" && effectiveHotspotPages.map((page, index) => {
-                  const isSelected = page.id === selectedPageId;
                   if (page.x === null || page.y === null) return null;
-                  const dotBg = accentColor || "#0a0a0a";
-                  const showQuickDelete = !isPreviewMode && isHotspotEmpty(page);
                   return (
-                    <div key={page.id} className="absolute" style={{ left: `${page.x}%`, top: `${page.y}%`, transform: "translate3d(-50%, -50%, 0)", zIndex: isSelected ? 29 : 28 }}>
-                      {showQuickDelete ? (
-                        <button type="button" onClick={(e) => { e.stopPropagation(); onDeleteHotspot(page.id); }} aria-label="Delete hotspot" className="absolute -right-2 -top-2 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-red-200 bg-white text-[10px] font-bold text-red-500 shadow-sm transition hover:border-red-400 hover:bg-red-50 hover:text-red-600" style={{ lineHeight: 1 }}>
-                          <span aria-hidden="true">×</span>
-                        </button>
-                      ) : null}
-                      {isLayoutEditMode ? (
-                        <button type="button" draggable={false} onPointerDown={(e) => onHotspotPointerDown(e, page)} onDragStart={(e) => e.preventDefault()} onClick={(e) => { e.stopPropagation(); if (!dragThresholdRef?.current) onSelectPage(page.id); }} className={`relative cursor-grab rounded-full border px-3 py-1.5 text-xs font-semibold shadow transition active:cursor-grabbing ${isSelected ? "border-black bg-black text-white" : "border-white bg-white/90 text-neutral-900 hover:bg-white"}`} style={{ touchAction: "none", ...(isSelected && accentColor ? accentActiveStyle : {}), ...(isSelected && accentColor ? accentRingStyle : {}) }} aria-label={`Select and drag hotspot: ${page.title?.trim() ? page.title : `Hotspot ${index + 1}`}`}>
-                          {page.title?.trim() ? page.title : `Hotspot ${index + 1}`}
-                        </button>
-                      ) : (
-                        <button type="button" draggable={false} onPointerDown={(e) => onHotspotPointerDown(e, page)} onDragStart={(e) => e.preventDefault()} onClick={(e) => { e.stopPropagation(); if (!dragThresholdRef?.current) onSelectPage(page.id); }} className="group flex flex-col items-center gap-1" style={{ touchAction: "none" }} aria-label={page.title?.trim() || `Hotspot ${index + 1}`}>
-                          <span className={`relative flex ${hotspotContainerSize} items-center justify-center`}>
-                            {isSelected ? <span className="absolute inset-0 animate-ping rounded-full opacity-40" style={{ backgroundColor: dotBg }} /> : <span className="absolute inset-0 animate-pulse rounded-full opacity-20" style={{ backgroundColor: dotBg }} />}
-                            <span className={`relative ${hotspotDotSize} rounded-full border-2 border-white shadow-md transition-transform group-hover:scale-125`} style={{ backgroundColor: dotBg }} />
-                          </span>
-                          <span className={`rounded-full ${hotspotLabelSize} font-semibold shadow-sm transition`} style={isSelected ? { backgroundColor: dotBg, color: "#fff" } : { backgroundColor: "rgba(255,255,255,0.92)", color: "#0a0a0a" }}>
-                            {page.title?.trim() ? page.title : `Hotspot ${index + 1}`}
-                          </span>
-                        </button>
-                      )}
-                    </div>
+                    <HotspotPin key={page.id} page={page} index={index} isSelected={page.id === selectedPageId} {...sharedHotspotPinProps} />
                   );
                 })}
 
@@ -533,19 +467,8 @@ export function PreviewCanvas({
               </div>
             </>
           ) : (
-            // ── Landscape layout (desktop / mobile-landscape) ─────
             <>
-              {isColorBackground ? (
-                <div className="absolute inset-0" style={{ backgroundColor: heroColorValue || "#e5e5e5" }} />
-              ) : hasHeroImage ? (
-                <img src={surfacePage.heroImage || DEFAULT_HERO} alt="Preview background" className="h-full w-full select-none object-cover" draggable={false} />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top,_#fafafa,_#e5e5e5)]">
-                  <div className="rounded-2xl border border-dashed border-neutral-300 bg-white/90 px-5 py-4 text-sm text-neutral-600 shadow-sm">
-                    No hero image yet. Add one to create a layout surface.
-                  </div>
-                </div>
-              )}
+              <CanvasBackground heroImage={surfacePage.heroImage} isPreviewMode={isPreviewMode} onHeroUpload={onHeroUpload} />
 
               {featureDragState || contentDragState ? (
                 <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10">
@@ -559,58 +482,12 @@ export function PreviewCanvas({
               ) : null}
 
               <SnapGuides featureDragState={featureDragState} features={effectiveFeatures} />
-
-              {effectiveFeatures.map((feature) => (
-                <div
-                  key={feature.id}
-                  data-a11y-id={feature.id}
-                  data-a11y-type="feature"
-                  className={`absolute z-20 ${isLayoutEditMode ? "cursor-grab active:cursor-grabbing" : ""}`}
-                  style={{ left: `${feature.x}%`, top: `${feature.y}%`, transform: "translate3d(-50%, -50%, 0)", touchAction: "none" }}
-                  onPointerDown={(event) => onCanvasFeaturePointerDown(event, feature.id)}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    if (!isLayoutEditMode && feature.type === "page-button" && feature.linkUrl) onSelectPage(feature.linkUrl);
-                  }}
-                >
-                  {isLayoutEditMode ? (
-                    <div className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-                      <span>{getFeatureTypeLabel(feature.type)}</span>
-                      <span className="opacity-60">Move</span>
-                    </div>
-                  ) : null}
-                  <CanvasFeatureCard accentColor={accentColor} feature={feature} surfaceStyleClass={surfaceStyleClass} />
-                </div>
-              ))}
+              <FeaturePlacer features={effectiveFeatures} {...sharedFeaturePlacerProps} />
 
               {surfacePage.kind === "home" && effectiveHotspotPages.map((page, index) => {
-                const isSelected = page.id === selectedPageId;
                 if (page.x === null || page.y === null) return null;
-                const dotBg = accentColor || "#0a0a0a";
-                const showQuickDelete = !isPreviewMode && isHotspotEmpty(page);
                 return (
-                  <div key={page.id} className="absolute" style={{ left: `${page.x}%`, top: `${page.y}%`, transform: "translate3d(-50%, -50%, 0)", zIndex: isSelected ? 29 : 28 }}>
-                    {showQuickDelete ? (
-                      <button type="button" onClick={(e) => { e.stopPropagation(); onDeleteHotspot(page.id); }} aria-label="Delete hotspot" className="absolute -right-2 -top-2 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-red-200 bg-white text-[10px] font-bold text-red-500 shadow-sm transition hover:border-red-400 hover:bg-red-50 hover:text-red-600" style={{ lineHeight: 1 }}>
-                        <span aria-hidden="true">×</span>
-                      </button>
-                    ) : null}
-                    {isLayoutEditMode ? (
-                      <button type="button" draggable={false} onPointerDown={(event) => onHotspotPointerDown(event, page)} onDragStart={(event) => event.preventDefault()} onClick={(event) => { event.stopPropagation(); if (!dragThresholdRef?.current) onSelectPage(page.id); }} className={`relative cursor-grab rounded-full border px-3 py-1.5 text-xs font-semibold shadow transition active:cursor-grabbing ${isSelected ? "border-black bg-black text-white" : "border-white bg-white/90 text-neutral-900 hover:bg-white"}`} style={{ touchAction: "none", ...(isSelected && accentColor ? accentActiveStyle : {}), ...(isSelected && accentColor ? accentRingStyle : {}) }} aria-label={`Select and drag hotspot: ${page.title?.trim() ? page.title : `Hotspot ${index + 1}`}`}>
-                        {page.title?.trim() ? page.title : `Hotspot ${index + 1}`}
-                      </button>
-                    ) : (
-                      <button type="button" draggable={false} onPointerDown={(event) => onHotspotPointerDown(event, page)} onDragStart={(event) => event.preventDefault()} onClick={(event) => { event.stopPropagation(); if (!dragThresholdRef?.current) onSelectPage(page.id); }} className="group flex flex-col items-center gap-1" style={{ touchAction: "none" }} aria-label={page.title?.trim() || `Hotspot ${index + 1}`}>
-                        <span className={`relative flex ${hotspotContainerSize} items-center justify-center`}>
-                          {isSelected ? <span className="absolute inset-0 animate-ping rounded-full opacity-40" style={{ backgroundColor: dotBg }} /> : <span className="absolute inset-0 animate-pulse rounded-full opacity-20" style={{ backgroundColor: dotBg }} />}
-                          <span className={`relative ${hotspotDotSize} rounded-full border-2 border-white shadow-md transition-transform group-hover:scale-125`} style={{ backgroundColor: dotBg }} />
-                        </span>
-                        <span className={`rounded-full ${hotspotLabelSize} font-semibold shadow-sm transition`} style={isSelected ? { backgroundColor: dotBg, color: "#fff" } : { backgroundColor: "rgba(255,255,255,0.92)", color: "#0a0a0a" }}>
-                          {page.title?.trim() ? page.title : `Hotspot ${index + 1}`}
-                        </span>
-                      </button>
-                    )}
-                  </div>
+                  <HotspotPin key={page.id} page={page} index={index} isSelected={page.id === selectedPageId} {...sharedHotspotPinProps} />
                 );
               })}
 
@@ -618,16 +495,7 @@ export function PreviewCanvas({
                 <ContentModule
                   key={modulePage.id}
                   page={{ ...modulePage, contentX: modulePage.contentX, contentY: modulePage.contentY }}
-                  pages={pages}
-                  isExiting={isModuleExiting}
-                  onExitEnd={handleModuleExitEnd}
-                  systemSettings={systemSettings}
-                  accentColor={accentColor}
-                  isLayoutEditMode={isLayoutEditMode}
-                  isPreviewMode={isPreviewMode}
-                  onDismissContent={onDismissContent}
-                  onNavigate={onSelectPage}
-                  onContentCardPointerDown={onContentCardPointerDown}
+                  {...sharedContentModuleProps}
                 />
               ) : null}
 
@@ -637,7 +505,6 @@ export function PreviewCanvas({
             </>
           )}
 
-          {/* Intro screen — overlays both zones */}
           {isPreviewMode && introVisible && systemSettings.introScreen?.youtubeUrl ? (
             <IntroScreen
               youtubeUrl={systemSettings.introScreen.youtubeUrl}

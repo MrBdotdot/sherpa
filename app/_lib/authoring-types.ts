@@ -75,6 +75,10 @@ export type CanvasFeature = {
   portraitZone?: "content";
 };
 
+export type CanvasFeatureField =
+  | "label" | "description" | "linkUrl" | "imageUrl" | "optionsText"
+  | "logoSize" | "qrSize" | "qrBgColor" | "qrBgOpacity" | "portraitZone";
+
 export type PageItem = {
   id: string;
   kind: PageKind;

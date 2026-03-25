@@ -1,7 +1,8 @@
 "use client";
 
-import { ChangeEvent, useRef, useState } from "react";
+import React, { ChangeEvent, useRef, useState } from "react";
 import { ContentBlock, ContentBlockType, ImageFit, PageItem } from "@/app/_lib/authoring-types";
+import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
 
 export const CONTENT_ELEMENT_TYPES = [
   { kind: "block" as const, type: "text" as ContentBlockType, label: "Text", description: "A paragraph of content" },
@@ -11,6 +12,17 @@ export const CONTENT_ELEMENT_TYPES = [
   { kind: "block" as const, type: "video" as ContentBlockType, label: "Video", description: "Embedded video clip" },
   { kind: "action-link" as const, type: null, label: "Action link", description: "Outbound link button — store, social, download" },
 ];
+
+const TYPE_LABELS: Record<ContentBlockType, string> = {
+  text: "Text",
+  image: "Image",
+  video: "Video",
+  steps: "Steps",
+  callout: "Callout",
+};
+
+type TriggerState = { active: boolean; start: number; query: string; index: number };
+const TRIGGER_CLOSED: TriggerState = { active: false, start: 0, query: "", index: 0 };
 
 export function BlockEditor({
   block,
@@ -43,10 +55,7 @@ export function BlockEditor({
 }) {
   const [mdHintOpen, setMdHintOpen] = useState(false);
   const [linkPickerOpen, setLinkPickerOpen] = useState(false);
-  const [triggerActive, setTriggerActive] = useState(false);
-  const [triggerStart, setTriggerStart] = useState(0);
-  const [triggerQuery, setTriggerQuery] = useState("");
-  const [triggerIndex, setTriggerIndex] = useState(0);
+  const [trigger, setTrigger] = useState<TriggerState>(TRIGGER_CLOSED);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const cursorRef = useRef<{ start: number; end: number }>({ start: 0, end: 0 });
 
@@ -54,16 +63,12 @@ export function BlockEditor({
     (p) => p.kind !== "home" && p.id !== selectedPageId
   ) ?? [];
 
-  const triggerResults = triggerQuery
-    ? linkablePages.filter((p) =>
-        (p.title || "").toLowerCase().includes(triggerQuery.toLowerCase())
-      )
+  const triggerResults = trigger.query
+    ? linkablePages.filter((p) => (p.title || "").toLowerCase().includes(trigger.query.toLowerCase()))
     : linkablePages;
 
   function closeTrigger() {
-    setTriggerActive(false);
-    setTriggerQuery("");
-    setTriggerIndex(0);
+    setTrigger(TRIGGER_CLOSED);
   }
 
   function commitTrigger(pageId: string, pageTitle: string) {
@@ -72,14 +77,27 @@ export function BlockEditor({
     const label = pageTitle || "link";
     const insertText = `((${label}|${pageId}))`;
     const cursorPos = ta.selectionStart;
-    const newValue =
-      block.value.slice(0, triggerStart) + insertText + block.value.slice(cursorPos);
-    onBlockChange(block.id, newValue);
+    onBlockChange(block.id, block.value.slice(0, trigger.start) + insertText + block.value.slice(cursorPos));
     closeTrigger();
     setTimeout(() => {
       ta.focus();
-      const newCursor = triggerStart + insertText.length;
+      const newCursor = trigger.start + insertText.length;
       ta.setSelectionRange(newCursor, newCursor);
+    }, 0);
+  }
+
+  function insertLink(pageId: string, pageTitle: string) {
+    const { start, end } = cursorRef.current;
+    const label = pageTitle || "link";
+    const insertText = `((${label}|${pageId}))`;
+    onBlockChange(block.id, block.value.slice(0, start) + insertText + block.value.slice(end));
+    setLinkPickerOpen(false);
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        const newCursor = start + insertText.length;
+        textareaRef.current.setSelectionRange(newCursor, newCursor);
+      }
     }, 0);
   }
 
@@ -91,12 +109,8 @@ export function BlockEditor({
     const lastTrigger = before.lastIndexOf("((");
     if (lastTrigger !== -1) {
       const afterTrigger = before.slice(lastTrigger + 2);
-      // Active as long as no pipe, closing paren, or newline has been typed
       if (!/[|\)\n]/.test(afterTrigger)) {
-        setTriggerActive(true);
-        setTriggerStart(lastTrigger);
-        setTriggerQuery(afterTrigger);
-        setTriggerIndex(0);
+        setTrigger({ active: true, start: lastTrigger, query: afterTrigger, index: 0 });
         cursorRef.current = { start: cursor, end: cursor };
         return;
       }
@@ -106,48 +120,23 @@ export function BlockEditor({
   }
 
   function handleTextareaKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (!triggerActive || triggerResults.length === 0) return;
+    if (!trigger.active || triggerResults.length === 0) return;
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setTriggerIndex((i) => Math.min(i + 1, triggerResults.length - 1));
+      setTrigger((t) => ({ ...t, index: Math.min(t.index + 1, triggerResults.length - 1) }));
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
-      setTriggerIndex((i) => Math.max(i - 1, 0));
+      setTrigger((t) => ({ ...t, index: Math.max(t.index - 1, 0) }));
     } else if (event.key === "Enter") {
       event.preventDefault();
-      const page = triggerResults[triggerIndex];
+      const page = triggerResults[trigger.index];
       if (page) commitTrigger(page.id, page.title || "link");
     } else if (event.key === "Escape") {
       closeTrigger();
     }
   }
 
-  function insertLink(pageId: string, pageTitle: string) {
-    const { start, end } = cursorRef.current;
-    const label = pageTitle || "link";
-    const insertText = `((${label}|${pageId}))`;
-    const newValue =
-      block.value.slice(0, start) + insertText + block.value.slice(end);
-    onBlockChange(block.id, newValue);
-    setLinkPickerOpen(false);
-    setTimeout(() => {
-      if (textareaRef.current) {
-        textareaRef.current.focus();
-        const newCursor = start + insertText.length;
-        textareaRef.current.setSelectionRange(newCursor, newCursor);
-      }
-    }, 0);
-  }
-
-  const typeLabels: Record<ContentBlockType, string> = {
-    text: "Text",
-    image: "Image",
-    video: "Video",
-    steps: "Steps",
-    callout: "Callout",
-  };
-
-  const label = `${typeLabels[block.type]} ${index + 1}`;
+  const label = `${TYPE_LABELS[block.type]} ${index + 1}`;
 
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-4">
@@ -201,20 +190,7 @@ export function BlockEditor({
                       <div className="border-b border-neutral-100 px-3 py-2 text-[11px] font-semibold text-neutral-500">
                         Link to page
                       </div>
-                      <ul className="max-h-48 overflow-y-auto p-1">
-                        {linkablePages.map((p) => (
-                          <li key={p.id}>
-                            <button
-                              type="button"
-                              onClick={() => insertLink(p.id, p.title || "link")}
-                              className="w-full rounded-lg px-2.5 py-2 text-left text-sm text-neutral-800 hover:bg-neutral-50"
-                            >
-                              <div className="truncate font-medium">{p.title || "Untitled"}</div>
-                              <div className="text-[11px] text-neutral-400 capitalize">{p.kind}</div>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
+                      <PageLinkPicker pages={linkablePages} onSelect={insertLink} />
                     </div>
                   ) : null}
                 </div>
@@ -266,37 +242,17 @@ export function BlockEditor({
             onBlur={(e) => {
               cursorRef.current = { start: e.currentTarget.selectionStart, end: e.currentTarget.selectionEnd };
             }}
-            placeholder={"Enter text content — supports **bold**, *italic*, and more"}
+            placeholder="Enter text content — supports **bold**, *italic*, and more"
             aria-label={label}
             rows={5}
             className="w-full resize-none rounded-xl border border-neutral-300 px-3 py-3 text-sm leading-6 outline-none transition focus:border-black"
           />
-          {triggerActive && triggerResults.length > 0 ? (
+          {trigger.active && triggerResults.length > 0 ? (
             <div className="absolute left-0 top-full z-50 mt-1 w-full rounded-xl border border-neutral-200 bg-white shadow-lg">
               <div className="border-b border-neutral-100 px-3 py-1.5 text-[11px] font-semibold text-neutral-400">
-                Link to page{triggerQuery ? ` — "${triggerQuery}"` : ""}
+                Link to page{trigger.query ? ` — "${trigger.query}"` : ""}
               </div>
-              <ul className="max-h-44 overflow-y-auto p-1">
-                {triggerResults.map((p, i) => (
-                  <li key={p.id}>
-                    <button
-                      type="button"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        commitTrigger(p.id, p.title || "link");
-                      }}
-                      className={`w-full rounded-lg px-2.5 py-2 text-left text-sm transition ${
-                        i === triggerIndex ? "bg-neutral-100" : "hover:bg-neutral-50"
-                      }`}
-                    >
-                      <div className="truncate font-medium text-neutral-800">
-                        {p.title || "Untitled"}
-                      </div>
-                      <div className="text-[11px] capitalize text-neutral-400">{p.kind}</div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <PageLinkPicker pages={triggerResults} activeIndex={trigger.index} onMouseDownSelect={commitTrigger} />
             </div>
           ) : null}
         </div>
@@ -317,9 +273,7 @@ export function BlockEditor({
       ) : block.type === "callout" ? (
         <div className="space-y-3">
           <div>
-            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
-              Variant
-            </div>
+            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Variant</div>
             <div className="flex gap-2">
               {(["info", "warning", "tip"] as const).map((v) => (
                 <button
@@ -359,17 +313,10 @@ export function BlockEditor({
           />
           <label className="inline-flex cursor-pointer items-center rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
             Upload from computer
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(event) => onBlockImageUpload(block.id, event)}
-              className="hidden"
-            />
+            <input type="file" accept="image/*" onChange={(event) => onBlockImageUpload(block.id, event)} className="hidden" />
           </label>
           <div>
-            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
-              Image fit
-            </div>
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Image fit</div>
             <div role="group" aria-label="Image fit" className="flex gap-1.5">
               {([
                 { value: "cover", label: "Fill" },

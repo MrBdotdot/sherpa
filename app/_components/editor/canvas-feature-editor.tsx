@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useRef } from "react";
-import { CanvasFeature, CanvasFeatureType, PageItem } from "@/app/_lib/authoring-types";
+import { CanvasFeature, CanvasFeatureField, CanvasFeatureType, PageItem } from "@/app/_lib/authoring-types";
 
 export const CANVAS_ELEMENT_TYPES: Array<{ type: CanvasFeatureType; label: string; description: string }> = [
   { type: "logo", label: "Logo", description: "Brand mark with link or link list" },
@@ -28,7 +28,7 @@ export function CanvasFeatureEditor({
   isPortraitMode?: boolean;
   onCanvasFeatureChange: (
     featureId: string,
-    field: "label" | "description" | "linkUrl" | "imageUrl" | "optionsText" | "logoSize" | "qrSize" | "qrBgColor" | "qrBgOpacity" | "portraitZone",
+    field: CanvasFeatureField,
     value: string
   ) => void;
   onCanvasFeatureImageUpload: (featureId: string, event: ChangeEvent<HTMLInputElement>) => void;

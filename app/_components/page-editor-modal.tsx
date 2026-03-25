@@ -7,6 +7,7 @@ import { SurfaceTab } from "@/app/_components/editor/surface-tab";
 import { ContentTab } from "@/app/_components/editor/content-tab";
 import { SetupTab } from "@/app/_components/editor/setup-tab";
 import {
+  CanvasFeatureField,
   CanvasFeatureType,
   ContentBlock,
   ContentBlockType,
@@ -35,7 +36,7 @@ type PageEditorModalProps = {
   isPortraitMode?: boolean;
   onCanvasFeatureChange: (
     featureId: string,
-    field: "label" | "description" | "linkUrl" | "imageUrl" | "optionsText" | "logoSize" | "qrSize" | "qrBgColor" | "qrBgOpacity" | "portraitZone",
+    field: CanvasFeatureField,
     value: string
   ) => void;
   onCanvasFeatureImageUpload: (

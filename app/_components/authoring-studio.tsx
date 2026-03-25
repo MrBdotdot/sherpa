@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ConfirmDeleteModal } from "@/app/_components/confirm-delete-modal";
 import { PageEditorModal } from "@/app/_components/page-editor-modal";
@@ -27,6 +27,8 @@ type InspectorTab = "surface" | "content" | "setup";
 
 export function AuthoringStudio() {
   const [pages, setPages] = useState<PageItem[]>(createInitialPages);
+  const pagesRef = useRef(pages);
+  useEffect(() => { pagesRef.current = pages; }, [pages]);
   const [selectedPageId, setSelectedPageId] = useState<string>(HOME_PAGE_ID);
   const [systemSettings, setSystemSettings] = useState<SystemSettings>({
     fontTheme: "modern",
@@ -86,12 +88,11 @@ export function AuthoringStudio() {
   const previewSurfacePage =
     activePreviewPage.kind === "home" ? activePreviewPage : homePage;
 
-  const updateSelectedPage = (updater: (page: PageItem) => PageItem) => {
-    if (!selectedPageId) return;
+  const updateSelectedPage = useCallback((updater: (page: PageItem) => PageItem) => {
     setPages((prev) =>
       prev.map((page) => (page.id === selectedPageId ? updater(page) : page))
     );
-  };
+  }, [selectedPageId]);
 
   const { pagesHistoryRef, pagesRedoRef, pushPagesHistory } = useStudioHistory(pages, setPages);
 
@@ -122,9 +123,6 @@ export function AuthoringStudio() {
     setInspectorTab,
     pushPagesHistory,
     setSelectedFeatureId,
-    showLayoutHelp,
-    setShowLayoutHelp,
-    homePage,
     layoutMode,
   });
 
@@ -243,7 +241,7 @@ export function AuthoringStudio() {
         event.preventDefault();
         const prev = history[history.length - 1];
         pagesHistoryRef.current = history.slice(0, -1);
-        pagesRedoRef.current = [...pagesRedoRef.current.slice(-49), pages];
+        pagesRedoRef.current = [...pagesRedoRef.current.slice(-49), pagesRef.current];
         setPages(prev);
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z" && event.shiftKey) {
@@ -252,13 +250,13 @@ export function AuthoringStudio() {
         event.preventDefault();
         const next = redoStack[redoStack.length - 1];
         pagesRedoRef.current = redoStack.slice(0, -1);
-        pagesHistoryRef.current = [...pagesHistoryRef.current.slice(-49), pages];
+        pagesHistoryRef.current = [...pagesHistoryRef.current.slice(-49), pagesRef.current];
         setPages(next);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isPreviewMode, pages]);
+  }, [isPreviewMode]);
 
   const sharedEditorProps = {
     activePreviewPage,
@@ -332,6 +330,7 @@ export function AuthoringStudio() {
     onToggleLayoutEditMode: () => setIsLayoutEditMode((prev) => !prev),
     onSetLayoutMode: setLayoutMode,
     onTogglePreviewMode: handleTogglePreviewMode,
+    onHeroUpload: handlePageHeroUpload,
     isPreviewMode,
     selectedPageId,
   } as const;

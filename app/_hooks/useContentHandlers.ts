@@ -4,8 +4,6 @@ import { ChangeEvent } from "react";
 import { createBlock, createSocialLink } from "@/app/_lib/authoring-utils";
 import { ContentBlock, ContentBlockType, ImageFit, PageItem } from "@/app/_lib/authoring-types";
 
-type CardSize = PageItem["cardSize"];
-
 interface UseContentHandlersProps {
   pushPagesHistory: () => void;
   updateSelectedPage: (updater: (page: PageItem) => PageItem) => void;
@@ -118,10 +116,6 @@ export function useContentHandlers({
     }));
   };
 
-  const handleCardSizeChange = (value: CardSize) => {
-    updateSelectedPage((page) => ({ ...page, cardSize: value }));
-  };
-
   const handleContentTintChange = (color: string, opacity: number) => {
     updateSelectedPage((page) => ({ ...page, contentTintColor: color, contentTintOpacity: opacity }));
   };
@@ -138,7 +132,6 @@ export function useContentHandlers({
     handleAddSocialLink,
     handleSocialLinkChange,
     handleRemoveSocialLink,
-    handleCardSizeChange,
     handleContentTintChange,
   };
 }

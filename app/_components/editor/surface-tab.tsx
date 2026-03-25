@@ -2,7 +2,7 @@
 
 import { ChangeEvent, useState } from "react";
 import { createPortal } from "react-dom";
-import { CanvasFeatureType, PageItem } from "@/app/_lib/authoring-types";
+import { CanvasFeatureField, CanvasFeatureType, PageItem } from "@/app/_lib/authoring-types";
 import { CanvasFeatureEditor, CANVAS_ELEMENT_TYPES } from "@/app/_components/editor/canvas-feature-editor";
 
 export function SurfaceTab({
@@ -17,7 +17,7 @@ export function SurfaceTab({
   isPortraitMode,
 }: {
   onAddCanvasFeature: (type: CanvasFeatureType) => void;
-  onCanvasFeatureChange: (featureId: string, field: "label" | "description" | "linkUrl" | "imageUrl" | "optionsText" | "logoSize" | "qrSize" | "qrBgColor" | "qrBgOpacity" | "portraitZone", value: string) => void;
+  onCanvasFeatureChange: (featureId: string, field: CanvasFeatureField, value: string) => void;
   onCanvasFeatureImageUpload: (featureId: string, event: ChangeEvent<HTMLInputElement>) => void;
   onOpenPage: (id: string) => void;
   onRemoveCanvasFeature: (featureId: string) => void;

@@ -37,14 +37,8 @@ interface UseDragProps {
   setInspectorTab: (tab: "surface" | "content" | "setup") => void;
   pushPagesHistory: () => void;
   setSelectedFeatureId: (id: string | null) => void;
-  showLayoutHelp: boolean;
-  setShowLayoutHelp: (v: boolean) => void;
-  homePage: PageItem | undefined;
   layoutMode: LayoutMode;
 }
-
-// Note: showLayoutHelp, setShowLayoutHelp, setSelectedFeatureId, and homePage are accepted
-// as part of the interface for API symmetry but are not used in the current drag logic.
 
 export function useDrag({
   pages,
@@ -59,9 +53,6 @@ export function useDrag({
   setInspectorTab,
   pushPagesHistory,
   setSelectedFeatureId,
-  showLayoutHelp,
-  setShowLayoutHelp,
-  homePage,
   layoutMode,
 }: UseDragProps) {
   const isPortraitMode = layoutMode === "mobile-portrait";

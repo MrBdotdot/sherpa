@@ -4,6 +4,7 @@ import { ChangeEvent, Dispatch, SetStateAction } from "react";
 import { createCanvasFeature } from "@/app/_lib/authoring-utils";
 import {
   CanvasFeature,
+  CanvasFeatureField,
   CanvasFeatureType,
   PageItem,
   SystemSettings,
@@ -37,7 +38,7 @@ export function useCanvasFeatureHandlers({
 
   const handleCanvasFeatureChange = (
     featureId: string,
-    field: "label" | "description" | "linkUrl" | "imageUrl" | "optionsText" | "logoSize" | "qrSize" | "qrBgColor" | "qrBgOpacity" | "portraitZone",
+    field: CanvasFeatureField,
     value: string
   ) => {
     updateSelectedPage((page) => ({

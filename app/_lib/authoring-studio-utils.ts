@@ -1,57 +1,7 @@
-import { clamp, createCanvasFeature } from "@/app/_lib/authoring-utils";
+import { createCanvasFeature } from "@/app/_lib/authoring-utils";
 import { CanvasFeature, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 
-const EDGE_BAND = 10;
 const STORAGE_KEY = "sherpa-v1";
-
-export function constrainToEdgeBand(
-  x: number,
-  y: number,
-  horizontalInset: number,
-  verticalInset: number
-) {
-  const minX = horizontalInset;
-  const maxX = 100 - horizontalInset;
-  const minY = verticalInset;
-  const maxY = 100 - verticalInset;
-  const leftEdgeLimit = Math.min(maxX, EDGE_BAND + horizontalInset);
-  const rightEdgeLimit = Math.max(minX, 100 - EDGE_BAND - horizontalInset);
-  const topEdgeLimit = Math.min(maxY, EDGE_BAND + verticalInset);
-  const bottomEdgeLimit = Math.max(minY, 100 - EDGE_BAND - verticalInset);
-
-  const clampedX = clamp(x, minX, maxX);
-  const clampedY = clamp(y, minY, maxY);
-  const isInsideCenterX = clampedX > leftEdgeLimit && clampedX < rightEdgeLimit;
-  const isInsideCenterY = clampedY > topEdgeLimit && clampedY < bottomEdgeLimit;
-
-  if (!isInsideCenterX || !isInsideCenterY) {
-    return { x: clampedX, y: clampedY };
-  }
-
-  const distances = [
-    { edge: "left", value: leftEdgeLimit, distance: Math.abs(clampedX - leftEdgeLimit) },
-    { edge: "right", value: rightEdgeLimit, distance: Math.abs(clampedX - rightEdgeLimit) },
-    { edge: "top", value: topEdgeLimit, distance: Math.abs(clampedY - topEdgeLimit) },
-    { edge: "bottom", value: bottomEdgeLimit, distance: Math.abs(clampedY - bottomEdgeLimit) },
-  ];
-
-  const nearestEdge = distances.reduce((closest, candidate) =>
-    candidate.distance < closest.distance ? candidate : closest
-  );
-
-  switch (nearestEdge.edge) {
-    case "left":
-      return { x: leftEdgeLimit, y: clampedY };
-    case "right":
-      return { x: rightEdgeLimit, y: clampedY };
-    case "top":
-      return { x: clampedX, y: topEdgeLimit };
-    case "bottom":
-      return { x: clampedX, y: bottomEdgeLimit };
-    default:
-      return { x: clampedX, y: clampedY };
-  }
-}
 
 export function loadPersistedState(): { pages: PageItem[]; systemSettings: SystemSettings } | null {
   try {
