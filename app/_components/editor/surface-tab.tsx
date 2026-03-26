@@ -76,7 +76,7 @@ export function SurfaceTab({
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-8 text-center text-sm text-neutral-500">
-          Nothing on the canvas yet — add a logo, QR code, or button.
+          Nothing on the canvas yet — add an image, QR code, or button.
         </div>
       )}
 

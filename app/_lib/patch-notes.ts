@@ -6,6 +6,89 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.9.9",
+    date: "2026-03-25",
+    changes: [
+      "Image blocks now have a draggable focal point picker for Fill and Crop modes — click or drag anywhere on the preview to set where the image is anchored",
+      "Focal point is stored as x/y percentages and applied as object-position in the experience",
+      "Cross-hair overlay shows the current focal point position while dragging",
+    ],
+  },
+  {
+    version: "v0.9.8",
+    date: "2026-03-25",
+    changes: [
+      "Inline text color — wrap any word or phrase with {text|#hexcolor} to apply a custom color in the experience",
+      "Use {text|accent} to automatically match the experience accent color",
+      "Color picker in the prose toolbar: preset swatches, accent shortcut, and a custom hex input — applies to selected text",
+      "Color syntax works in all text formats: prose, bullets, steps, callouts, and summaries",
+    ],
+  },
+  {
+    version: "v0.9.7",
+    date: "2026-03-25",
+    changes: [
+      "Text blocks now have a formatting toolbar: Paragraph, H2, H3, Bullet list, and Numbered list — Steps is no longer a separate block type",
+      "Bold and Italic inline buttons wrap selected text in the textarea with markdown markers",
+      "Vertical alignment control (Top / Middle / Bottom) added to text, callout, and image blocks — sets how blocks align within a half-width row",
+      "Block editor header restructured: block name and Remove button always appear at the top above all controls",
+      "Alignment icons replaced with SVG icons instead of letters (L/C/R, T/M/B)",
+    ],
+  },
+  {
+    version: "v0.9.6",
+    date: "2026-03-25",
+    changes: [
+      "Per-block text alignment — L/C/R toggle in the block header for text, steps, and callout blocks",
+      "Fixed (( inline link trigger — dropdown now renders via portal, avoiding modal overflow clipping",
+      "Link trigger now shows 'No pages to link to' when triggered with no linkable pages available",
+    ],
+  },
+  {
+    version: "v0.9.5",
+    date: "2026-03-25",
+    changes: [
+      "Per-block width control — each text, steps, callout, and image block can be set to Full or ½ width independently",
+      "Half-width blocks sit side by side automatically; full-width blocks always span the container",
+      "Consent forms and video blocks are always full width",
+      "Block picker reorganized into grouped categories: Text, Media, and Interactive",
+      "Container appearance section moved above the Add content block button",
+    ],
+  },
+  {
+    version: "v0.9.3",
+    date: "2026-03-25",
+    changes: [
+      "Portrait layout now offers two modes: Split (image strip + content zone) and Full portrait image (single image fills entire canvas)",
+      "In full portrait mode, canvas features and hotspots float freely across the whole canvas — no zone assignment needed",
+    ],
+  },
+  {
+    version: "v0.9.2",
+    date: "2026-03-25",
+    changes: [
+      "Image element behavior now defaults to 'None' — no destination link shown until explicitly selected",
+    ],
+  },
+  {
+    version: "v0.9.1",
+    date: "2026-03-25",
+    changes: [
+      "New Consent Form block type — captures playtester name, date, and optional email",
+      "Submissions sent via Web3Forms (designer provides access key); failed sends cached locally and retried automatically",
+      "Post-submission shows 'Signed — thank you' and returns to the experience after 2 seconds",
+    ],
+  },
+  {
+    version: "v0.9.0",
+    date: "2026-03-25",
+    changes: [
+      "Mobile visitors now see a dedicated landing page instead of the authoring tool",
+      "New public gallery at /gallery — curated rules experiences built with Sherpa",
+      "Gallery entry pages at /gallery/[id] with game metadata and a placeholder for the interactive viewer",
+    ],
+  },
+  {
     version: "v0.8.5",
     date: "2026-03-24",
     changes: [

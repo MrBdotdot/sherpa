@@ -92,7 +92,7 @@ function EmptySurfaceGuidance({
       </div>
       <div className="mt-2 leading-6">
         {featureCount === 0
-          ? "Add canvas features like logos, QR codes, disclaimers, buttons, and dropdowns."
+          ? "Add canvas features like images, QR codes, disclaimers, buttons, and dropdowns."
           : "Turn on layout edit mode to move surface items directly on top of the image."}
       </div>
       <div className="mt-2 leading-6">
@@ -226,6 +226,8 @@ export function PreviewCanvas({
   const hotspotLabelSize = hotspotSize === "large" ? "text-xs px-2.5 py-1" : "text-[10px] px-2 py-0.5";
 
   const isPortrait = layoutMode === "mobile-portrait";
+  const isPortraitFull = isPortrait && systemSettings.portraitLayout === "full";
+  const isPortraitSplit = isPortrait && !isPortraitFull;
   const isMobileFrame = layoutMode !== "desktop";
   const portraitSplitRatio = systemSettings.portraitSplitRatio ?? 55;
   const portraitBackground = systemSettings.portraitBackground ?? "#1a1a2e";
@@ -242,10 +244,10 @@ export function PreviewCanvas({
     y: isPortrait ? (f.mobileY ?? f.y) : f.y,
   }));
 
-  const contentZoneFeatures = isPortrait
+  const contentZoneFeatures = isPortraitSplit
     ? effectiveFeatures.filter((f) => f.portraitZone === "content")
     : [];
-  const stripFeatures = isPortrait
+  const stripFeatures = isPortraitSplit
     ? effectiveFeatures.filter((f) => f.portraitZone !== "content")
     : effectiveFeatures;
 
@@ -409,9 +411,9 @@ export function PreviewCanvas({
               : undefined,
             touchAction: "none",
           }}
-          onClick={isPortrait ? undefined : onCanvasClick}
+          onClick={isPortraitSplit ? undefined : onCanvasClick}
         >
-          {isPortrait ? (
+          {isPortraitSplit ? (
             <>
               {/* Content zone — top portion */}
               <div
@@ -424,7 +426,7 @@ export function PreviewCanvas({
                 {modulePage ? (
                   <ContentModule key={modulePage.id} page={modulePage} {...sharedContentModuleProps} portraitZone />
                 ) : (
-                  <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
+                  <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center gap-1.5 px-6 text-center">
                     <div className="text-xl opacity-20 text-white">↓</div>
                     <p className="text-xs font-medium opacity-30 text-white">Tap a hotspot on the board below</p>
                   </div>

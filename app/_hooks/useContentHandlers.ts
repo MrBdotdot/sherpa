@@ -79,6 +79,15 @@ export function useContentHandlers({
     }));
   };
 
+  const handleBlockImagePositionChange = (blockId: string, x: number, y: number) => {
+    updateSelectedPage((page) => ({
+      ...page,
+      blocks: page.blocks.map((b) =>
+        b.id === blockId ? { ...b, imagePosition: { x, y } } : b
+      ),
+    }));
+  };
+
   const handleRemoveBlock = (blockId: string) => {
     pushPagesHistory();
     updateSelectedPage((page) => ({
@@ -120,6 +129,34 @@ export function useContentHandlers({
     updateSelectedPage((page) => ({ ...page, contentTintColor: color, contentTintOpacity: opacity }));
   };
 
+  const handleBlockWidthChange = (blockId: string, width: ContentBlock["blockWidth"]) => {
+    updateSelectedPage((page) => ({
+      ...page,
+      blocks: page.blocks.map((b) => b.id === blockId ? { ...b, blockWidth: width } : b),
+    }));
+  };
+
+  const handleBlockTextAlignChange = (blockId: string, align: ContentBlock["textAlign"]) => {
+    updateSelectedPage((page) => ({
+      ...page,
+      blocks: page.blocks.map((b) => b.id === blockId ? { ...b, textAlign: align } : b),
+    }));
+  };
+
+  const handleBlockVerticalAlignChange = (blockId: string, align: ContentBlock["verticalAlign"]) => {
+    updateSelectedPage((page) => ({
+      ...page,
+      blocks: page.blocks.map((b) => b.id === blockId ? { ...b, verticalAlign: align } : b),
+    }));
+  };
+
+  const handleBlockFormatChange = (blockId: string, format: ContentBlock["blockFormat"]) => {
+    updateSelectedPage((page) => ({
+      ...page,
+      blocks: page.blocks.map((b) => b.id === blockId ? { ...b, blockFormat: format } : b),
+    }));
+  };
+
   return {
     handleAddBlock,
     handleBlockChange,
@@ -133,5 +170,10 @@ export function useContentHandlers({
     handleSocialLinkChange,
     handleRemoveSocialLink,
     handleContentTintChange,
+    handleBlockWidthChange,
+    handleBlockTextAlignChange,
+    handleBlockVerticalAlignChange,
+    handleBlockFormatChange,
+    handleBlockImagePositionChange,
   };
 }

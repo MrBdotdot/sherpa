@@ -64,6 +64,11 @@ type PageEditorModalProps = {
   onPublicUrlChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onPublishStatusChange: (value: PublishStatus) => void;
   onContentTintChange: (color: string, opacity: number) => void;
+  onBlockWidthChange: (blockId: string, width: "full" | "half") => void;
+  onBlockTextAlignChange: (blockId: string, align: "left" | "center" | "right") => void;
+  onBlockVerticalAlignChange: (blockId: string, align: "top" | "middle" | "bottom" | undefined) => void;
+  onBlockFormatChange: (blockId: string, format: "prose" | "h2" | "h3" | "bullets" | "steps" | undefined) => void;
+  onBlockImagePositionChange: (blockId: string, x: number, y: number) => void;
   onQrToggle: () => void;
   onRemoveCanvasFeature: (featureId: string) => void;
   onRemoveBlock: (blockId: string) => void;
@@ -126,6 +131,11 @@ export function PageEditorModal({
   onPublicUrlChange: _onPublicUrlChange,
   onPublishStatusChange: _onPublishStatusChange,
   onContentTintChange,
+  onBlockWidthChange,
+  onBlockTextAlignChange,
+  onBlockVerticalAlignChange,
+  onBlockFormatChange,
+  onBlockImagePositionChange,
   onQrToggle: _onQrToggle,
   onRemoveCanvasFeature,
   onRemoveBlock,
@@ -283,10 +293,15 @@ export function PageEditorModal({
           ) : activeTab === "content" ? (
             <ContentTab
               onContentTintChange={onContentTintChange}
+              onBlockWidthChange={onBlockWidthChange}
+              onBlockTextAlignChange={onBlockTextAlignChange}
+              onBlockVerticalAlignChange={onBlockVerticalAlignChange}
+              onBlockFormatChange={onBlockFormatChange}
               onAddBlock={onAddBlock}
               onAddSocialLink={onAddSocialLink}
               onBlockChange={onBlockChange}
               onBlockFitChange={onBlockFitChange}
+              onBlockImagePositionChange={onBlockImagePositionChange}
               onBlockImageUpload={onBlockImageUpload}
               onBlockVariantChange={onBlockVariantChange}
               onDisplayStyleChange={onDisplayStyleChange}

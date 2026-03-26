@@ -323,13 +323,16 @@ export function SetupTab({
       <EditorSection title="Global">
         <div className="space-y-4">
           <SelectField
-            label="Font mood"
+            label="Font"
             value={systemSettings.fontTheme}
             onChange={(value) => onSystemSettingChange("fontTheme", value)}
             options={[
               { label: "Modern sans", value: "modern" },
-              { label: "Editorial serif", value: "editorial" },
+              { label: "Geometric sans", value: "geometric" },
               { label: "Friendly rounded", value: "friendly" },
+              { label: "Technical mono", value: "mono" },
+              { label: "Editorial serif", value: "editorial" },
+              { label: "Display serif", value: "display" },
             ]}
           />
           <SelectField
@@ -389,50 +392,76 @@ export function SetupTab({
       {/* Portrait layout */}
       <EditorSection title="Portrait layout">
         <div className="space-y-4">
-          <p className="text-xs leading-5 text-neutral-400">
-            When viewed in portrait orientation, the canvas splits into a content zone (top) and an image strip (bottom). Adjust the split and background below.
-          </p>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs text-neutral-500">
-              <span>Image strip height</span>
-              <span className="font-medium text-neutral-700">{systemSettings.portraitSplitRatio ?? 55}%</span>
-            </div>
-            <input
-              type="range"
-              min={35}
-              max={75}
-              step={1}
-              value={systemSettings.portraitSplitRatio ?? 55}
-              onChange={(e) => onSystemSettingChange("portraitSplitRatio", Number(e.target.value))}
-              className="w-full accent-neutral-900"
-            />
-            <div className="flex justify-between text-[10px] text-neutral-400">
-              <span>35% (more content)</span>
-              <span>75% (more board)</span>
-            </div>
+          <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
+            {(["split", "full"] as const).map((mode) => {
+              const isActive = (systemSettings.portraitLayout ?? "split") === mode;
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => onSystemSettingChange("portraitLayout", mode)}
+                  className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
+                    isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-700"
+                  }`}
+                >
+                  {mode === "split" ? "Split (strip + content zone)" : "Full portrait image"}
+                </button>
+              );
+            })}
           </div>
-          <div>
-            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
-              Content zone background
-            </div>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={systemSettings.portraitBackground ?? "#1a1a2e"}
-                onChange={(e) => onSystemSettingChange("portraitBackground", e.target.value)}
-                aria-label="Portrait background color picker"
-                className="h-9 w-9 shrink-0 cursor-pointer rounded-xl border border-neutral-300 p-0.5"
-              />
-              <input
-                type="text"
-                value={systemSettings.portraitBackground ?? "#1a1a2e"}
-                onChange={(e) => onSystemSettingChange("portraitBackground", e.target.value)}
-                placeholder="#1a1a2e"
-                aria-label="Portrait background color hex value"
-                className="w-full rounded-2xl border border-neutral-300 px-4 py-3 font-mono text-sm outline-none transition focus:border-black"
-              />
-            </div>
-          </div>
+
+          {(systemSettings.portraitLayout ?? "split") === "split" ? (
+            <>
+              <p className="text-xs leading-5 text-neutral-400">
+                The canvas splits into a content zone (top) and an image strip (bottom). Canvas features can be assigned to either zone.
+              </p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-neutral-500">
+                  <span>Image strip height</span>
+                  <span className="font-medium text-neutral-700">{systemSettings.portraitSplitRatio ?? 55}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={35}
+                  max={75}
+                  step={1}
+                  value={systemSettings.portraitSplitRatio ?? 55}
+                  onChange={(e) => onSystemSettingChange("portraitSplitRatio", Number(e.target.value))}
+                  className="w-full accent-neutral-900"
+                />
+                <div className="flex justify-between text-[10px] text-neutral-400">
+                  <span>35% (more content)</span>
+                  <span>75% (more board)</span>
+                </div>
+              </div>
+              <div>
+                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+                  Content zone background
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={systemSettings.portraitBackground ?? "#1a1a2e"}
+                    onChange={(e) => onSystemSettingChange("portraitBackground", e.target.value)}
+                    aria-label="Portrait background color picker"
+                    className="h-9 w-9 shrink-0 cursor-pointer rounded-xl border border-neutral-300 p-0.5"
+                  />
+                  <input
+                    type="text"
+                    value={systemSettings.portraitBackground ?? "#1a1a2e"}
+                    onChange={(e) => onSystemSettingChange("portraitBackground", e.target.value)}
+                    placeholder="#1a1a2e"
+                    aria-label="Portrait background color hex value"
+                    className="w-full rounded-2xl border border-neutral-300 px-4 py-3 font-mono text-sm outline-none transition focus:border-black"
+                  />
+                </div>
+              </div>
+            </>
+          ) : (
+            <p className="text-xs leading-5 text-neutral-400">
+              A single portrait-oriented image fills the entire canvas. Upload a portrait image via the hero image upload on the canvas. Canvas features and hotspots float freely on top.
+            </p>
+          )}
         </div>
       </EditorSection>
 

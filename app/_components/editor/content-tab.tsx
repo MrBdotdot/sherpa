@@ -4,9 +4,37 @@ import { ChangeEvent, useState } from "react";
 import { createPortal } from "react-dom";
 import { ContentBlock, ContentBlockType, DisplayStyleKey, ImageFit, PageItem } from "@/app/_lib/authoring-types";
 import { DISPLAY_STYLE_OPTIONS, getDisplayStyleKey } from "@/app/_lib/authoring-utils";
-import { BlockEditor, CONTENT_ELEMENT_TYPES } from "@/app/_components/editor/block-editor";
+import { BlockEditor, CONTENT_ELEMENT_TYPES, type BlockFormat } from "@/app/_components/editor/block-editor";
 import { SelectField } from "@/app/_components/editor/editor-ui";
 import { useFocusTrap } from "@/app/_hooks/useFocusTrap";
+
+const BLOCK_GROUPS: Array<{
+  label: string;
+  items: typeof CONTENT_ELEMENT_TYPES;
+}> = [
+  {
+    label: "Text",
+    items: CONTENT_ELEMENT_TYPES.filter((i) => ["text", "callout"].includes(i.type as string)),
+  },
+  {
+    label: "Media",
+    items: CONTENT_ELEMENT_TYPES.filter((i) => ["image", "video"].includes(i.type as string)),
+  },
+  {
+    label: "Interactive",
+    items: CONTENT_ELEMENT_TYPES.filter((i) => i.kind === "action-link" || i.type === "consent"),
+  },
+];
+
+const BLOCK_ICONS: Record<string, string> = {
+  text: "¶",
+  steps: "①",
+  callout: "◈",
+  image: "▨",
+  video: "▶",
+  consent: "✎",
+  "action-link": "↗",
+};
 
 function BlockPickerModal({
   onAddBlock,
@@ -44,29 +72,39 @@ function BlockPickerModal({
             Cancel
           </button>
         </div>
-        <ul role="list" className="space-y-2">
-          {CONTENT_ELEMENT_TYPES.map((item) => (
-            <li key={item.label}>
-              <button
-                type="button"
-                onClick={() => {
-                  if (item.kind === "block") {
-                    onAddBlock(item.type!);
-                  } else {
-                    onAddSocialLink();
-                  }
-                  onClose();
-                }}
-                className="flex w-full items-start gap-3 rounded-2xl border border-neutral-200 px-4 py-3 text-left hover:border-neutral-300 hover:bg-neutral-50"
-              >
-                <div>
-                  <div className="text-sm font-medium text-neutral-900">{item.label}</div>
-                  <div className="mt-0.5 text-xs leading-4 text-neutral-400">{item.description}</div>
-                </div>
-              </button>
-            </li>
+        <div className="space-y-4">
+          {BLOCK_GROUPS.map((group) => (
+            <div key={group.label}>
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+                {group.label}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {group.items.map((item) => {
+                  const icon = BLOCK_ICONS[item.type ?? "action-link"] ?? "·";
+                  return (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => {
+                        if (item.kind === "block") {
+                          onAddBlock(item.type!);
+                        } else {
+                          onAddSocialLink();
+                        }
+                        onClose();
+                      }}
+                      className="flex flex-col gap-1.5 rounded-2xl border border-neutral-200 px-3 py-3 text-left hover:border-neutral-300 hover:bg-neutral-50"
+                    >
+                      <span className="text-base leading-none text-neutral-400" aria-hidden="true">{icon}</span>
+                      <span className="text-sm font-medium text-neutral-900">{item.label}</span>
+                      <span className="text-[11px] leading-4 text-neutral-400">{item.description}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       </div>
     </div>,
     document.body
@@ -78,8 +116,13 @@ export function ContentTab({
   onAddSocialLink,
   onBlockChange,
   onBlockFitChange,
+  onBlockImagePositionChange,
+  onBlockFormatChange,
   onBlockImageUpload,
   onBlockVariantChange,
+  onBlockVerticalAlignChange,
+  onBlockWidthChange,
+  onBlockTextAlignChange,
   onContentTintChange,
   onDisplayStyleChange,
   onMoveBlockDown,
@@ -94,8 +137,13 @@ export function ContentTab({
   onAddSocialLink: () => void;
   onBlockChange: (blockId: string, value: string) => void;
   onBlockFitChange: (blockId: string, fit: ImageFit) => void;
+  onBlockImagePositionChange: (blockId: string, x: number, y: number) => void;
+  onBlockFormatChange: (blockId: string, format: BlockFormat) => void;
   onBlockImageUpload: (blockId: string, event: ChangeEvent<HTMLInputElement>) => void;
   onBlockVariantChange: (blockId: string, variant: ContentBlock["variant"]) => void;
+  onBlockVerticalAlignChange: (blockId: string, align: "top" | "middle" | "bottom" | undefined) => void;
+  onBlockWidthChange: (blockId: string, width: "full" | "half") => void;
+  onBlockTextAlignChange: (blockId: string, align: "left" | "center" | "right") => void;
   onContentTintChange: (color: string, opacity: number) => void;
   onDisplayStyleChange: (style: DisplayStyleKey) => void;
   onMoveBlockDown: (blockId: string) => void;
@@ -115,16 +163,6 @@ export function ContentTab({
 
   return (
     <div className="space-y-6 p-5">
-      {/* Intro text — not applicable on the home surface */}
-
-      <button
-        type="button"
-        onClick={() => setPickerOpen(true)}
-        className="w-full rounded-2xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
-      >
-        + Add content block
-      </button>
-
       {/* Container visuals — display style + background tint */}
       <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-4">
         <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
@@ -137,6 +175,7 @@ export function ContentTab({
           onChange={onDisplayStyleChange}
           options={DISPLAY_STYLE_OPTIONS.map((o) => ({ label: o.label, value: o.key }))}
         />
+
 
         {showTint ? (
           <div className="space-y-3">
@@ -193,6 +232,14 @@ export function ContentTab({
         ) : null}
       </div>
 
+      <button
+        type="button"
+        onClick={() => setPickerOpen(true)}
+        className="w-full rounded-2xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+      >
+        + Add content block
+      </button>
+
       {/* Blocks + social links */}
       {totalItems > 0 ? (
         <div className="space-y-3">
@@ -207,8 +254,13 @@ export function ContentTab({
               selectedPageId={selectedPage.id}
               onBlockChange={onBlockChange}
               onBlockFitChange={onBlockFitChange}
+              onBlockImagePositionChange={onBlockImagePositionChange}
+              onBlockFormatChange={onBlockFormatChange}
               onBlockImageUpload={onBlockImageUpload}
               onBlockVariantChange={onBlockVariantChange}
+              onBlockVerticalAlignChange={onBlockVerticalAlignChange}
+              onBlockWidthChange={onBlockWidthChange}
+              onBlockTextAlignChange={onBlockTextAlignChange}
               onMoveBlockDown={onMoveBlockDown}
               onMoveBlockUp={onMoveBlockUp}
               onRemoveBlock={onRemoveBlock}

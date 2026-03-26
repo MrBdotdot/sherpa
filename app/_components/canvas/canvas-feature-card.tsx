@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { CanvasFeature } from "@/app/_lib/authoring-types";
 
-function LogoFeatureCard({
+function ImageFeatureCard({
   feature,
   surfaceStyleClass,
 }: {
@@ -19,14 +19,14 @@ function LogoFeatureCard({
   const linkItems = lines.filter((l) => !l.startsWith("~"));
   const subtext = lines.find((l) => l.startsWith("~"))?.slice(1).trim();
   const hasLinks = isLinks && linkItems.length > 0;
-  const menuId = `logo-menu-${feature.id}`;
+  const menuId = `image-menu-${feature.id}`;
 
   if (!feature.imageUrl) {
     return (
       <div className="w-[180px] rounded-xl border border-dashed border-neutral-300 bg-white/90 p-3 shadow-sm">
         <div className="truncate text-xs font-semibold text-neutral-900">{feature.label}</div>
         <div className="mt-2 rounded-lg border border-dashed border-neutral-300 px-3 py-3 text-[11px] text-neutral-400">
-          Upload logo image
+          Upload image
         </div>
       </div>
     );
@@ -40,13 +40,13 @@ function LogoFeatureCard({
         aria-expanded={hasLinks ? open : undefined}
         aria-haspopup={hasLinks ? "menu" : undefined}
         aria-controls={hasLinks ? menuId : undefined}
-        aria-label={feature.label || "Logo"}
+        aria-label={feature.label || "Image"}
         className={hasLinks ? "cursor-pointer" : "cursor-default"}
       >
         <img
           src={feature.imageUrl}
           alt={feature.label}
-          className="block w-auto object-contain drop-shadow-sm"
+          className="block w-auto max-w-none object-contain drop-shadow-sm"
           style={{ height: feature.logoSize ?? 48 }}
         />
       </button>
@@ -188,8 +188,8 @@ export function CanvasFeatureCard({
     );
   }
 
-  if (feature.type === "logo") {
-    return <LogoFeatureCard feature={feature} surfaceStyleClass={surfaceStyleClass} />;
+  if (feature.type === "image") {
+    return <ImageFeatureCard feature={feature} surfaceStyleClass={surfaceStyleClass} />;
   }
 
   if (feature.type === "locale") {

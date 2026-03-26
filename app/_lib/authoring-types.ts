@@ -1,6 +1,6 @@
 export type PageKind = "home" | "page" | "hotspot";
 export type LayoutMode = "desktop" | "mobile-landscape" | "mobile-portrait";
-export type ContentBlockType = "text" | "image" | "video" | "steps" | "callout";
+export type ContentBlockType = "text" | "image" | "video" | "steps" | "callout" | "consent";
 export type PageButtonPlacement = "top" | "bottom" | "left" | "right" | "stack";
 export type InteractionType =
   | "modal"
@@ -12,7 +12,7 @@ export type InteractionType =
 export type PublishStatus = "draft" | "published";
 export type CanvasFeatureType =
   | "qr"
-  | "logo"
+  | "image"
   | "heading"
   | "disclaimer"
   | "button"
@@ -47,6 +47,11 @@ export type ContentBlock = {
   value: string;
   variant?: "info" | "warning" | "tip";
   imageFit?: ImageFit;
+  blockWidth?: "full" | "half";
+  textAlign?: "left" | "center" | "right";
+  verticalAlign?: "top" | "middle" | "bottom";
+  blockFormat?: "prose" | "h2" | "h3" | "bullets" | "steps";
+  imagePosition?: { x: number; y: number };
 };
 
 export type SocialLink = {
@@ -114,7 +119,7 @@ export type DragState = {
 };
 
 export type SystemSettings = {
-  fontTheme: "modern" | "editorial" | "friendly";
+  fontTheme: "modern" | "editorial" | "friendly" | "mono" | "geometric" | "display";
   surfaceStyle: "glass" | "solid" | "contrast";
   accentColor: string;
   hotspotSize: "small" | "medium" | "large";
@@ -122,6 +127,7 @@ export type SystemSettings = {
     enabled: boolean;
     youtubeUrl: string;
   };
+  portraitLayout?: "split" | "full";  // split = image strip + content zone; full = portrait image fills entire canvas
   portraitSplitRatio?: number;  // % of canvas height for image strip (default 55, range 40–75)
   portraitBackground?: string;  // CSS color for the content zone (default "#1a1a2e")
 };

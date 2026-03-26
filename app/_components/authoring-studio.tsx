@@ -171,6 +171,11 @@ export function AuthoringStudio() {
     handleSocialLinkChange,
     handleRemoveSocialLink,
     handleContentTintChange,
+    handleBlockWidthChange,
+    handleBlockTextAlignChange,
+    handleBlockVerticalAlignChange,
+    handleBlockFormatChange,
+    handleBlockImagePositionChange,
   } = useContentHandlers({ pushPagesHistory, updateSelectedPage });
 
   const {
@@ -294,8 +299,13 @@ export function AuthoringStudio() {
     onSystemSettingChange: handleSystemSettingChange,
     onTitleChange: handleTitleChange,
     onContentTintChange: handleContentTintChange,
+    onBlockWidthChange: handleBlockWidthChange,
+    onBlockTextAlignChange: handleBlockTextAlignChange,
+    onBlockVerticalAlignChange: handleBlockVerticalAlignChange,
+    onBlockFormatChange: handleBlockFormatChange,
+    onBlockImagePositionChange: handleBlockImagePositionChange,
     onOpenPage: openPageEditor,
-    isPortraitMode: layoutMode === "mobile-portrait",
+    isPortraitMode: layoutMode === "mobile-portrait" && systemSettings.portraitLayout !== "full",
     selectedPage,
     selectedPageId,
     selectedFeatureId,

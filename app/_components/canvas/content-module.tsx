@@ -77,6 +77,9 @@ export function ContentModule({
   const fontThemeClass =
     systemSettings.fontTheme === "editorial" ? "font-serif"
     : systemSettings.fontTheme === "friendly" ? "font-sans tracking-[0.01em]"
+    : systemSettings.fontTheme === "mono" ? "font-mono"
+    : systemSettings.fontTheme === "geometric" ? "font-space"
+    : systemSettings.fontTheme === "display" ? "font-display"
     : "font-sans";
   const surfaceStyleClass =
     systemSettings.surfaceStyle === "solid"
@@ -94,12 +97,6 @@ export function ContentModule({
     systemSettings.surfaceStyle === "contrast" ? "rgba(10,10,10,0.95)"
     : systemSettings.surfaceStyle === "solid" ? "#ffffff"
     : "rgba(255,255,255,0.90)";
-  const backBtnClass = [
-    "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition shadow-sm",
-    systemSettings.surfaceStyle === "contrast"
-      ? "border-white/20 bg-white/10 text-white hover:bg-white/20"
-      : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50",
-  ].join(" ");
 
   // side-sheet and full-page always use their own slide animations — the
   // hotspot-preview-modal animation applies translate(-50%,-50%) which
@@ -179,7 +176,7 @@ export function ContentModule({
         >
           {page.title || "Untitled page"}
         </div>
-        {isPreviewMode && isHotspotSelection ? (
+        {!isExiting ? (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onDismissContent(); }}
@@ -196,7 +193,7 @@ export function ContentModule({
       </div>
 
       <div className={`mt-3 ${mutedTextClass}`}>
-        <PreviewBlocks accentColor={accentColor} onNavigate={onNavigate} page={page} pages={pages} />
+        <PreviewBlocks accentColor={accentColor} onNavigate={onNavigate} onDismissContent={onDismissContent} page={page} pages={pages} />
       </div>
 
       {page.socialLinks.length > 0 || page.showQrCode ? (
@@ -257,7 +254,7 @@ export function ContentModule({
       : "container-external-link-in";
     return (
       <div
-        className={`absolute inset-0 z-10 overflow-y-auto px-5 py-5 ${solidBg} ${fontThemeClass} ${portraitAnimClass}`}
+        className={`absolute inset-0 z-30 overflow-y-auto px-5 py-5 ${solidBg} ${fontThemeClass} ${portraitAnimClass}`}
         style={{ ...tintStyle, ...pointerEventsStyle }}
         onClick={(e) => e.stopPropagation()}
         onAnimationEnd={handleAnimEnd}
@@ -280,21 +277,11 @@ export function ContentModule({
         <div className="mb-3 flex justify-center">
           <div className={`h-1 w-10 rounded-full ${systemSettings.surfaceStyle === "contrast" ? "bg-white/20" : "bg-neutral-300"}`} />
         </div>
-        <div className="mb-4 flex items-center justify-between">
-          {isLayoutEditMode && !isExiting ? (
-            <div className="inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-              <span>Content module</span>
-            </div>
-          ) : <div />}
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onDismissContent(); }}
-            aria-label="Back"
-            className={backBtnClass}
-          >
-            <span aria-hidden="true">←</span> Back
-          </button>
-        </div>
+        {isLayoutEditMode && !isExiting ? (
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+            <span>Content module</span>
+          </div>
+        ) : null}
         {innerContent}
       </div>
     );
@@ -310,17 +297,7 @@ export function ContentModule({
           onClick={(e) => e.stopPropagation()}
           onAnimationEnd={handleAnimEnd}
         >
-          <div className="shrink-0 px-6 pt-4 pb-2">
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onDismissContent(); }}
-              aria-label="Back"
-              className={backBtnClass}
-            >
-              <span aria-hidden="true">←</span> Back
-            </button>
-          </div>
-          <div className="flex flex-1 items-center justify-center overflow-y-auto px-6 pb-6">
+          <div className="flex flex-1 items-center justify-center overflow-y-auto px-6 pb-6 pt-4">
             <div className="w-full max-w-md py-4">
               {isLayoutEditMode && !isExiting ? (
                 <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
@@ -336,21 +313,11 @@ export function ContentModule({
 
     return (
       <div
-        className={`absolute top-0 right-0 bottom-0 z-30 ${sideSheetWidth} max-w-[calc(100%-3rem)] overflow-y-auto rounded-l-2xl pt-3 pb-6 px-5 ${solidBg} border-l border-neutral-200 ${fontThemeClass} ${animClass}`}
+        className={`absolute top-0 right-0 bottom-0 z-30 ${sideSheetWidth} max-w-[calc(100%-3rem)] overflow-y-auto rounded-l-2xl pt-4 pb-6 px-5 ${solidBg} border-l border-neutral-200 ${fontThemeClass} ${animClass}`}
         style={{ ...tintStyle, ...pointerEventsStyle }}
         onClick={(e) => e.stopPropagation()}
         onAnimationEnd={handleAnimEnd}
       >
-        <div className="mb-4 flex justify-end pt-2">
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onDismissContent(); }}
-            aria-label="Back"
-            className={backBtnClass}
-          >
-            <span aria-hidden="true">←</span> Back
-          </button>
-        </div>
         {isLayoutEditMode && !isExiting ? (
           <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
             <span>Content module</span>
@@ -396,16 +363,6 @@ export function ContentModule({
             <span>Content module</span>
             {isContentDraggable ? <span className="opacity-60">Move</span> : null}
           </div>
-        ) : null}
-        {!isExiting ? (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onDismissContent(); }}
-            aria-label="Back"
-            className={`mb-1.5 ${backBtnClass}`}
-          >
-            <span aria-hidden="true">←</span> Back
-          </button>
         ) : null}
         <div
           className={innerCardClass}

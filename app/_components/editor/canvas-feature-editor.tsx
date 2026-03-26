@@ -4,7 +4,7 @@ import { ChangeEvent, useEffect, useRef } from "react";
 import { CanvasFeature, CanvasFeatureField, CanvasFeatureType, PageItem } from "@/app/_lib/authoring-types";
 
 export const CANVAS_ELEMENT_TYPES: Array<{ type: CanvasFeatureType; label: string; description: string }> = [
-  { type: "logo", label: "Logo", description: "Brand mark with link or link list" },
+  { type: "image", label: "Image", description: "Image with optional link or link list" },
   { type: "heading", label: "Heading", description: "Large heading text on the canvas" },
   { type: "qr", label: "QR code", description: "Scannable code image" },
   { type: "button", label: "Button", description: "Link button on the canvas surface" },
@@ -75,31 +75,11 @@ export function CanvasFeatureEditor({
           className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
         />
 
-        {/* Logo */}
-        {feature.type === "logo" ? (
+        {/* Image */}
+        {feature.type === "image" ? (
           <>
             <div className="space-y-2">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Behavior</div>
-              <div className="flex gap-2">
-                {(["link", "links"] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => onCanvasFeatureChange(feature.id, "description", mode)}
-                    aria-pressed={feature.description === mode}
-                    className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                      feature.description === mode
-                        ? "border-neutral-900 bg-neutral-900 text-white"
-                        : "border-neutral-300 text-neutral-600 hover:bg-neutral-50"
-                    }`}
-                  >
-                    {mode === "link" ? "Goes to a link" : "Shows link list"}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Logo image</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Image</div>
               <label className="inline-flex cursor-pointer items-center rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
                 Upload image
                 <input
@@ -111,7 +91,7 @@ export function CanvasFeatureEditor({
               </label>
               {feature.imageUrl ? (
                 <div className="flex items-center gap-2">
-                  <img src={feature.imageUrl} alt="Logo" className="h-10 w-auto max-w-[120px] rounded-lg border border-neutral-200 object-contain p-1" />
+                  <img src={feature.imageUrl} alt="Image" className="h-10 w-auto max-w-[120px] rounded-lg border border-neutral-200 object-contain p-1" />
                   <button
                     type="button"
                     onClick={() => onCanvasFeatureChange(feature.id, "imageUrl", "")}
@@ -134,10 +114,35 @@ export function CanvasFeatureEditor({
                 step={4}
                 value={feature.logoSize ?? 48}
                 onChange={(e) => onCanvasFeatureChange(feature.id, "logoSize", e.target.value)}
-                aria-label="Logo size"
+                aria-label="Image size"
                 aria-valuetext={`${feature.logoSize ?? 48}px`}
                 className="w-full accent-neutral-900"
               />
+            </div>
+            <div className="space-y-2">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Behavior</div>
+              <div className="flex gap-2">
+                {(["none", "link", "links"] as const).map((mode) => {
+                  const isActive = mode === "none"
+                    ? !feature.description || feature.description === "none"
+                    : feature.description === mode;
+                  return (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => onCanvasFeatureChange(feature.id, "description", mode === "none" ? "" : mode)}
+                      aria-pressed={isActive}
+                      className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                        isActive
+                          ? "border-neutral-900 bg-neutral-900 text-white"
+                          : "border-neutral-300 text-neutral-600 hover:bg-neutral-50"
+                      }`}
+                    >
+                      {mode === "none" ? "None" : mode === "link" ? "Goes to a link" : "Shows link list"}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             {feature.description === "link" ? (
               <input
@@ -148,7 +153,7 @@ export function CanvasFeatureEditor({
                 aria-label="Destination URL"
                 className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
               />
-            ) : (
+            ) : feature.description === "links" ? (
               <div className="space-y-2">
                 <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Links — one per line</div>
                 <textarea
@@ -163,7 +168,7 @@ export function CanvasFeatureEditor({
                   Label or Label|URL · Use <code className="rounded bg-neutral-100 px-1">---</code> for a divider · Start a line with <code className="rounded bg-neutral-100 px-1">~</code> for attribution text
                 </div>
               </div>
-            )}
+            ) : null}
           </>
         ) : null}
 

@@ -13,7 +13,7 @@ import {
   TemplateId,
 } from "@/app/_lib/authoring-types";
 
-export const APP_VERSION = "v0.8.5";
+export const APP_VERSION = "v0.9.9";
 
 export type { PatchNote } from "@/app/_lib/patch-notes";
 export { PATCH_NOTES } from "@/app/_lib/patch-notes";
@@ -125,12 +125,12 @@ export function createCanvasFeature(
         x: 82,
         y: 18,
       };
-    case "logo":
+    case "image":
       return {
         id: createId("feature"),
         type,
-        label: "Brand Logo",
-        description: "link",
+        label: "Image",
+        description: "",
         linkUrl: "",
         imageUrl: "",
         optionsText: "",
@@ -487,8 +487,8 @@ export function getFeatureTypeLabel(type: CanvasFeatureType) {
   switch (type) {
     case "qr":
       return "QR code";
-    case "logo":
-      return "Logo";
+    case "image":
+      return "Image";
     case "heading":
       return "Heading";
     case "disclaimer":
