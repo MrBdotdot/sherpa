@@ -49,6 +49,7 @@ type PageEditorModalProps = {
   onBlockVariantChange: (blockId: string, variant: ContentBlock["variant"]) => void;
   onClose: () => void;
   onCreatePageWithConfig: (config: { templateId: TemplateId | null; title: string; displayStyle: DisplayStyleKey; contentTintColor: string; contentTintOpacity: number }) => void;
+  onCreatePageForButton: () => string;
   onDeleteRequest: () => void;
   onHeroUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onHotspotPointerDown: (
@@ -119,6 +120,7 @@ export function PageEditorModal({
   onBlockVariantChange,
   onClose,
   onCreatePageWithConfig,
+  onCreatePageForButton,
   onDeleteRequest,
   onHeroUpload,
   onHotspotPointerDown,
@@ -283,6 +285,7 @@ export function PageEditorModal({
               onAddCanvasFeature={onAddCanvasFeature}
               onCanvasFeatureChange={onCanvasFeatureChange}
               onCanvasFeatureImageUpload={onCanvasFeatureImageUpload}
+              onCreatePageForButton={onCreatePageForButton}
               onOpenPage={onOpenPage}
               onRemoveCanvasFeature={onRemoveCanvasFeature}
               pages={pages}

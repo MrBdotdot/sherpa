@@ -17,6 +17,10 @@ const BLOCK_GROUPS: Array<{
     items: CONTENT_ELEMENT_TYPES.filter((i) => ["text", "callout"].includes(i.type as string)),
   },
   {
+    label: "Sections",
+    items: CONTENT_ELEMENT_TYPES.filter((i) => ["tabs", "progress-bar"].includes(i.type as string)),
+  },
+  {
     label: "Media",
     items: CONTENT_ELEMENT_TYPES.filter((i) => ["image", "video"].includes(i.type as string)),
   },
@@ -30,6 +34,8 @@ const BLOCK_ICONS: Record<string, string> = {
   text: "¶",
   steps: "①",
   callout: "◈",
+  tabs: "⊟",
+  "progress-bar": "◎",
   image: "▨",
   video: "▶",
   consent: "✎",

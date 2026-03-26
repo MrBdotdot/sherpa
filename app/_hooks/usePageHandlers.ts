@@ -76,6 +76,14 @@ export function usePageHandlers({
     setIsContentModalOpen(true);
   };
 
+  /** Creates a new standard page without opening it, and returns the new page ID. */
+  const handleCreatePageForButton = (): string => {
+    pushPagesHistory();
+    const newPage = createStandardPage(standardPages.length + 1);
+    setPages((prev) => [...prev, newPage]);
+    return newPage.id;
+  };
+
   const handleCreateTemplatePage = (templateId: TemplateId) => {
     pushPagesHistory();
     const newPage = createTemplatePage(templateId, standardPages.length + 1);
@@ -230,6 +238,7 @@ export function usePageHandlers({
     handleCreatePage,
     handleCreateTemplatePage,
     handleCreatePageWithConfig,
+    handleCreatePageForButton,
     handleDeleteSelectedPage,
     handleDeleteHotspot,
     handleResetPagePosition,

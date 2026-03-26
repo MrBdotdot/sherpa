@@ -157,7 +157,10 @@ function FeaturePlacer({
           onPointerDown={(event) => onCanvasFeaturePointerDown(event, feature.id)}
           onClick={(event) => {
             event.stopPropagation();
-            if (!isLayoutEditMode && feature.type === "page-button" && feature.linkUrl) onSelectPage(feature.linkUrl);
+            if (!isLayoutEditMode && feature.linkUrl) {
+              if (feature.type === "page-button") onSelectPage(feature.linkUrl);
+              else if (feature.type === "button" && feature.buttonLinkMode === "page") onSelectPage(feature.linkUrl);
+            }
           }}
         >
           {isLayoutEditMode ? (

@@ -7,7 +7,7 @@ import {
   getFeatureTypeLabel,
   getPublishStatusClasses,
 } from "@/app/_lib/authoring-utils";
-import { CanvasFeature, PageItem, PublishStatus } from "@/app/_lib/authoring-types";
+import { CanvasFeature, ContentBlock, PageItem, PublishStatus } from "@/app/_lib/authoring-types";
 
 type PageSidebarProps = {
   onOpenPage: (id: string) => void;
@@ -138,6 +138,37 @@ function SidebarFeatureItem({
         {getFeatureTypeLabel(feature.type)}
       </span>
       <span className="truncate font-medium">{feature.label || "Unnamed"}</span>
+    </button>
+  );
+}
+
+function getTabSections(blocks: ContentBlock[]) {
+  const result: Array<{ blockId: string; tabId: string; label: string }> = [];
+  for (const block of blocks) {
+    if (block.type === "tabs") {
+      try {
+        const data = JSON.parse(block.value);
+        const sections: Array<{ id: string; label: string }> = data.sections ?? [];
+        sections.forEach((s, i) => {
+          result.push({ blockId: block.id, tabId: s.id, label: s.label || `Tab ${i + 1}` });
+        });
+      } catch { /* ignore */ }
+    }
+  }
+  return result;
+}
+
+function SidebarTabItem({ label, onOpen }: { label: string; onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex w-full items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-left text-xs text-neutral-700 hover:bg-white hover:text-neutral-900 transition"
+    >
+      <span className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-neutral-200 text-neutral-500">
+        Tab
+      </span>
+      <span className="truncate font-medium">{label}</span>
     </button>
   );
 }
@@ -314,15 +345,48 @@ export function PageSidebar({
                     emptyText="No hotspots placed yet."
                     count={hotspotItems.length}
                   >
-                    {hotspotItems.map((hotspot) => (
-                      <li key={hotspot.id}>
-                        <SidebarPageButton
-                          {...sharedItemProps}
-                          isSelected={hotspot.id === selectedPageId}
-                          page={hotspot}
-                        />
-                      </li>
-                    ))}
+                    {hotspotItems.map((hotspot) => {
+                      const isExpanded = expandedIds.has(hotspot.id);
+                      const tabSections = getTabSections(hotspot.blocks);
+                      const expandId = `hotspot-expand-${hotspot.id}`;
+                      return (
+                        <li key={hotspot.id} className="space-y-1">
+                          <div className="flex items-stretch gap-1">
+                            <div className="flex-1 min-w-0">
+                              <SidebarPageButton
+                                {...sharedItemProps}
+                                isSelected={hotspot.id === selectedPageId}
+                                page={hotspot}
+                              />
+                            </div>
+                            {tabSections.length > 0 ? (
+                              <button
+                                type="button"
+                                onClick={() => toggleExpanded(hotspot.id)}
+                                aria-expanded={isExpanded}
+                                aria-controls={expandId}
+                                aria-label={`${isExpanded ? "Collapse" : "Expand"} tabs for ${hotspot.title || "this hotspot"}`}
+                                className="flex shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-2 text-neutral-400 transition hover:bg-white hover:text-neutral-700"
+                              >
+                                <ChevronIcon expanded={isExpanded} />
+                              </button>
+                            ) : null}
+                          </div>
+                          {isExpanded && tabSections.length > 0 ? (
+                            <ul id={expandId} role="list" className="space-y-1 border-l-2 border-neutral-100 pl-3 ml-2">
+                              {tabSections.map((tab) => (
+                                <li key={tab.tabId}>
+                                  <SidebarTabItem
+                                    label={tab.label}
+                                    onOpen={() => onOpenPage(hotspot.id)}
+                                  />
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
+                        </li>
+                      );
+                    })}
                   </CollapsibleSection>
                 </div>
               );
@@ -342,8 +406,10 @@ export function PageSidebar({
           >
             {navPages.map((page) => {
               const isExpanded = expandedIds.has(page.id);
+              const tabSections = getTabSections(page.blocks);
               const hasFeatures = page.canvasFeatures.length > 0;
-              const featuresId = `container-features-${page.id}`;
+              const hasExpandable = hasFeatures || tabSections.length > 0;
+              const expandId = `container-expand-${page.id}`;
               return (
                 <li key={page.id} className="space-y-1">
                   <div className="flex items-stretch gap-1">
@@ -354,13 +420,13 @@ export function PageSidebar({
                         page={page}
                       />
                     </div>
-                    {hasFeatures ? (
+                    {hasExpandable ? (
                       <button
                         type="button"
                         onClick={() => toggleExpanded(page.id)}
                         aria-expanded={isExpanded}
-                        aria-controls={featuresId}
-                        aria-label={`${isExpanded ? "Collapse" : "Expand"} features for ${page.title || "this container"}`}
+                        aria-controls={expandId}
+                        aria-label={`${isExpanded ? "Collapse" : "Expand"} contents of ${page.title || "this container"}`}
                         className="flex shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-2 text-neutral-400 transition hover:bg-white hover:text-neutral-700"
                       >
                         <ChevronIcon expanded={isExpanded} />
@@ -368,8 +434,8 @@ export function PageSidebar({
                     ) : null}
                   </div>
 
-                  {isExpanded && hasFeatures ? (
-                    <ul id={featuresId} role="list" className="space-y-1 border-l-2 border-neutral-100 pl-3 ml-2">
+                  {isExpanded && hasExpandable ? (
+                    <ul id={expandId} role="list" className="space-y-1 border-l-2 border-neutral-100 pl-3 ml-2">
                       {page.canvasFeatures.map((feature) => (
                         <li key={feature.id}>
                           <SidebarFeatureItem
@@ -379,6 +445,25 @@ export function PageSidebar({
                           />
                         </li>
                       ))}
+                      {tabSections.length > 0 ? (
+                        <>
+                          {hasFeatures ? (
+                            <li>
+                              <div className="pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400 px-0.5">
+                                Tabs
+                              </div>
+                            </li>
+                          ) : null}
+                          {tabSections.map((tab) => (
+                            <li key={tab.tabId}>
+                              <SidebarTabItem
+                                label={tab.label}
+                                onOpen={() => onOpenPage(page.id)}
+                              />
+                            </li>
+                          ))}
+                        </>
+                      ) : null}
                     </ul>
                   ) : null}
                 </li>

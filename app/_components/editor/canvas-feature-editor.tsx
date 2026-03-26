@@ -19,6 +19,7 @@ export function CanvasFeatureEditor({
   isPortraitMode,
   onCanvasFeatureChange,
   onCanvasFeatureImageUpload,
+  onCreatePageForButton,
   onOpenPage,
   onRemoveCanvasFeature,
   pages,
@@ -32,6 +33,7 @@ export function CanvasFeatureEditor({
     value: string
   ) => void;
   onCanvasFeatureImageUpload: (featureId: string, event: ChangeEvent<HTMLInputElement>) => void;
+  onCreatePageForButton: () => string;
   onOpenPage: (id: string) => void;
   onRemoveCanvasFeature: (featureId: string) => void;
   pages: PageItem[];
@@ -296,14 +298,78 @@ export function CanvasFeatureEditor({
 
         {/* Button */}
         {feature.type === "button" ? (
-          <input
-            type="text"
-            value={feature.linkUrl}
-            onChange={(event) => onCanvasFeatureChange(feature.id, "linkUrl", event.target.value)}
-            placeholder="https://..."
-            aria-label="Button URL"
-            className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
-          />
+          <div className="space-y-3">
+            <div>
+              <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Destination</div>
+              <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
+                {(["external", "page"] as const).map((mode) => {
+                  const isActive = (feature.buttonLinkMode ?? "external") === mode;
+                  return (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => onCanvasFeatureChange(feature.id, "buttonLinkMode", mode)}
+                      aria-pressed={isActive}
+                      className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
+                        isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-600"
+                      }`}
+                    >
+                      {mode === "external" ? "External link" : "Content block"}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {(feature.buttonLinkMode ?? "external") === "external" ? (
+              <input
+                type="text"
+                value={feature.linkUrl}
+                onChange={(event) => onCanvasFeatureChange(feature.id, "linkUrl", event.target.value)}
+                placeholder="https://..."
+                aria-label="Button URL"
+                className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
+              />
+            ) : (
+              <div className="space-y-2">
+                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Links to container</div>
+                {pages.filter((p) => p.kind !== "home").length > 0 ? (
+                  <select
+                    value={feature.linkUrl}
+                    onChange={(e) => onCanvasFeatureChange(feature.id, "linkUrl", e.target.value)}
+                    aria-label="Linked container"
+                    className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
+                  >
+                    <option value="">— Select a container —</option>
+                    {pages.filter((p) => p.kind !== "home").map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.title || "Untitled page"}
+                      </option>
+                    ))}
+                  </select>
+                ) : null}
+                {feature.linkUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => onOpenPage(feature.linkUrl)}
+                    className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-medium text-neutral-600 transition hover:border-neutral-300 hover:bg-white hover:text-neutral-900"
+                  >
+                    Edit content →
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newId = onCreatePageForButton();
+                    onCanvasFeatureChange(feature.id, "linkUrl", newId);
+                  }}
+                  className="w-full rounded-xl border border-dashed border-neutral-300 py-2.5 text-xs font-medium text-neutral-500 hover:border-neutral-400 hover:text-neutral-700 transition"
+                >
+                  + Create content block
+                </button>
+              </div>
+            )}
+          </div>
         ) : null}
 
         {/* Page button */}

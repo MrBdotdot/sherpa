@@ -9,6 +9,7 @@ export function SurfaceTab({
   onAddCanvasFeature,
   onCanvasFeatureChange,
   onCanvasFeatureImageUpload,
+  onCreatePageForButton,
   onOpenPage,
   onRemoveCanvasFeature,
   pages,
@@ -19,6 +20,7 @@ export function SurfaceTab({
   onAddCanvasFeature: (type: CanvasFeatureType) => void;
   onCanvasFeatureChange: (featureId: string, field: CanvasFeatureField, value: string) => void;
   onCanvasFeatureImageUpload: (featureId: string, event: ChangeEvent<HTMLInputElement>) => void;
+  onCreatePageForButton: () => string;
   onOpenPage: (id: string) => void;
   onRemoveCanvasFeature: (featureId: string) => void;
   pages: PageItem[];
@@ -39,6 +41,7 @@ export function SurfaceTab({
       isPortraitMode={isPortraitMode}
       onCanvasFeatureChange={onCanvasFeatureChange}
       onCanvasFeatureImageUpload={onCanvasFeatureImageUpload}
+      onCreatePageForButton={onCreatePageForButton}
       onOpenPage={onOpenPage}
       onRemoveCanvasFeature={onRemoveCanvasFeature}
       pages={pages}

@@ -255,6 +255,300 @@ function InlineWithLinks({
   return <>{parts}</>;
 }
 
+// ── ProgressBarBlock ───────────────────────────────────────────
+
+type PBPreviewStep = {
+  id: string;
+  label: string;
+  color: string;
+  iconShape: "circle" | "square" | "squircle" | "diamond" | "none";
+  iconImageUrl: string;
+  blocks: ContentBlock[];
+};
+
+function parsePBPreview(value: string): { orientation: "horizontal" | "vertical"; steps: PBPreviewStep[] } {
+  try {
+    const d = JSON.parse(value);
+    return {
+      orientation: (d.orientation as "horizontal" | "vertical") ?? "horizontal",
+      steps: ((d.steps ?? []) as Record<string, unknown>[]).map((s) => ({
+        id: (s.id as string) ?? "",
+        label: (s.label as string) ?? "",
+        color: (s.color as string) ?? "#3b82f6",
+        iconShape: (s.iconShape as PBPreviewStep["iconShape"]) ?? "circle",
+        iconImageUrl: (s.iconImageUrl as string) ?? "",
+        blocks: Array.isArray(s.blocks) ? (s.blocks as ContentBlock[]) : [],
+      })),
+    };
+  } catch {
+    return { orientation: "horizontal", steps: [] };
+  }
+}
+
+function shapeClasses(shape: PBPreviewStep["iconShape"]): string {
+  switch (shape) {
+    case "circle": return "rounded-full";
+    case "squircle": return "rounded-xl";
+    case "square": return "rounded-sm";
+    case "diamond": return "rounded-sm rotate-45";
+    default: return "rounded-full";
+  }
+}
+
+function StepIcon({ step, active, index }: { step: PBPreviewStep; active: boolean; index: number }) {
+  const size = active ? "w-8 h-8" : "w-6 h-6";
+  const textSize = active ? "text-xs" : "text-[10px]";
+
+  if (step.iconShape === "none") {
+    return (
+      <div className="relative flex items-center justify-center">
+        {active ? (
+          <div
+            className="absolute inset-0 animate-ping rounded-full opacity-50"
+            style={{ backgroundColor: step.color }}
+          />
+        ) : null}
+        <div
+          className={`relative z-10 rounded-full transition-all ${active ? "w-3.5 h-3.5" : "w-2.5 h-2.5"}`}
+          style={{ backgroundColor: step.color }}
+        />
+      </div>
+    );
+  }
+
+  const isDiamond = step.iconShape === "diamond";
+
+  return (
+    <div className="relative flex items-center justify-center">
+      {active ? (
+        <div
+          className={`absolute inset-0 animate-ping opacity-40 ${shapeClasses(step.iconShape)}`}
+          style={{ backgroundColor: step.color }}
+        />
+      ) : null}
+      <div
+        className={`relative z-10 flex items-center justify-center transition-all ${size} ${shapeClasses(step.iconShape)}`}
+        style={{ backgroundColor: step.iconImageUrl ? "transparent" : step.color }}
+      >
+        {step.iconImageUrl ? (
+          <img
+            src={step.iconImageUrl}
+            alt={step.label}
+            className={`w-full h-full object-cover ${shapeClasses(step.iconShape)}`}
+            style={isDiamond ? { transform: "rotate(-45deg)" } : undefined}
+          />
+        ) : (
+          <span
+            className={`font-bold text-white leading-none ${textSize}`}
+            style={isDiamond ? { transform: "rotate(-45deg)" } : undefined}
+          >
+            {index + 1}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ProgressBarBlock({
+  block,
+  accentColor,
+  page,
+  pages,
+  onNavigate,
+  onDismissContent,
+}: {
+  block: ContentBlock;
+  accentColor: string;
+  page: PageItem;
+  pages?: PageItem[];
+  onNavigate?: (pageId: string) => void;
+  onDismissContent?: () => void;
+}) {
+  const { orientation, steps } = parsePBPreview(block.value);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const idx = Math.min(activeIndex, Math.max(0, steps.length - 1));
+  const activeStep = steps[idx];
+
+  if (steps.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
+        Empty progress bar block
+      </div>
+    );
+  }
+
+  if (orientation === "vertical") {
+    return (
+      <div className="flex gap-3">
+        {/* Left step rail */}
+        <div className="flex shrink-0 flex-col items-center gap-3 pt-1">
+          {steps.map((step, i) => (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => setActiveIndex(i)}
+              aria-pressed={i === idx}
+              aria-label={step.label || `Step ${i + 1}`}
+              title={step.label || `Step ${i + 1}`}
+              className="flex flex-col items-center gap-1 transition-opacity"
+              style={i !== idx ? { opacity: 0.45 } : undefined}
+            >
+              <StepIcon step={step} active={i === idx} index={i} />
+              {step.label ? (
+                <span className="max-w-[48px] text-center text-[9px] font-medium leading-tight text-neutral-600">
+                  {step.label}
+                </span>
+              ) : null}
+            </button>
+          ))}
+        </div>
+
+        {/* Right content */}
+        <div className="flex-1 min-w-0">
+          {activeStep ? (
+            activeStep.blocks.length > 0 ? (
+              <PreviewBlocks
+                accentColor={accentColor}
+                onNavigate={onNavigate}
+                onDismissContent={onDismissContent}
+                page={{ ...page, blocks: activeStep.blocks, summary: "" }}
+                pages={pages}
+              />
+            ) : (
+              <div className="text-sm text-neutral-400">Empty step</div>
+            )
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  // Horizontal layout
+  return (
+    <div>
+      {/* Sticky step indicator rail */}
+      <div className="sticky top-0 z-10 -mx-px mb-3 flex items-center gap-3 overflow-x-auto rounded-t-xl border-b border-neutral-100 bg-white/95 px-3 py-2.5 backdrop-blur-sm">
+        {steps.map((step, i) => (
+          <button
+            key={step.id}
+            type="button"
+            onClick={() => setActiveIndex(i)}
+            aria-pressed={i === idx}
+            className="flex shrink-0 flex-col items-center gap-1 transition-opacity"
+            style={i !== idx ? { opacity: 0.45 } : undefined}
+          >
+            <StepIcon step={step} active={i === idx} index={i} />
+            {step.label ? (
+              <span className="max-w-[56px] text-center text-[9px] font-medium leading-tight text-neutral-700">
+                {step.label}
+              </span>
+            ) : null}
+          </button>
+        ))}
+      </div>
+
+      {/* Active step content */}
+      {activeStep ? (
+        activeStep.blocks.length > 0 ? (
+          <PreviewBlocks
+            accentColor={accentColor}
+            onNavigate={onNavigate}
+            onDismissContent={onDismissContent}
+            page={{ ...page, blocks: activeStep.blocks, summary: "" }}
+            pages={pages}
+          />
+        ) : (
+          <div className="text-sm text-neutral-400">Empty step</div>
+        )
+      ) : null}
+    </div>
+  );
+}
+
+// ── TabsBlock ──────────────────────────────────────────────────
+type TabPreviewSection = { id: string; label: string; blocks: ContentBlock[] };
+
+function parseTabPreviewSections(value: string): TabPreviewSection[] {
+  try {
+    const data = JSON.parse(value);
+    return (data.sections ?? []).map((s: Record<string, unknown>) => ({
+      id: s.id as string,
+      label: (s.label as string) ?? "",
+      // backward-compat: old format used content: string
+      blocks: Array.isArray(s.blocks)
+        ? (s.blocks as ContentBlock[])
+        : (s.content ? [{ id: `${s.id as string}-b0`, type: "text" as ContentBlock["type"], value: s.content as string }] : []),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function TabsBlock({
+  block,
+  accentColor,
+  page,
+  pages,
+  onNavigate,
+  onDismissContent,
+}: {
+  block: ContentBlock;
+  accentColor: string;
+  page: PageItem;
+  pages?: PageItem[];
+  onNavigate?: (pageId: string) => void;
+  onDismissContent?: () => void;
+}) {
+  const sections = parseTabPreviewSections(block.value);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const idx = Math.min(activeIndex, Math.max(0, sections.length - 1));
+  const activeSection = sections[idx];
+
+  if (sections.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
+        Empty tabs block
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Tab bar — centered */}
+      <div className="mb-3 flex justify-center border-b border-neutral-200">
+        {sections.map((section, i) => (
+          <button
+            key={section.id}
+            type="button"
+            onClick={() => setActiveIndex(i)}
+            className={`-mb-px px-3 py-2 text-xs font-semibold whitespace-nowrap transition-colors border-b-2 ${
+              i === idx ? "" : "border-transparent text-neutral-400 hover:text-neutral-600"
+            }`}
+            style={i === idx ? { borderColor: accentColor || "#171717", color: accentColor || "#171717" } : {}}
+          >
+            {section.label || `Tab ${i + 1}`}
+          </button>
+        ))}
+      </div>
+      {/* Active section blocks */}
+      {activeSection ? (
+        activeSection.blocks.length > 0 ? (
+          <PreviewBlocks
+            accentColor={accentColor}
+            onNavigate={onNavigate}
+            onDismissContent={onDismissContent}
+            page={{ ...page, blocks: activeSection.blocks, summary: "" }}
+            pages={pages}
+          />
+        ) : (
+          <div className="text-sm text-neutral-400">Empty tab</div>
+        )
+      ) : null}
+    </div>
+  );
+}
+
 export function PreviewBlocks({
   accentColor,
   onNavigate,
@@ -521,6 +815,36 @@ export function PreviewBlocks({
                 block={block}
                 accentColor={accentColor}
                 gameName={page.title || "Untitled"}
+                onDismissContent={onDismissContent}
+              />
+            </div>
+          );
+        }
+
+        if (block.type === "tabs") {
+          return (
+            <div key={block.id} data-a11y-id={block.id} data-a11y-type="block" className={hasHalfBlock ? "col-span-2" : ""}>
+              <TabsBlock
+                block={block}
+                accentColor={accentColor}
+                page={page}
+                pages={pages}
+                onNavigate={onNavigate}
+                onDismissContent={onDismissContent}
+              />
+            </div>
+          );
+        }
+
+        if (block.type === "progress-bar") {
+          return (
+            <div key={block.id} data-a11y-id={block.id} data-a11y-type="block" className={hasHalfBlock ? "col-span-2" : ""}>
+              <ProgressBarBlock
+                block={block}
+                accentColor={accentColor}
+                page={page}
+                pages={pages}
+                onNavigate={onNavigate}
                 onDismissContent={onDismissContent}
               />
             </div>

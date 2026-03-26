@@ -1,6 +1,6 @@
 export type PageKind = "home" | "page" | "hotspot";
 export type LayoutMode = "desktop" | "mobile-landscape" | "mobile-portrait";
-export type ContentBlockType = "text" | "image" | "video" | "steps" | "callout" | "consent";
+export type ContentBlockType = "text" | "image" | "video" | "steps" | "callout" | "consent" | "tabs" | "progress-bar";
 export type PageButtonPlacement = "top" | "bottom" | "left" | "right" | "stack";
 export type InteractionType =
   | "modal"
@@ -78,11 +78,13 @@ export type CanvasFeature = {
   mobileY?: number;
   /** In portrait mode, "content" renders in the content zone; undefined renders in the image strip */
   portraitZone?: "content";
+  /** For button type only: whether it links to an external URL or an internal content block */
+  buttonLinkMode?: "external" | "page";
 };
 
 export type CanvasFeatureField =
   | "label" | "description" | "linkUrl" | "imageUrl" | "optionsText"
-  | "logoSize" | "qrSize" | "qrBgColor" | "qrBgOpacity" | "portraitZone";
+  | "logoSize" | "qrSize" | "qrBgColor" | "qrBgOpacity" | "portraitZone" | "buttonLinkMode";
 
 export type PageItem = {
   id: string;

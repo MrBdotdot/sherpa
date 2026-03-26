@@ -13,7 +13,7 @@ import {
   TemplateId,
 } from "@/app/_lib/authoring-types";
 
-export const APP_VERSION = "v0.9.9";
+export const APP_VERSION = "v1.0.1";
 
 export type { PatchNote } from "@/app/_lib/patch-notes";
 export { PATCH_NOTES } from "@/app/_lib/patch-notes";
@@ -93,10 +93,22 @@ export function clamp(value: number, min: number, max: number) {
 }
 
 export function createBlock(type: ContentBlockType, value = ""): ContentBlock {
+  const defaultValue = type === "tabs" && !value
+    ? JSON.stringify({ sections: [
+        { id: "tab-1", label: "Tab 1", blocks: [] },
+        { id: "tab-2", label: "Tab 2", blocks: [] },
+      ]})
+    : type === "progress-bar" && !value
+    ? JSON.stringify({ orientation: "horizontal", steps: [
+        { id: "step-1", label: "Step 1", color: "#3b82f6", iconShape: "circle", iconImageUrl: "", blocks: [] },
+        { id: "step-2", label: "Step 2", color: "#8b5cf6", iconShape: "circle", iconImageUrl: "", blocks: [] },
+        { id: "step-3", label: "Step 3", color: "#10b981", iconShape: "circle", iconImageUrl: "", blocks: [] },
+      ]})
+    : value;
   return {
     id: createId("block"),
     type,
-    value,
+    value: defaultValue,
     ...(type === "callout" ? { variant: "info" as const } : {}),
   };
 }

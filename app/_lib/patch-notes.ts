@@ -6,6 +6,28 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v1.0.1",
+    date: "2026-03-25",
+    changes: [
+      "New Progress Bar block — a self-contained multi-step navigator with horizontal or vertical layout",
+      "Each step has its own label, accent color, icon shape (circle / square / squircle / diamond / none), optional custom image, and full content blocks",
+      "Active step shows a pulsating ring indicator in that step's color and a slightly larger icon",
+      "Horizontal layout: step indicator rail sticks to the top of the scrollable content area as content scrolls beneath it",
+      "Vertical layout: step indicators sit in a left rail alongside the active step's content",
+      "Block picker reorganized — new Sections category groups Tabs and Progress Bar together",
+    ],
+  },
+  {
+    version: "v1.0.0",
+    date: "2026-03-25",
+    changes: [
+      "New Tabs block — add a tabbed toggle menu inside any container to switch between named sections",
+      "Tab bar sits centered at the top of the block; active tab uses the experience accent color",
+      "Unlimited sections per tabs block; add and remove sections in the block editor",
+      "Tab content supports full markdown formatting",
+    ],
+  },
+  {
     version: "v0.9.9",
     date: "2026-03-25",
     changes: [
