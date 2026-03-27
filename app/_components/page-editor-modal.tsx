@@ -70,6 +70,7 @@ type PageEditorModalProps = {
   onBlockVerticalAlignChange: (blockId: string, align: "top" | "middle" | "bottom" | undefined) => void;
   onBlockFormatChange: (blockId: string, format: "prose" | "h2" | "h3" | "bullets" | "steps" | undefined) => void;
   onBlockImagePositionChange: (blockId: string, x: number, y: number) => void;
+  onBlockPropsChange: (blockId: string, patch: Partial<ContentBlock>) => void;
   onQrToggle: () => void;
   onRemoveCanvasFeature: (featureId: string) => void;
   onRemoveBlock: (blockId: string) => void;
@@ -138,6 +139,7 @@ export function PageEditorModal({
   onBlockVerticalAlignChange,
   onBlockFormatChange,
   onBlockImagePositionChange,
+  onBlockPropsChange,
   onQrToggle: _onQrToggle,
   onRemoveCanvasFeature,
   onRemoveBlock,
@@ -305,6 +307,7 @@ export function PageEditorModal({
               onBlockChange={onBlockChange}
               onBlockFitChange={onBlockFitChange}
               onBlockImagePositionChange={onBlockImagePositionChange}
+              onBlockPropsChange={onBlockPropsChange}
               onBlockImageUpload={onBlockImageUpload}
               onBlockVariantChange={onBlockVariantChange}
               onDisplayStyleChange={onDisplayStyleChange}
@@ -345,6 +348,8 @@ export function PageEditorModal({
                 systemSettings={systemSettings}
                 showLayoutHelp={false}
                 isPreviewMode={false}
+                experienceStatus="draft"
+                onExperienceStatusChange={() => {}}
                 onCanvasClick={() => {}}
                 onCanvasFeaturePointerDown={() => {}}
                 onContentCardPointerDown={() => {}}

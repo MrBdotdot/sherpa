@@ -1,6 +1,6 @@
 export type PageKind = "home" | "page" | "hotspot";
 export type LayoutMode = "desktop" | "mobile-landscape" | "mobile-portrait";
-export type ContentBlockType = "text" | "image" | "video" | "steps" | "callout" | "consent" | "tabs" | "progress-bar";
+export type ContentBlockType = "text" | "image" | "video" | "steps" | "callout" | "consent" | "tabs" | "section" | "step-rail" | "carousel";
 export type PageButtonPlacement = "top" | "bottom" | "left" | "right" | "stack";
 export type InteractionType =
   | "modal"
@@ -10,6 +10,7 @@ export type InteractionType =
   | "full-page"
   | "external-link";
 export type PublishStatus = "draft" | "published";
+export type ExperienceStatus = "draft" | "published";
 export type CanvasFeatureType =
   | "qr"
   | "image"
@@ -47,6 +48,9 @@ export type ContentBlock = {
   value: string;
   variant?: "info" | "warning" | "tip";
   imageFit?: ImageFit;
+  imageCaption?: string;
+  imageSize?: "small" | "medium" | "large";
+  imageLightbox?: boolean;
   blockWidth?: "full" | "half";
   textAlign?: "left" | "center" | "right";
   verticalAlign?: "top" | "middle" | "bottom";

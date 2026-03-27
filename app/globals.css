@@ -151,3 +151,27 @@ body {
 }
 
 .inspector-content-in { animation: inspectorContentIn 180ms ease-out both; }
+
+/* Step rail vertical: slide in from right, slide out to left */
+@keyframes stepRailIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes stepRailOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-10px); }
+}
+.step-rail-in  { animation: stepRailIn  280ms cubic-bezier(0.22, 1, 0.36, 1)  both; }
+.step-rail-out { animation: stepRailOut 200ms cubic-bezier(0.55, 0, 1, 0.45) both; }
+
+/* Step rail horizontal: slide down to reveal, slide up to hide */
+@keyframes stepRailHorizIn {
+  from { opacity: 0; transform: translateY(-100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes stepRailHorizOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-100%); }
+}
+.step-rail-horiz-in  { animation: stepRailHorizIn  280ms cubic-bezier(0.22, 1, 0.36, 1)  both; }
+.step-rail-horiz-out { animation: stepRailHorizOut 200ms cubic-bezier(0.55, 0, 1, 0.45) both; }

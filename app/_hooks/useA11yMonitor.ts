@@ -36,8 +36,9 @@ export function useA11yMonitor(containerRef: RefObject<HTMLElement | null>) {
   const prevKeysRef = useRef<Set<string>>(new Set());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const a11yEnabled = false; // temporarily disabled
   useEffect(() => {
-    if (process.env.NODE_ENV === "production") return;
+    if (!a11yEnabled || process.env.NODE_ENV === "production") return;
     if (!containerRef.current) return;
 
     const run = async () => {
@@ -69,11 +70,14 @@ export function useA11yMonitor(containerRef: RefObject<HTMLElement | null>) {
 
         // New violations = present now but not in previous run
         const newViolations: A11yViolation[] = [];
+        const seenNewKeys = new Set<string>();
         for (const v of results.violations) {
           for (const node of v.nodes) {
             const targetStr = flatTarget(node.target as unknown[]);
             const key = `${v.id}::${targetStr}`;
             if (prevKeysRef.current.has(key)) continue;
+            if (seenNewKeys.has(key)) continue;
+            seenNewKeys.add(key);
 
             // Walk up the DOM from the offending element to find the nearest
             // authored item tagged with data-a11y-id

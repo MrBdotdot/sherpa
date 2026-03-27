@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ContentBlock, PageItem } from "@/app/_lib/authoring-types";
@@ -94,7 +95,7 @@ function ConsentFormBlock({
     return () => clearTimeout(t);
   }, [status, onDismissContent]);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus("submitting");
 
@@ -255,37 +256,64 @@ function InlineWithLinks({
   return <>{parts}</>;
 }
 
-// ── ProgressBarBlock ───────────────────────────────────────────
+// ── SectionBlock ───────────────────────────────────────────────
 
-type PBPreviewStep = {
+function SectionBlock({ block }: { block: ContentBlock }) {
+  const label = block.value.trim();
+  return (
+    <div id={block.id} className="flex items-center gap-3 py-2">
+      {label ? (
+        <>
+          <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">{label}</span>
+          <div className="h-px flex-1 bg-neutral-200" />
+        </>
+      ) : (
+        <div className="h-px w-full bg-neutral-200" />
+      )}
+    </div>
+  );
+}
+
+// ── StepRailBlock ──────────────────────────────────────────────
+
+type SRIconShape = "circle" | "square" | "squircle" | "diamond" | "none";
+
+type SRPreviewStep = {
   id: string;
   label: string;
   color: string;
-  iconShape: "circle" | "square" | "squircle" | "diamond" | "none";
   iconImageUrl: string;
-  blocks: ContentBlock[];
+  sectionBlockId: string;
 };
 
-function parsePBPreview(value: string): { orientation: "horizontal" | "vertical"; steps: PBPreviewStep[] } {
+type SRPreviewData = {
+  orientation: "horizontal" | "vertical";
+  iconShape: SRIconShape;
+  showPing: boolean;
+  steps: SRPreviewStep[];
+};
+
+function parseSRPreview(value: string): SRPreviewData {
   try {
     const d = JSON.parse(value);
     return {
-      orientation: (d.orientation as "horizontal" | "vertical") ?? "horizontal",
+      orientation: (d.orientation as "horizontal" | "vertical") ?? "vertical",
+      iconShape: (d.iconShape as SRIconShape) ?? "circle",
+      showPing: d.showPing !== false,
       steps: ((d.steps ?? []) as Record<string, unknown>[]).map((s) => ({
         id: (s.id as string) ?? "",
         label: (s.label as string) ?? "",
         color: (s.color as string) ?? "#3b82f6",
-        iconShape: (s.iconShape as PBPreviewStep["iconShape"]) ?? "circle",
         iconImageUrl: (s.iconImageUrl as string) ?? "",
-        blocks: Array.isArray(s.blocks) ? (s.blocks as ContentBlock[]) : [],
+        sectionBlockId: (s.sectionBlockId as string) ?? "",
       })),
     };
   } catch {
-    return { orientation: "horizontal", steps: [] };
+    return { orientation: "vertical", iconShape: "circle", showPing: true, steps: [] };
   }
 }
 
-function shapeClasses(shape: PBPreviewStep["iconShape"]): string {
+function srShapeClasses(shape: SRIconShape): string {
   switch (shape) {
     case "circle": return "rounded-full";
     case "squircle": return "rounded-xl";
@@ -295,19 +323,29 @@ function shapeClasses(shape: PBPreviewStep["iconShape"]): string {
   }
 }
 
-function StepIcon({ step, active, index }: { step: PBPreviewStep; active: boolean; index: number }) {
+function SRStepIcon({
+  step,
+  active,
+  index,
+  iconShape,
+  showPing,
+}: {
+  step: SRPreviewStep;
+  active: boolean;
+  index: number;
+  iconShape: SRIconShape;
+  showPing: boolean;
+}) {
   const size = active ? "w-8 h-8" : "w-6 h-6";
   const textSize = active ? "text-xs" : "text-[10px]";
+  const isDiamond = iconShape === "diamond";
 
-  if (step.iconShape === "none") {
+  if (iconShape === "none") {
     return (
       <div className="relative flex items-center justify-center">
-        {active ? (
-          <div
-            className="absolute inset-0 animate-ping rounded-full opacity-50"
-            style={{ backgroundColor: step.color }}
-          />
-        ) : null}
+        {active && showPing && (
+          <div className="absolute inset-0 animate-ping rounded-full opacity-50" style={{ backgroundColor: step.color }} />
+        )}
         <div
           className={`relative z-10 rounded-full transition-all ${active ? "w-3.5 h-3.5" : "w-2.5 h-2.5"}`}
           style={{ backgroundColor: step.color }}
@@ -316,25 +354,20 @@ function StepIcon({ step, active, index }: { step: PBPreviewStep; active: boolea
     );
   }
 
-  const isDiamond = step.iconShape === "diamond";
-
   return (
     <div className="relative flex items-center justify-center">
-      {active ? (
-        <div
-          className={`absolute inset-0 animate-ping opacity-40 ${shapeClasses(step.iconShape)}`}
-          style={{ backgroundColor: step.color }}
-        />
-      ) : null}
+      {active && showPing && (
+        <div className={`absolute inset-0 animate-ping opacity-40 ${srShapeClasses(iconShape)}`} style={{ backgroundColor: step.color }} />
+      )}
       <div
-        className={`relative z-10 flex items-center justify-center transition-all ${size} ${shapeClasses(step.iconShape)}`}
+        className={`relative z-10 flex items-center justify-center transition-all ${size} ${srShapeClasses(iconShape)}`}
         style={{ backgroundColor: step.iconImageUrl ? "transparent" : step.color }}
       >
         {step.iconImageUrl ? (
           <img
             src={step.iconImageUrl}
             alt={step.label}
-            className={`w-full h-full object-cover ${shapeClasses(step.iconShape)}`}
+            className={`w-full h-full object-cover ${srShapeClasses(iconShape)}`}
             style={isDiamond ? { transform: "rotate(-45deg)" } : undefined}
           />
         ) : (
@@ -350,7 +383,162 @@ function StepIcon({ step, active, index }: { step: PBPreviewStep; active: boolea
   );
 }
 
-function ProgressBarBlock({
+function StepRailBlock({ block, beyondSectionIds = [] }: { block: ContentBlock; beyondSectionIds?: string[] }) {
+  const data = parseSRPreview(block.value);
+  const linkedSteps = data.steps.filter((s) => s.sectionBlockId);
+  const [activeStepId, setActiveStepId] = useState<string>(linkedSteps[0]?.id ?? "");
+  const [hidden, setHidden] = useState(false);
+  const [animClass, setAnimClass] = useState("");
+  const hasMountedRef = useRef(false);
+
+  useEffect(() => {
+    if (linkedSteps.length === 0) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const step = linkedSteps.find((s) => s.sectionBlockId === entry.target.id);
+            if (step) setActiveStepId(step.id);
+          }
+        }
+      },
+      { rootMargin: "0px 0px -60% 0px", threshold: 0 }
+    );
+    linkedSteps.forEach((s) => {
+      const el = document.getElementById(s.sectionBlockId);
+      if (el) obs.observe(el);
+    });
+    return () => obs.disconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [block.value]);
+
+  useEffect(() => {
+    if (beyondSectionIds.length === 0) return;
+    const lastStep = linkedSteps.at(-1);
+    if (!lastStep) return;
+    const sectionEl = document.getElementById(lastStep.sectionBlockId);
+    if (!sectionEl) return;
+
+    // Walk up to find the nearest overflow-y scroll container
+    let scrollParent: Element | null = sectionEl.parentElement;
+    while (scrollParent && scrollParent !== document.documentElement) {
+      const { overflowY } = window.getComputedStyle(scrollParent);
+      if (overflowY === "auto" || overflowY === "scroll") break;
+      scrollParent = scrollParent.parentElement;
+    }
+    const scroller = scrollParent ?? document.documentElement;
+
+    const check = () => {
+      const rect = sectionEl.getBoundingClientRect();
+      const containerTop = scrollParent ? scrollParent.getBoundingClientRect().top : 0;
+      setHidden(rect.bottom < containerTop);
+    };
+
+    scroller.addEventListener("scroll", check, { passive: true });
+    check();
+    return () => scroller.removeEventListener("scroll", check);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [beyondSectionIds.join(","), block.value]);
+
+  useEffect(() => {
+    if (!hasMountedRef.current) { hasMountedRef.current = true; return; }
+    if (data.orientation === "vertical") {
+      setAnimClass(hidden ? "step-rail-out" : "step-rail-in");
+    } else {
+      setAnimClass(hidden ? "step-rail-horiz-out" : "step-rail-horiz-in");
+    }
+  }, [hidden]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function scrollToSection(sectionBlockId: string) {
+    document.getElementById(sectionBlockId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  const activeIdx = data.steps.findIndex((s) => s.id === activeStepId);
+
+  if (data.steps.length === 0) return null;
+
+  if (data.orientation === "vertical") {
+    return (
+      <div className={`flex flex-col items-center pt-1 w-10 flex-shrink-0 ${animClass} ${hidden ? "pointer-events-none" : ""}`}>
+        {data.steps.map((step, i) => (
+          <React.Fragment key={step.id}>
+            <button
+              type="button"
+              onClick={() => step.sectionBlockId && scrollToSection(step.sectionBlockId)}
+              disabled={!step.sectionBlockId}
+              aria-label={step.label || `Step ${i + 1}`}
+              title={step.label || `Step ${i + 1}`}
+              className="flex flex-col items-center gap-1 transition-opacity disabled:cursor-default"
+              style={activeStepId && activeStepId !== step.id ? { opacity: 0.4 } : undefined}
+            >
+              <SRStepIcon step={step} active={activeStepId === step.id} index={i} iconShape={data.iconShape} showPing={data.showPing} />
+              {step.label && (
+                <span className="max-w-[40px] text-center text-[9px] font-medium leading-tight text-neutral-600">
+                  {step.label}
+                </span>
+              )}
+            </button>
+            {i < data.steps.length - 1 && (
+              <div
+                className="my-1 h-3 w-0.5 flex-none rounded-full"
+                style={{ backgroundColor: activeIdx > i ? step.color : "#e5e7eb" }}
+              />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  }
+
+  // Horizontal
+  return (
+    <div className={`flex items-start overflow-hidden border-b border-neutral-100 bg-white/95 px-2 py-2 ${animClass} ${hidden ? "pointer-events-none" : ""}`}>
+      {data.steps.map((step, i) => (
+        <React.Fragment key={step.id}>
+          <button
+            type="button"
+            onClick={() => step.sectionBlockId && scrollToSection(step.sectionBlockId)}
+            disabled={!step.sectionBlockId}
+            className="flex shrink-0 flex-col items-center gap-1 transition-opacity disabled:cursor-default"
+            style={activeStepId && activeStepId !== step.id ? { opacity: 0.4 } : undefined}
+          >
+            <SRStepIcon step={step} active={activeStepId === step.id} index={i} iconShape={data.iconShape} showPing={data.showPing} />
+            {step.label && (
+              <span className="max-w-[56px] text-center text-[9px] font-medium leading-tight text-neutral-700">
+                {step.label}
+              </span>
+            )}
+          </button>
+          {i < data.steps.length - 1 && (
+            <div
+              className="mt-3 mx-1.5 h-0.5 flex-1 self-start rounded-full"
+              style={{ backgroundColor: activeIdx > i ? step.color : "#e5e7eb" }}
+            />
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+// ── CarouselBlock ──────────────────────────────────────────────
+
+type CarouselPreviewSlide = { id: string; label: string; blocks: ContentBlock[] };
+
+function parseCarouselPreview(value: string): CarouselPreviewSlide[] {
+  try {
+    const d = JSON.parse(value);
+    return (d.slides ?? []).map((s: Record<string, unknown>) => ({
+      id: s.id as string,
+      label: (s.label as string) ?? "",
+      blocks: Array.isArray(s.blocks) ? (s.blocks as ContentBlock[]) : [],
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function CarouselBlock({
   block,
   accentColor,
   page,
@@ -365,103 +553,113 @@ function ProgressBarBlock({
   onNavigate?: (pageId: string) => void;
   onDismissContent?: () => void;
 }) {
-  const { orientation, steps } = parsePBPreview(block.value);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const idx = Math.min(activeIndex, Math.max(0, steps.length - 1));
-  const activeStep = steps[idx];
+  const slides = parseCarouselPreview(block.value);
+  const [current, setCurrent] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const idx = Math.min(current, Math.max(0, slides.length - 1));
 
-  if (steps.length === 0) {
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "ArrowLeft") setCurrent((c) => Math.max(0, c - 1));
+      if (e.key === "ArrowRight") setCurrent((c) => Math.min(slides.length - 1, c + 1));
+    }
+    el.addEventListener("keydown", onKey);
+    return () => el.removeEventListener("keydown", onKey);
+  }, [slides.length]);
+
+  if (slides.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
-        Empty progress bar block
+        Empty carousel block
       </div>
     );
   }
 
-  if (orientation === "vertical") {
-    return (
-      <div className="flex gap-3">
-        {/* Left step rail */}
-        <div className="flex shrink-0 flex-col items-center gap-3 pt-1">
-          {steps.map((step, i) => (
-            <button
-              key={step.id}
-              type="button"
-              onClick={() => setActiveIndex(i)}
-              aria-pressed={i === idx}
-              aria-label={step.label || `Step ${i + 1}`}
-              title={step.label || `Step ${i + 1}`}
-              className="flex flex-col items-center gap-1 transition-opacity"
-              style={i !== idx ? { opacity: 0.45 } : undefined}
-            >
-              <StepIcon step={step} active={i === idx} index={i} />
-              {step.label ? (
-                <span className="max-w-[48px] text-center text-[9px] font-medium leading-tight text-neutral-600">
-                  {step.label}
-                </span>
-              ) : null}
-            </button>
-          ))}
-        </div>
+  const activeSlide = slides[idx];
 
-        {/* Right content */}
-        <div className="flex-1 min-w-0">
-          {activeStep ? (
-            activeStep.blocks.length > 0 ? (
-              <PreviewBlocks
-                accentColor={accentColor}
-                onNavigate={onNavigate}
-                onDismissContent={onDismissContent}
-                page={{ ...page, blocks: activeStep.blocks, summary: "" }}
-                pages={pages}
-              />
-            ) : (
-              <div className="text-sm text-neutral-400">Empty step</div>
-            )
-          ) : null}
-        </div>
-      </div>
-    );
-  }
-
-  // Horizontal layout
   return (
-    <div>
-      {/* Sticky step indicator rail */}
-      <div className="sticky top-0 z-10 -mx-px mb-3 flex items-center gap-3 overflow-x-auto rounded-t-xl border-b border-neutral-100 bg-white/95 px-3 py-2.5 backdrop-blur-sm">
-        {steps.map((step, i) => (
+    <div
+      ref={containerRef}
+      tabIndex={-1}
+      className="rounded-xl border border-neutral-200 overflow-hidden outline-none"
+      onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
+      onTouchEnd={(e) => {
+        if (touchStart === null) return;
+        const diff = touchStart - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 40) {
+          if (diff > 0) setCurrent((c) => Math.min(slides.length - 1, c + 1));
+          else setCurrent((c) => Math.max(0, c - 1));
+        }
+        setTouchStart(null);
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-neutral-100 px-3 py-2">
+        <span className="text-sm font-semibold text-neutral-800">{activeSlide.label || `Slide ${idx + 1}`}</span>
+        <div className="flex items-center gap-1">
           <button
-            key={step.id}
             type="button"
-            onClick={() => setActiveIndex(i)}
-            aria-pressed={i === idx}
-            className="flex shrink-0 flex-col items-center gap-1 transition-opacity"
-            style={i !== idx ? { opacity: 0.45 } : undefined}
+            onClick={() => setCurrent((c) => Math.max(0, c - 1))}
+            disabled={idx === 0}
+            className="rounded-lg p-1 text-neutral-400 transition hover:bg-neutral-100 disabled:opacity-30"
+            aria-label="Previous slide"
           >
-            <StepIcon step={step} active={i === idx} index={i} />
-            {step.label ? (
-              <span className="max-w-[56px] text-center text-[9px] font-medium leading-tight text-neutral-700">
-                {step.label}
-              </span>
-            ) : null}
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M9 11L5 7l4-4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
-        ))}
+          <span className="min-w-[32px] text-center text-[10px] text-neutral-400">{idx + 1}/{slides.length}</span>
+          <button
+            type="button"
+            onClick={() => setCurrent((c) => Math.min(slides.length - 1, c + 1))}
+            disabled={idx === slides.length - 1}
+            className="rounded-lg p-1 text-neutral-400 transition hover:bg-neutral-100 disabled:opacity-30"
+            aria-label="Next slide"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      {/* Active step content */}
-      {activeStep ? (
-        activeStep.blocks.length > 0 ? (
+      {/* Slide content */}
+      <div className="p-3">
+        {activeSlide.blocks.length > 0 ? (
           <PreviewBlocks
             accentColor={accentColor}
             onNavigate={onNavigate}
             onDismissContent={onDismissContent}
-            page={{ ...page, blocks: activeStep.blocks, summary: "" }}
+            page={{ ...page, blocks: activeSlide.blocks, summary: "" }}
             pages={pages}
           />
         ) : (
-          <div className="text-sm text-neutral-400">Empty step</div>
-        )
-      ) : null}
+          <div className="text-sm text-neutral-400">Empty slide</div>
+        )}
+      </div>
+
+      {/* Dot indicators */}
+      {slides.length > 1 && (
+        <div className="flex items-center justify-center gap-1.5 pb-3">
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setCurrent(i)}
+              aria-label={`Go to slide ${i + 1}`}
+              className="rounded-full transition-all"
+              style={{
+                width: i === idx ? 16 : 6,
+                height: 6,
+                backgroundColor: i === idx ? (accentColor || "#171717") : "#e5e7eb",
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -484,6 +682,82 @@ function parseTabPreviewSections(value: string): TabPreviewSection[] {
     return [];
   }
 }
+
+// ── ImageBlock ─────────────────────────────────────────────────
+
+function ImageBlock({ block, blockClass }: { block: ContentBlock; blockClass: string }) {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  const fitClass = block.imageFit === "contain" ? "object-contain"
+    : block.imageFit === "fill" ? "object-fill"
+    : block.imageFit === "center" ? "object-none"
+    : "object-cover";
+  const pos = block.imagePosition;
+  const posStyle = pos ? { objectPosition: `${pos.x}% ${pos.y}%` } : undefined;
+
+  const sized = !!block.imageSize;
+  const imgSizeClass = block.imageSize === "small" ? "max-h-32 max-w-[120px] w-full"
+    : block.imageSize === "medium" ? "max-h-48 max-w-[240px] w-full"
+    : block.imageSize === "large" ? "max-h-64 max-w-[360px] w-full"
+    : "max-h-56 w-full";
+
+  if (!block.value) {
+    return (
+      <div className={`rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500 ${blockClass}`}>
+        Empty image block
+      </div>
+    );
+  }
+
+  return (
+    <figure className={`m-0 ${sized ? "flex flex-col items-center" : ""} ${blockClass}`}>
+      <img
+        src={block.value}
+        alt={block.imageCaption ?? ""}
+        style={posStyle}
+        className={`rounded-xl ${fitClass} ${imgSizeClass} ${block.imageLightbox ? "cursor-zoom-in" : ""}`}
+        onClick={block.imageLightbox ? () => setLightboxOpen(true) : undefined}
+      />
+      {block.imageCaption ? (
+        <figcaption className="mt-1.5 text-center text-xs text-neutral-500">
+          {block.imageCaption}
+        </figcaption>
+      ) : null}
+      {lightboxOpen && createPortal(
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image lightbox"
+          className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-black/85 p-4"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            type="button"
+            aria-label="Close lightbox"
+            className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+            onClick={() => setLightboxOpen(false)}
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M2 2l14 14M16 2 2 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+          <img
+            src={block.value}
+            alt={block.imageCaption ?? ""}
+            className="max-h-[85vh] max-w-[90vw] rounded-xl object-contain shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+          {block.imageCaption ? (
+            <p className="mt-3 text-sm text-white/75">{block.imageCaption}</p>
+          ) : null}
+        </div>,
+        document.body
+      )}
+    </figure>
+  );
+}
+
+// ── TabsBlock ───────────────────────────────────────────────────
 
 function TabsBlock({
   block,
@@ -555,16 +829,25 @@ export function PreviewBlocks({
   onDismissContent,
   page,
   pages,
+  header,
 }: {
   accentColor: string;
   onNavigate?: (pageId: string) => void;
   onDismissContent?: () => void;
   page: PageItem;
   pages?: PageItem[];
+  header?: React.ReactNode;
 }) {
   const hasAnyContent =
     page.summary.trim().length > 0 ||
-    page.blocks.some((block) => block.type === "consent" || block.value.trim().length > 0);
+    page.blocks.some(
+      (block) =>
+        block.type === "consent" ||
+        block.type === "section" ||
+        block.type === "step-rail" ||
+        block.type === "carousel" ||
+        block.value.trim().length > 0
+    );
 
   if (!hasAnyContent) {
     return (
@@ -577,7 +860,25 @@ export function PreviewBlocks({
 
   const dotColor = accentColor || "#171717";
   const canLink = !!(onNavigate && pages);
-  const hasHalfBlock = page.blocks.some((b) => b.blockWidth === "half");
+
+  const stepRailBlock = page.blocks.find((b) => b.type === "step-rail");
+  const otherBlocks = stepRailBlock ? page.blocks.filter((b) => b.type !== "step-rail") : page.blocks;
+  const srOrientation: "horizontal" | "vertical" = (() => {
+    if (!stepRailBlock) return "vertical";
+    try { return (JSON.parse(stepRailBlock.value).orientation as "horizontal" | "vertical") ?? "vertical"; }
+    catch { return "vertical"; }
+  })();
+  const srBeyondSectionIds: string[] = (() => {
+    if (!stepRailBlock) return [];
+    const srSteps = parseSRPreview(stepRailBlock.value).steps.filter((s) => s.sectionBlockId);
+    const lastLinkedId = srSteps.at(-1)?.sectionBlockId;
+    if (!lastLinkedId) return [];
+    const lastIdx = otherBlocks.findIndex((b) => b.id === lastLinkedId);
+    if (lastIdx < 0) return [];
+    return otherBlocks.slice(lastIdx + 1).filter((b) => b.type === "section").map((b) => b.id);
+  })();
+
+  const hasHalfBlock = otherBlocks.some((b) => b.blockWidth === "half");
 
   function alignClass(block: { textAlign?: string }) {
     if (block.textAlign === "center") return "text-center";
@@ -597,25 +898,9 @@ export function PreviewBlocks({
     return "prose";
   }
 
-  return (
-    <div className="space-y-3">
-      {page.summary.trim() ? (
-        <p className="text-sm leading-6 text-neutral-600">
-          {canLink ? (
-            <InlineWithLinks
-              text={page.summary}
-              pages={pages!}
-              onNavigate={onNavigate!}
-              accentColor={accentColor}
-            />
-          ) : (
-            page.summary
-          )}
-        </p>
-      ) : null}
-
-      <div className={hasHalfBlock ? "grid grid-cols-2 gap-2 items-start" : "space-y-2"}>
-      {page.blocks.map((block) => {
+  const blockList = (
+    <div className={hasHalfBlock ? "grid grid-cols-2 gap-2 items-start" : "space-y-2"}>
+      {otherBlocks.map((block) => {
         const spanClass = hasHalfBlock && block.blockWidth !== "half" ? "col-span-2" : "";
         const selfAlign = hasHalfBlock ? selfAlignClass(block) : "";
         const blockClass = `${spanClass} ${selfAlign}`.trim();
@@ -780,30 +1065,9 @@ export function PreviewBlocks({
         }
 
         if (block.type === "image") {
-          const fitClass = block.imageFit === "contain" ? "object-contain"
-            : block.imageFit === "fill" ? "object-fill"
-            : block.imageFit === "center" ? "object-none"
-            : "object-cover";
-          const pos = block.imagePosition;
-          const posStyle = pos ? { objectPosition: `${pos.x}% ${pos.y}%` } : undefined;
-          return block.value ? (
-            <img
-              key={block.id}
-              data-a11y-id={block.id}
-              data-a11y-type="block"
-              src={block.value}
-              alt=""
-              style={posStyle}
-              className={`max-h-56 w-full rounded-xl ${fitClass} ${blockClass}`}
-            />
-          ) : (
-            <div
-              key={block.id}
-              data-a11y-id={block.id}
-              data-a11y-type="block"
-              className={`rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500 ${blockClass}`}
-            >
-              Empty image block
+          return (
+            <div key={block.id} data-a11y-id={block.id} data-a11y-type="block" className={blockClass}>
+              <ImageBlock block={block} blockClass="" />
             </div>
           );
         }
@@ -836,10 +1100,18 @@ export function PreviewBlocks({
           );
         }
 
-        if (block.type === "progress-bar") {
+        if (block.type === "section") {
+          return (
+            <div key={block.id} className={hasHalfBlock ? "col-span-2" : ""}>
+              <SectionBlock block={block} />
+            </div>
+          );
+        }
+
+        if (block.type === "carousel") {
           return (
             <div key={block.id} data-a11y-id={block.id} data-a11y-type="block" className={hasHalfBlock ? "col-span-2" : ""}>
-              <ProgressBarBlock
+              <CarouselBlock
                 block={block}
                 accentColor={accentColor}
                 page={page}
@@ -873,7 +1145,54 @@ export function PreviewBlocks({
           </div>
         );
       })}
+    </div>
+  );
+
+  const summary = page.summary.trim() ? (
+    <p className="text-sm leading-6 text-neutral-600">
+      {canLink ? (
+        <InlineWithLinks text={page.summary} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} />
+      ) : (
+        page.summary
+      )}
+    </p>
+  ) : null;
+
+  if (stepRailBlock && srOrientation === "vertical") {
+    return (
+      <div className="space-y-3">
+        {summary}
+        <div className="flex items-start gap-2">
+          <div style={{ position: "sticky", top: 0, alignSelf: "flex-start", flexShrink: 0 }}>
+            <StepRailBlock block={stepRailBlock} beyondSectionIds={srBeyondSectionIds} />
+          </div>
+          <div className="min-w-0 flex-1">
+            {header ? <div className="mb-3">{header}</div> : null}
+            {blockList}
+          </div>
+        </div>
       </div>
+    );
+  }
+
+  if (stepRailBlock && srOrientation === "horizontal") {
+    return (
+      <div className="space-y-3">
+        {header}
+        {summary}
+        <div style={{ position: "sticky", top: 0, zIndex: 10 }}>
+          <StepRailBlock block={stepRailBlock} beyondSectionIds={srBeyondSectionIds} />
+        </div>
+        {blockList}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {header}
+      {summary}
+      {blockList}
     </div>
   );
 }

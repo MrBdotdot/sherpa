@@ -4,11 +4,12 @@ import { CanvasBackground } from "@/app/_components/canvas/canvas-background";
 import { HotspotPin } from "@/app/_components/canvas/hotspot-pin";
 import {
   getFeatureTypeLabel,
-  getPublishStatusClasses,
-  getPublishStatusLabel,
+  getExperienceStatusClasses,
+  getExperienceStatusLabel,
 } from "@/app/_lib/authoring-utils";
 import {
   CanvasFeature,
+  ExperienceStatus,
   LayoutMode,
   PageItem,
   SystemSettings,
@@ -42,6 +43,8 @@ type PreviewCanvasProps = {
   layoutMode: LayoutMode;
   systemSettings: SystemSettings;
   showLayoutHelp: boolean;
+  experienceStatus: ExperienceStatus;
+  onExperienceStatusChange: (status: ExperienceStatus) => void;
   onCanvasClick: React.MouseEventHandler<HTMLDivElement>;
   onCanvasFeaturePointerDown: (
     event: React.PointerEvent<HTMLDivElement>,
@@ -198,6 +201,8 @@ export function PreviewCanvas({
   isPreviewMode,
   systemSettings,
   showLayoutHelp,
+  experienceStatus,
+  onExperienceStatusChange,
   onCanvasClick,
   onCanvasFeaturePointerDown,
   onContentCardPointerDown,
@@ -253,6 +258,9 @@ export function PreviewCanvas({
   const stripFeatures = isPortraitSplit
     ? effectiveFeatures.filter((f) => f.portraitZone !== "content")
     : effectiveFeatures;
+
+  // ── Experience status popover ─────────────────────────────────
+  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
 
   // ── Intro screen ──────────────────────────────────────────────
   const introEnabled = !!(systemSettings.introScreen?.enabled && systemSettings.introScreen.youtubeUrl);
@@ -335,7 +343,10 @@ export function PreviewCanvas({
   };
 
   return (
-    <div className={isPreviewMode ? "fixed inset-0 z-50 flex flex-col bg-black" : "relative overflow-hidden rounded-3xl border border-neutral-200 bg-[#f4f5f7]"}>
+    <div
+      className={isPreviewMode ? "fixed inset-0 z-50 flex flex-col bg-black" : "relative overflow-hidden rounded-3xl border border-neutral-200 bg-[#f4f5f7]"}
+      onClick={() => { if (statusMenuOpen) setStatusMenuOpen(false); }}
+    >
       <div className={`border-b border-neutral-200 bg-white px-4 py-3 ${isPreviewMode ? "flex shrink-0 items-center justify-end" : ""}`}>
         {isPreviewMode ? (
           <button
@@ -351,9 +362,44 @@ export function PreviewCanvas({
               <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">Currently editing</div>
               <div className="mt-1 flex flex-wrap items-center gap-2">
                 <div className="text-sm font-semibold text-neutral-900">{activePage.title || "Untitled page"}</div>
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${getPublishStatusClasses(activePage.publishStatus)}`}>
-                  {getPublishStatusLabel(activePage.publishStatus)}
-                </span>
+
+                {/* Global experience status — interactive */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setStatusMenuOpen((v) => !v)}
+                    className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition hover:opacity-80 ${getExperienceStatusClasses(experienceStatus)}`}
+                  >
+                    {getExperienceStatusLabel(experienceStatus)}
+                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
+                      <path d="M1 2.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+
+                  {statusMenuOpen && (
+                    <div
+                      className="absolute left-0 top-full z-30 mt-1.5 w-44 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
+                        Experience status
+                      </div>
+                      {(["draft", "published"] as ExperienceStatus[]).map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => { onExperienceStatusChange(s); setStatusMenuOpen(false); }}
+                          className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition hover:bg-neutral-50 ${experienceStatus === s ? "font-semibold text-neutral-900" : "text-neutral-600"}`}
+                        >
+                          <span className={`h-2 w-2 rounded-full ${s === "published" ? "bg-emerald-500" : "bg-amber-400"}`} />
+                          {getExperienceStatusLabel(s)}
+                          {s === "draft" && <span className="ml-auto text-[10px] text-neutral-400">Not live</span>}
+                          {s === "published" && <span className="ml-auto text-[10px] text-neutral-400">Live</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

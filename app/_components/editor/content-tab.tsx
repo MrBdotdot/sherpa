@@ -18,7 +18,7 @@ const BLOCK_GROUPS: Array<{
   },
   {
     label: "Sections",
-    items: CONTENT_ELEMENT_TYPES.filter((i) => ["tabs", "progress-bar"].includes(i.type as string)),
+    items: CONTENT_ELEMENT_TYPES.filter((i) => ["tabs", "section", "step-rail", "carousel"].includes(i.type as string)),
   },
   {
     label: "Media",
@@ -35,7 +35,9 @@ const BLOCK_ICONS: Record<string, string> = {
   steps: "①",
   callout: "◈",
   tabs: "⊟",
-  "progress-bar": "◎",
+  section: "§",
+  "step-rail": "◎",
+  carousel: "⊞",
   image: "▨",
   video: "▶",
   consent: "✎",
@@ -123,6 +125,7 @@ export function ContentTab({
   onBlockChange,
   onBlockFitChange,
   onBlockImagePositionChange,
+  onBlockPropsChange,
   onBlockFormatChange,
   onBlockImageUpload,
   onBlockVariantChange,
@@ -144,6 +147,7 @@ export function ContentTab({
   onBlockChange: (blockId: string, value: string) => void;
   onBlockFitChange: (blockId: string, fit: ImageFit) => void;
   onBlockImagePositionChange: (blockId: string, x: number, y: number) => void;
+  onBlockPropsChange: (blockId: string, patch: Partial<ContentBlock>) => void;
   onBlockFormatChange: (blockId: string, format: BlockFormat) => void;
   onBlockImageUpload: (blockId: string, event: ChangeEvent<HTMLInputElement>) => void;
   onBlockVariantChange: (blockId: string, variant: ContentBlock["variant"]) => void;
@@ -238,13 +242,15 @@ export function ContentTab({
         ) : null}
       </div>
 
-      <button
-        type="button"
-        onClick={() => setPickerOpen(true)}
-        className="w-full rounded-2xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
-      >
-        + Add content block
-      </button>
+      <div className="sticky top-0 z-10 -mx-5 bg-neutral-50 px-5 py-2">
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          className="w-full rounded-2xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+        >
+          + Add content block
+        </button>
+      </div>
 
       {/* Blocks + social links */}
       {totalItems > 0 ? (
@@ -261,6 +267,7 @@ export function ContentTab({
               onBlockChange={onBlockChange}
               onBlockFitChange={onBlockFitChange}
               onBlockImagePositionChange={onBlockImagePositionChange}
+              onBlockPropsChange={onBlockPropsChange}
               onBlockFormatChange={onBlockFormatChange}
               onBlockImageUpload={onBlockImageUpload}
               onBlockVariantChange={onBlockVariantChange}

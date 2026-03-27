@@ -10,7 +10,9 @@ export const CONTENT_ELEMENT_TYPES = [
   { kind: "block" as const, type: "text" as ContentBlockType, label: "Text", description: "Paragraph, heading, list, or steps" },
   { kind: "block" as const, type: "callout" as ContentBlockType, label: "Callout", description: "Info, warning, or tip highlight" },
   { kind: "block" as const, type: "tabs" as ContentBlockType, label: "Tabs", description: "Toggle between named sections" },
-  { kind: "block" as const, type: "progress-bar" as ContentBlockType, label: "Progress Bar", description: "Multi-step navigator with visual indicators" },
+  { kind: "block" as const, type: "section" as ContentBlockType, label: "Section", description: "Named anchor for the Step Rail to link to" },
+  { kind: "block" as const, type: "step-rail" as ContentBlockType, label: "Step Rail", description: "Sticky navigation rail — links to Section blocks" },
+  { kind: "block" as const, type: "carousel" as ContentBlockType, label: "Carousel", description: "Swipeable slides with full content per slide" },
   { kind: "block" as const, type: "consent" as ContentBlockType, label: "Consent Form", description: "Playtester likeness release — collects name and signature" },
   { kind: "block" as const, type: "image" as ContentBlockType, label: "Image", description: "Inline photo or diagram" },
   { kind: "block" as const, type: "video" as ContentBlockType, label: "Video", description: "Embedded video clip" },
@@ -25,7 +27,9 @@ const TYPE_LABELS: Record<ContentBlockType, string> = {
   callout: "Callout",
   consent: "Consent Form",
   tabs: "Tabs",
-  "progress-bar": "Progress Bar",
+  section: "Section",
+  "step-rail": "Step Rail",
+  carousel: "Carousel",
 };
 
 type TriggerState = { active: boolean; start: number; query: string; index: number };
@@ -128,6 +132,7 @@ export function BlockEditor({
   onBlockChange,
   onBlockFitChange,
   onBlockImagePositionChange,
+  onBlockPropsChange,
   onBlockFormatChange,
   onBlockImageUpload,
   onBlockVariantChange,
@@ -147,6 +152,7 @@ export function BlockEditor({
   onBlockChange: (blockId: string, value: string) => void;
   onBlockFitChange: (blockId: string, fit: ImageFit) => void;
   onBlockImagePositionChange: (blockId: string, x: number, y: number) => void;
+  onBlockPropsChange: (blockId: string, patch: Partial<ContentBlock>) => void;
   onBlockFormatChange: (blockId: string, format: BlockFormat) => void;
   onBlockImageUpload: (blockId: string, event: ChangeEvent<HTMLInputElement>) => void;
   onBlockVariantChange: (blockId: string, variant: ContentBlock["variant"]) => void;
@@ -725,6 +731,53 @@ export function BlockEditor({
               onChange={(x, y) => onBlockImagePositionChange(block.id, x, y)}
             />
           ) : null}
+          {/* Image size */}
+          <div>
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Size</div>
+            <div role="group" aria-label="Image size" className="flex gap-1.5">
+              {([
+                { value: undefined, label: "Full" },
+                { value: "small" as const, label: "S" },
+                { value: "medium" as const, label: "M" },
+                { value: "large" as const, label: "L" },
+              ]).map((opt) => (
+                <button
+                  key={opt.label}
+                  type="button"
+                  onClick={() => onBlockPropsChange(block.id, { imageSize: opt.value })}
+                  aria-pressed={(block.imageSize ?? undefined) === opt.value}
+                  className={`flex-1 rounded-lg border py-1.5 text-[11px] font-medium transition ${
+                    (block.imageSize ?? undefined) === opt.value
+                      ? "border-neutral-900 bg-neutral-900 text-white"
+                      : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* Caption */}
+          <div>
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Caption</div>
+            <input
+              type="text"
+              value={block.imageCaption ?? ""}
+              onChange={(e) => onBlockPropsChange(block.id, { imageCaption: e.target.value || undefined })}
+              placeholder="Optional caption below image"
+              className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-black"
+            />
+          </div>
+          {/* Lightbox toggle */}
+          <label className="flex cursor-pointer items-center gap-3">
+            <input
+              type="checkbox"
+              checked={block.imageLightbox ?? false}
+              onChange={(e) => onBlockPropsChange(block.id, { imageLightbox: e.target.checked || undefined })}
+              className="h-4 w-4 rounded border-neutral-300"
+            />
+            <span className="text-sm text-neutral-700">Open full-screen on tap</span>
+          </label>
         </div>
       ) : block.type === "consent" ? (
         <div className="space-y-4">
@@ -768,8 +821,17 @@ export function BlockEditor({
           selectedPageId={selectedPageId}
           onBlockChange={onBlockChange}
         />
-      ) : block.type === "progress-bar" ? (
-        <ProgressBarBlockEditor
+      ) : block.type === "section" ? (
+        <SectionBlockEditor block={block} onBlockChange={onBlockChange} />
+      ) : block.type === "step-rail" ? (
+        <StepRailBlockEditor
+          block={block}
+          pages={pages}
+          selectedPageId={selectedPageId}
+          onBlockChange={onBlockChange}
+        />
+      ) : block.type === "carousel" ? (
+        <CarouselBlockEditor
           block={block}
           pages={pages}
           selectedPageId={selectedPageId}
@@ -840,6 +902,8 @@ function TabsBlockEditor({
       onBlockFitChange: (blockId: string, fit: ImageFit) => update(blockId, (b) => ({ ...b, imageFit: fit })),
       onBlockImagePositionChange: (blockId: string, x: number, y: number) =>
         update(blockId, (b) => ({ ...b, imagePosition: { x, y } })),
+      onBlockPropsChange: (blockId: string, patch: Partial<ContentBlock>) =>
+        update(blockId, (b) => ({ ...b, ...patch })),
       onBlockFormatChange: (blockId: string, format: BlockFormat) =>
         update(blockId, (b) => ({ ...b, blockFormat: format })),
       onBlockVariantChange: (blockId: string, variant: ContentBlock["variant"]) =>
@@ -984,42 +1048,74 @@ function TabsBlockEditor({
   );
 }
 
-// ── ProgressBarBlockEditor ─────────────────────────────────────
+// ── SectionBlockEditor ─────────────────────────────────────────
 
-type PBStep = {
+function SectionBlockEditor({
+  block,
+  onBlockChange,
+}: {
+  block: ContentBlock;
+  onBlockChange: (blockId: string, value: string) => void;
+}) {
+  return (
+    <div>
+      <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Section label</div>
+      <input
+        type="text"
+        value={block.value}
+        onChange={(e) => onBlockChange(block.id, e.target.value)}
+        placeholder="e.g. Overview, Setup, Victory Conditions"
+        className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none transition focus:border-black"
+      />
+      <div className="mt-1.5 text-xs text-neutral-400">
+        This label appears as a divider in your content. The Step Rail links to this section by name.
+      </div>
+    </div>
+  );
+}
+
+// ── StepRailBlockEditor ────────────────────────────────────────
+
+type SRIconShape = "circle" | "square" | "squircle" | "diamond" | "none";
+
+type SRStep = {
   id: string;
   label: string;
   color: string;
-  iconShape: "circle" | "square" | "squircle" | "diamond" | "none";
   iconImageUrl: string;
-  blocks: ContentBlock[];
+  sectionBlockId: string;
 };
 
-type PBData = {
+type SRData = {
   orientation: "horizontal" | "vertical";
-  steps: PBStep[];
+  iconShape: SRIconShape;
+  showPing: boolean;
+  steps: SRStep[];
 };
 
-function parsePB(value: string): PBData {
+function parseSR(value: string): SRData {
   try {
     const d = JSON.parse(value);
     return {
-      orientation: (d.orientation as "horizontal" | "vertical") ?? "horizontal",
+      orientation: (d.orientation as "horizontal" | "vertical") ?? "vertical",
+      iconShape: (d.iconShape as SRIconShape) ?? "circle",
+      showPing: d.showPing !== false,
       steps: ((d.steps ?? []) as Record<string, unknown>[]).map((s) => ({
         id: (s.id as string) ?? `step-${Date.now()}`,
         label: (s.label as string) ?? "",
         color: (s.color as string) ?? "#3b82f6",
-        iconShape: (s.iconShape as PBStep["iconShape"]) ?? "circle",
         iconImageUrl: (s.iconImageUrl as string) ?? "",
-        blocks: Array.isArray(s.blocks) ? (s.blocks as ContentBlock[]) : [],
+        sectionBlockId: (s.sectionBlockId as string) ?? "",
       })),
     };
   } catch {
-    return { orientation: "horizontal", steps: [] };
+    return { orientation: "vertical", iconShape: "circle", showPing: true, steps: [] };
   }
 }
 
-const ICON_SHAPES: Array<{ value: PBStep["iconShape"]; label: string }> = [
+const SR_MAX_STEPS: Record<"vertical" | "horizontal", number> = { vertical: 8, horizontal: 5 };
+
+const SR_ICON_SHAPES: Array<{ value: SRIconShape; label: string }> = [
   { value: "circle", label: "Circle" },
   { value: "squircle", label: "Squircle" },
   { value: "square", label: "Square" },
@@ -1027,7 +1123,7 @@ const ICON_SHAPES: Array<{ value: PBStep["iconShape"]; label: string }> = [
   { value: "none", label: "Dot" },
 ];
 
-function ProgressBarBlockEditor({
+function StepRailBlockEditor({
   block,
   pages,
   selectedPageId,
@@ -1038,30 +1134,290 @@ function ProgressBarBlockEditor({
   selectedPageId?: string;
   onBlockChange: (blockId: string, value: string) => void;
 }) {
-  const [addingToStep, setAddingToStep] = useState<number | null>(null);
-  const data = parsePB(block.value);
+  const data = parseSR(block.value);
 
-  function updatePB(newData: PBData) {
+  function updateSR(newData: SRData) {
     onBlockChange(block.id, JSON.stringify(newData));
   }
 
-  function updateStep(idx: number, patch: Partial<PBStep>) {
-    updatePB({ ...data, steps: data.steps.map((s, i) => i === idx ? { ...s, ...patch } : s) });
+  function updateStep(idx: number, patch: Partial<SRStep>) {
+    updateSR({ ...data, steps: data.steps.map((s, i) => i === idx ? { ...s, ...patch } : s) });
   }
 
-  function updateStepBlocks(idx: number, newBlocks: ContentBlock[]) {
-    updateStep(idx, { blocks: newBlocks });
+  const currentPage = pages?.find((p) => p.id === selectedPageId);
+  const sectionBlocks = (currentPage?.blocks ?? []).filter((b) => b.type === "section");
+
+  return (
+    <div className="space-y-3">
+      {/* Layout */}
+      <div className="space-y-3">
+        <div>
+          <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Layout</div>
+          <div className="flex gap-2">
+            {(["vertical", "horizontal"] as const).map((o) => (
+              <button
+                key={o}
+                type="button"
+                onClick={() => updateSR({ ...data, orientation: o })}
+                aria-pressed={data.orientation === o}
+                className={`flex-1 rounded-xl border py-2 text-xs font-medium capitalize transition ${
+                  data.orientation === o
+                    ? "border-neutral-900 bg-neutral-900 text-white"
+                    : "border-neutral-300 text-neutral-600 hover:bg-neutral-50"
+                }`}
+              >
+                {o}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">Icon shape</div>
+          <div className="flex flex-wrap gap-1.5">
+            {SR_ICON_SHAPES.map((s) => (
+              <button
+                key={s.value}
+                type="button"
+                onClick={() => updateSR({ ...data, iconShape: s.value })}
+                aria-pressed={data.iconShape === s.value}
+                className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium transition ${
+                  data.iconShape === s.value
+                    ? "border-neutral-900 bg-neutral-900 text-white"
+                    : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <label className="flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            checked={data.showPing}
+            onChange={(e) => updateSR({ ...data, showPing: e.target.checked })}
+            className="rounded"
+          />
+          <span className="text-xs text-neutral-600">Pulse animation on active step</span>
+        </label>
+      </div>
+
+      {/* Steps */}
+      {data.steps.map((step, i) => (
+        <div key={step.id} className="rounded-xl border border-neutral-200">
+          <div className="flex items-center gap-1 overflow-hidden rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-2 py-2">
+            <input
+              type="color"
+              value={step.color}
+              onChange={(e) => updateStep(i, { color: e.target.value })}
+              aria-label={`Step ${i + 1} color`}
+              className="h-6 w-6 shrink-0 cursor-pointer rounded border border-neutral-300 p-0.5"
+            />
+            <input
+              type="text"
+              value={step.label}
+              onChange={(e) => updateStep(i, { label: e.target.value })}
+              placeholder={`Step ${i + 1}`}
+              className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-neutral-400"
+            />
+            {i > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  const next = [...data.steps];
+                  [next[i - 1], next[i]] = [next[i], next[i - 1]];
+                  updateSR({ ...data, steps: next });
+                }}
+                aria-label={`Move step ${i + 1} up`}
+                className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-400 transition hover:bg-neutral-50"
+              >
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path d="M7 11V3M3.5 6.5L7 3l3.5 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
+            {i < data.steps.length - 1 && (
+              <button
+                type="button"
+                onClick={() => {
+                  const next = [...data.steps];
+                  [next[i], next[i + 1]] = [next[i + 1], next[i]];
+                  updateSR({ ...data, steps: next });
+                }}
+                aria-label={`Move step ${i + 1} down`}
+                className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-400 transition hover:bg-neutral-50"
+              >
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path d="M7 3v8M3.5 7.5L7 11l3.5-3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
+            {data.steps.length > 1 && (
+              <button
+                type="button"
+                onClick={() => updateSR({ ...data, steps: data.steps.filter((_, j) => j !== i) })}
+                aria-label={`Remove step ${i + 1}`}
+                className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+              >
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path d="M2 3.5h10M5.5 3.5V2.5a1 1 0 011-1h1a1 1 0 011 1v1M4 3.5l.7 7.5a1 1 0 001 .9h2.6a1 1 0 001-.9L10 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                </svg>
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-2.5 p-3">
+            {/* Icon image */}
+            <div className="space-y-1.5">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">Step icon</div>
+              <div className="flex gap-1.5">
+                <label className="flex shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-neutral-300 px-2 py-1.5 text-[11px] font-medium text-neutral-600 transition hover:border-neutral-400 hover:bg-neutral-50">
+                  <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <rect x="1" y="4" width="12" height="8.5" rx="1.2" stroke="currentColor" strokeWidth="1.2" />
+                    <path d="M4.5 4V3a1 1 0 011-1h3a1 1 0 011 1v1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                    <circle cx="7" cy="8.25" r="1.75" stroke="currentColor" strokeWidth="1.2" />
+                  </svg>
+                  Upload
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      updateStep(i, { iconImageUrl: URL.createObjectURL(file) });
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                <input
+                  type="text"
+                  value={step.iconImageUrl}
+                  onChange={(e) => updateStep(i, { iconImageUrl: e.target.value })}
+                  placeholder="Image URL"
+                  className="min-w-0 flex-1 rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs outline-none transition focus:border-black"
+                />
+                {step.iconImageUrl && (
+                  <button
+                    type="button"
+                    onClick={() => updateStep(i, { iconImageUrl: "" })}
+                    aria-label="Clear icon"
+                    className="shrink-0 rounded-lg border border-neutral-200 p-1.5 text-neutral-400 transition hover:bg-neutral-50 hover:text-neutral-600"
+                  >
+                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                      <path d="M2 2l8 8M10 2L2 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Section link */}
+            <div>
+              <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">Linked section</div>
+              {sectionBlocks.length > 0 ? (
+                <select
+                  value={step.sectionBlockId}
+                  onChange={(e) => updateStep(i, { sectionBlockId: e.target.value })}
+                  className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
+                >
+                  <option value="">— None —</option>
+                  {sectionBlocks.map((sb) => (
+                    <option key={sb.id} value={sb.id}>
+                      {sb.value.trim() || `Section (${sb.id.slice(-6)})`}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="rounded-xl border border-dashed border-neutral-200 px-3 py-2 text-xs text-neutral-400">
+                  No Section blocks on this page yet — add a Section block first.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {data.steps.length < SR_MAX_STEPS[data.orientation] ? (
+        <button
+          type="button"
+          onClick={() =>
+            updateSR({
+              ...data,
+              steps: [...data.steps, {
+                id: `step-${Date.now()}`,
+                label: `Step ${data.steps.length + 1}`,
+                color: "#6366f1",
+                iconImageUrl: "",
+                sectionBlockId: "",
+              }],
+            })
+          }
+          className="w-full rounded-xl border border-dashed border-neutral-300 py-2.5 text-xs font-medium text-neutral-500 transition hover:border-neutral-400 hover:text-neutral-700"
+        >
+          + Add step
+        </button>
+      ) : (
+        <p className="text-center text-[11px] text-neutral-400">
+          Maximum {SR_MAX_STEPS[data.orientation]} steps for {data.orientation} layout
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ── CarouselBlockEditor ────────────────────────────────────────
+
+type CarouselSlide = { id: string; label: string; blocks: ContentBlock[] };
+
+function parseCarouselSlides(value: string): CarouselSlide[] {
+  try {
+    const data = JSON.parse(value);
+    return (data.slides ?? []).map((s: Record<string, unknown>) => ({
+      id: s.id as string,
+      label: (s.label as string) ?? "",
+      blocks: Array.isArray(s.blocks) ? (s.blocks as ContentBlock[]) : [],
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function CarouselBlockEditor({
+  block,
+  pages,
+  selectedPageId,
+  onBlockChange,
+}: {
+  block: ContentBlock;
+  pages?: PageItem[];
+  selectedPageId?: string;
+  onBlockChange: (blockId: string, value: string) => void;
+}) {
+  const [addingToSlide, setAddingToSlide] = useState<number | null>(null);
+  const slides = parseCarouselSlides(block.value);
+
+  function updateSlides(newSlides: CarouselSlide[]) {
+    onBlockChange(block.id, JSON.stringify({ slides: newSlides }));
   }
 
-  function makeStepHandlers(stepIdx: number, stepBlocks: ContentBlock[]) {
+  function updateSlideBlocks(slideIdx: number, newBlocks: ContentBlock[]) {
+    updateSlides(slides.map((s, j) => j === slideIdx ? { ...s, blocks: newBlocks } : s));
+  }
+
+  function makeSlideHandlers(slideIdx: number, slideBlocks: ContentBlock[]) {
     const update = (blockId: string, updater: (b: ContentBlock) => ContentBlock) =>
-      updateStepBlocks(stepIdx, stepBlocks.map((b) => b.id === blockId ? updater(b) : b));
+      updateSlideBlocks(slideIdx, slideBlocks.map((b) => b.id === blockId ? updater(b) : b));
 
     return {
       onBlockChange: (blockId: string, val: string) => update(blockId, (b) => ({ ...b, value: val })),
       onBlockFitChange: (blockId: string, fit: ImageFit) => update(blockId, (b) => ({ ...b, imageFit: fit })),
       onBlockImagePositionChange: (blockId: string, x: number, y: number) =>
         update(blockId, (b) => ({ ...b, imagePosition: { x, y } })),
+      onBlockPropsChange: (blockId: string, patch: Partial<ContentBlock>) =>
+        update(blockId, (b) => ({ ...b, ...patch })),
       onBlockFormatChange: (blockId: string, format: BlockFormat) =>
         update(blockId, (b) => ({ ...b, blockFormat: format })),
       onBlockVariantChange: (blockId: string, variant: ContentBlock["variant"]) =>
@@ -1078,125 +1434,96 @@ function ProgressBarBlockEditor({
         update(blockId, (b) => ({ ...b, value: URL.createObjectURL(file), imageFit: "cover" as const }));
       },
       onMoveBlockUp: (blockId: string) => {
-        const i = stepBlocks.findIndex((b) => b.id === blockId);
-        if (i <= 0) return;
-        const next = [...stepBlocks];
-        [next[i - 1], next[i]] = [next[i], next[i - 1]];
-        updateStepBlocks(stepIdx, next);
+        const idx = slideBlocks.findIndex((b) => b.id === blockId);
+        if (idx <= 0) return;
+        const next = [...slideBlocks];
+        [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+        updateSlideBlocks(slideIdx, next);
       },
       onMoveBlockDown: (blockId: string) => {
-        const i = stepBlocks.findIndex((b) => b.id === blockId);
-        if (i < 0 || i >= stepBlocks.length - 1) return;
-        const next = [...stepBlocks];
-        [next[i], next[i + 1]] = [next[i + 1], next[i]];
-        updateStepBlocks(stepIdx, next);
+        const idx = slideBlocks.findIndex((b) => b.id === blockId);
+        if (idx < 0 || idx >= slideBlocks.length - 1) return;
+        const next = [...slideBlocks];
+        [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+        updateSlideBlocks(slideIdx, next);
       },
       onRemoveBlock: (blockId: string) =>
-        updateStepBlocks(stepIdx, stepBlocks.filter((b) => b.id !== blockId)),
+        updateSlideBlocks(slideIdx, slideBlocks.filter((b) => b.id !== blockId)),
     };
   }
 
   return (
     <div className="space-y-3">
-      {/* Orientation toggle */}
-      <div>
-        <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Layout</div>
-        <div className="flex gap-2">
-          {(["horizontal", "vertical"] as const).map((o) => (
-            <button
-              key={o}
-              type="button"
-              onClick={() => updatePB({ ...data, orientation: o })}
-              aria-pressed={data.orientation === o}
-              className={`flex-1 rounded-xl border py-2 text-xs font-medium capitalize transition ${
-                data.orientation === o
-                  ? "border-neutral-900 bg-neutral-900 text-white"
-                  : "border-neutral-300 text-neutral-600 hover:bg-neutral-50"
-              }`}
-            >
-              {o}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Steps */}
-      {data.steps.map((step, i) => {
-        const handlers = makeStepHandlers(i, step.blocks);
+      {slides.map((slide, i) => {
+        const handlers = makeSlideHandlers(i, slide.blocks);
         return (
-          <div key={step.id} className="overflow-hidden rounded-xl border border-neutral-200">
-            {/* Step header */}
+          <div key={slide.id} className="overflow-hidden rounded-xl border border-neutral-200">
             <div className="flex items-center gap-2 border-b border-neutral-100 bg-neutral-50 px-3 py-2">
-              {/* Color swatch */}
-              <input
-                type="color"
-                value={step.color}
-                onChange={(e) => updateStep(i, { color: e.target.value })}
-                aria-label={`Step ${i + 1} color`}
-                className="h-7 w-7 shrink-0 cursor-pointer rounded-lg border border-neutral-300 p-0.5"
-              />
-              {/* Label */}
+              <span className="shrink-0 text-[10px] font-semibold text-neutral-400">{i + 1}</span>
               <input
                 type="text"
-                value={step.label}
-                onChange={(e) => updateStep(i, { label: e.target.value })}
-                placeholder={`Step ${i + 1}`}
-                className="flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-neutral-400"
+                value={slide.label}
+                onChange={(e) =>
+                  updateSlides(slides.map((s, j) => j === i ? { ...s, label: e.target.value } : s))
+                }
+                placeholder={`Slide ${i + 1} label`}
+                className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-neutral-400"
               />
-              {/* Delete */}
-              {data.steps.length > 1 ? (
+              {i > 0 && (
                 <button
                   type="button"
-                  onClick={() => updatePB({ ...data, steps: data.steps.filter((_, j) => j !== i) })}
-                  aria-label={`Remove step ${i + 1}`}
-                  className="shrink-0 rounded-lg border border-neutral-200 p-1.5 text-neutral-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+                  onClick={() => {
+                    const next = [...slides];
+                    [next[i - 1], next[i]] = [next[i], next[i - 1]];
+                    updateSlides(next);
+                  }}
+                  aria-label={`Move slide ${i + 1} up`}
+                  className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-400 transition hover:bg-neutral-50"
+                >
+                  <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M7 11V3M3.5 6.5L7 3l3.5 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              )}
+              {i < slides.length - 1 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = [...slides];
+                    [next[i], next[i + 1]] = [next[i + 1], next[i]];
+                    updateSlides(next);
+                  }}
+                  aria-label={`Move slide ${i + 1} down`}
+                  className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-400 transition hover:bg-neutral-50"
+                >
+                  <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M7 3v8M3.5 7.5L7 11l3.5-3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              )}
+              {slides.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => updateSlides(slides.filter((_, j) => j !== i))}
+                  aria-label={`Remove slide ${i + 1}`}
+                  className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
                 >
                   <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                     <path d="M2 3.5h10M5.5 3.5V2.5a1 1 0 011-1h1a1 1 0 011 1v1M4 3.5l.7 7.5a1 1 0 001 .9h2.6a1 1 0 001-.9L10 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
                   </svg>
                 </button>
-              ) : null}
+              )}
             </div>
 
             <div className="space-y-3 p-3">
-              {/* Icon config */}
-              <div className="space-y-2">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">Icon shape</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {ICON_SHAPES.map((s) => (
-                    <button
-                      key={s.value}
-                      type="button"
-                      onClick={() => updateStep(i, { iconShape: s.value })}
-                      aria-pressed={step.iconShape === s.value}
-                      className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium transition ${
-                        step.iconShape === s.value
-                          ? "border-neutral-900 bg-neutral-900 text-white"
-                          : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
-                      }`}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-                <input
-                  type="text"
-                  value={step.iconImageUrl}
-                  onChange={(e) => updateStep(i, { iconImageUrl: e.target.value })}
-                  placeholder="Custom image URL (overrides shape)"
-                  className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-xs outline-none transition focus:border-black"
-                />
-              </div>
-
-              {/* Content blocks */}
-              {step.blocks.length > 0 ? (
-                step.blocks.map((b, bi) => (
+              {slide.blocks.length > 0 ? (
+                slide.blocks.map((b, bi) => (
                   <BlockEditor
                     key={b.id}
                     block={b}
                     index={bi}
                     isFirst={bi === 0}
-                    isLast={bi === step.blocks.length - 1}
+                    isLast={bi === slide.blocks.length - 1}
                     pages={pages}
                     selectedPageId={selectedPageId}
                     {...handlers}
@@ -1208,8 +1535,7 @@ function ProgressBarBlockEditor({
                 </div>
               )}
 
-              {/* Add block */}
-              {addingToStep === i ? (
+              {addingToSlide === i ? (
                 <div className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
                   {([
                     { type: "text" as ContentBlockType, label: "Text", desc: "Paragraph, heading, list, or steps" },
@@ -1220,8 +1546,8 @@ function ProgressBarBlockEditor({
                       key={item.type}
                       type="button"
                       onClick={() => {
-                        updateStepBlocks(i, [...step.blocks, createBlock(item.type)]);
-                        setAddingToStep(null);
+                        updateSlideBlocks(i, [...slide.blocks, createBlock(item.type)]);
+                        setAddingToSlide(null);
                       }}
                       className="flex w-full items-start gap-3 border-b border-neutral-200 px-3 py-2.5 text-left last:border-0 hover:bg-white transition"
                     >
@@ -1233,7 +1559,7 @@ function ProgressBarBlockEditor({
                   ))}
                   <button
                     type="button"
-                    onClick={() => setAddingToStep(null)}
+                    onClick={() => setAddingToSlide(null)}
                     className="w-full px-3 py-2 text-xs text-neutral-400 hover:text-neutral-600 transition"
                   >
                     Cancel
@@ -1242,7 +1568,7 @@ function ProgressBarBlockEditor({
               ) : (
                 <button
                   type="button"
-                  onClick={() => setAddingToStep(i)}
+                  onClick={() => setAddingToSlide(i)}
                   className="w-full rounded-xl border border-dashed border-neutral-300 py-2 text-xs font-medium text-neutral-500 transition hover:border-neutral-400 hover:text-neutral-700"
                 >
                   + Add block
@@ -1256,21 +1582,11 @@ function ProgressBarBlockEditor({
       <button
         type="button"
         onClick={() =>
-          updatePB({
-            ...data,
-            steps: [...data.steps, {
-              id: `step-${Date.now()}`,
-              label: `Step ${data.steps.length + 1}`,
-              color: "#6366f1",
-              iconShape: "circle",
-              iconImageUrl: "",
-              blocks: [],
-            }],
-          })
+          updateSlides([...slides, { id: `slide-${Date.now()}`, label: `Slide ${slides.length + 1}`, blocks: [] }])
         }
         className="w-full rounded-xl border border-dashed border-neutral-300 py-2.5 text-xs font-medium text-neutral-500 transition hover:border-neutral-400 hover:text-neutral-700"
       >
-        + Add step
+        + Add slide
       </button>
     </div>
   );

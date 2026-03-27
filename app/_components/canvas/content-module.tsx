@@ -166,8 +166,8 @@ export function ContentModule({
   }
 
   // ── Shared inner content ───────────────────────────────────────
-  const innerContent = (
-    <>
+  function renderContent(showInlineClose: boolean) {
+    const titleNode = (
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div
           className={`text-sm font-semibold ${
@@ -176,25 +176,30 @@ export function ContentModule({
         >
           {page.title || "Untitled page"}
         </div>
-        {!isExiting ? (
+        {showInlineClose && !isExiting ? (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onDismissContent(); }}
-            className={`-mr-1 -mt-1 rounded-full p-1.5 text-xs leading-none transition ${
+            className={`-mr-1 -mt-1 flex h-7 w-7 items-center justify-center rounded-full transition ${
               systemSettings.surfaceStyle === "contrast"
                 ? "text-neutral-400 hover:bg-white/10 hover:text-white"
-                : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+                : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
             }`}
             aria-label="Close"
           >
-            <span aria-hidden="true">✕</span>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M2 2l8 8M10 2L2 10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+            </svg>
           </button>
         ) : null}
       </div>
+    );
 
-      <div className={`mt-3 ${mutedTextClass}`}>
-        <PreviewBlocks accentColor={accentColor} onNavigate={onNavigate} onDismissContent={onDismissContent} page={page} pages={pages} />
-      </div>
+    return (
+      <>
+        <div className={mutedTextClass}>
+          <PreviewBlocks accentColor={accentColor} onNavigate={onNavigate} onDismissContent={onDismissContent} page={page} pages={pages} header={titleNode} />
+        </div>
 
       {page.socialLinks.length > 0 || page.showQrCode ? (
         <div className="mt-4 flex items-start gap-4">
@@ -243,7 +248,8 @@ export function ContentModule({
         </div>
       ) : null}
     </>
-  );
+    );
+  }
 
   // ── Portrait content zone fill ─────────────────────────────────
   // Fills the dedicated content zone at the top of the portrait split layout.
@@ -259,7 +265,7 @@ export function ContentModule({
         onClick={(e) => e.stopPropagation()}
         onAnimationEnd={handleAnimEnd}
       >
-        {innerContent}
+        {renderContent(true)}
       </div>
     );
   }
@@ -282,7 +288,7 @@ export function ContentModule({
             <span>Content module</span>
           </div>
         ) : null}
-        {innerContent}
+        {renderContent(true)}
       </div>
     );
   }
@@ -297,14 +303,31 @@ export function ContentModule({
           onClick={(e) => e.stopPropagation()}
           onAnimationEnd={handleAnimEnd}
         >
-          <div className="flex flex-1 items-center justify-center overflow-y-auto px-6 pb-6 pt-4">
-            <div className="w-full max-w-md py-4">
+          {/* Dedicated close button — top-right of the full-page container */}
+          {!isExiting ? (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onDismissContent(); }}
+              className={`absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full transition ${
+                systemSettings.surfaceStyle === "contrast"
+                  ? "bg-white/10 text-white hover:bg-white/20"
+                  : "bg-neutral-900/8 text-neutral-700 hover:bg-neutral-900/15"
+              }`}
+              aria-label="Close"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </button>
+          ) : null}
+          <div className="flex-1 overflow-y-auto px-6 pb-6 pt-4">
+            <div className="mx-auto w-full max-w-md py-4">
               {isLayoutEditMode && !isExiting ? (
                 <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
                   <span>Content module</span>
                 </div>
               ) : null}
-              {innerContent}
+              {renderContent(false)}
             </div>
           </div>
         </div>
@@ -323,7 +346,7 @@ export function ContentModule({
             <span>Content module</span>
           </div>
         ) : null}
-        {innerContent}
+        {renderContent(true)}
       </div>
     );
   }
@@ -369,7 +392,7 @@ export function ContentModule({
           style={ctype === "modal" ? tintStyle : undefined}
           onPointerDown={isContentDraggable ? onContentCardPointerDown : undefined}
         >
-          {innerContent}
+          {renderContent(true)}
         </div>
       </div>
       {ctype === "tooltip" ? (

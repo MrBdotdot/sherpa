@@ -157,6 +157,13 @@ export function useContentHandlers({
     }));
   };
 
+  const handleBlockPropsChange = (blockId: string, patch: Partial<ContentBlock>) => {
+    updateSelectedPage((page) => ({
+      ...page,
+      blocks: page.blocks.map((b) => b.id === blockId ? { ...b, ...patch } : b),
+    }));
+  };
+
   return {
     handleAddBlock,
     handleBlockChange,
@@ -175,5 +182,6 @@ export function useContentHandlers({
     handleBlockVerticalAlignChange,
     handleBlockFormatChange,
     handleBlockImagePositionChange,
+    handleBlockPropsChange,
   };
 }

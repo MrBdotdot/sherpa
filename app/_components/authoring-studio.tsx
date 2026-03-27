@@ -7,7 +7,7 @@ import { PageEditorModal } from "@/app/_components/page-editor-modal";
 import { PageSidebar } from "@/app/_components/page-sidebar";
 import { PreviewCanvas } from "@/app/_components/preview-canvas";
 import { createInitialPages, HOME_PAGE_ID } from "@/app/_lib/authoring-utils";
-import { LayoutMode, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
+import { ExperienceStatus, LayoutMode, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 import {
   loadPersistedState,
   migrateLocaleFeature,
@@ -36,6 +36,7 @@ export function AuthoringStudio() {
     accentColor: "",
     hotspotSize: "medium",
   });
+  const [experienceStatus, setExperienceStatus] = useState<ExperienceStatus>("draft");
   const [isLayoutEditMode, setIsLayoutEditMode] = useState(false);
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("desktop");
   const [isPreviewMode, setIsPreviewMode] = useState(false);
@@ -177,6 +178,7 @@ export function AuthoringStudio() {
     handleBlockVerticalAlignChange,
     handleBlockFormatChange,
     handleBlockImagePositionChange,
+    handleBlockPropsChange,
   } = useContentHandlers({ pushPagesHistory, updateSelectedPage });
 
   const {
@@ -306,6 +308,7 @@ export function AuthoringStudio() {
     onBlockVerticalAlignChange: handleBlockVerticalAlignChange,
     onBlockFormatChange: handleBlockFormatChange,
     onBlockImagePositionChange: handleBlockImagePositionChange,
+    onBlockPropsChange: handleBlockPropsChange,
     onOpenPage: openPageEditor,
     isPortraitMode: layoutMode === "mobile-portrait" && systemSettings.portraitLayout !== "full",
     selectedPage,
@@ -319,6 +322,8 @@ export function AuthoringStudio() {
   const sharedCanvasProps = {
     activePage: activePreviewPage,
     surfacePage: previewSurfacePage,
+    experienceStatus,
+    onExperienceStatusChange: setExperienceStatus,
     canvasRef,
     imageStripRef,
     contentZoneRef,
@@ -361,8 +366,9 @@ export function AuthoringStudio() {
           />
         </div>
 
-        <section className="min-w-0 flex-1 bg-[#eef1f4] p-4 md:p-6 lg:h-screen lg:overflow-auto lg:p-8">
-          <div className="mx-auto">
+        <section className="min-w-0 flex-1 bg-[#eef1f4] p-4 md:p-6 lg:flex lg:h-screen lg:overflow-hidden lg:p-0">
+          {/* Canvas column — padded uniformly on all sides */}
+          <div className="min-w-0 flex-1 lg:overflow-hidden lg:p-8">
             <div className="mb-4 flex items-center gap-2 xl:hidden">
               <select
                 value={selectedPageId}
@@ -388,31 +394,28 @@ export function AuthoringStudio() {
               </button>
             </div>
 
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px] xl:items-start">
-              <div className="min-w-0">
-                <div className="rounded-[28px] border border-white/70 bg-white p-2 sm:p-4 md:p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-                  <PreviewCanvas {...sharedCanvasProps} />
+            <div className="rounded-[28px] border border-white/70 bg-white p-2 sm:p-4 md:p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+              <PreviewCanvas {...sharedCanvasProps} />
+            </div>
+          </div>
+
+          {/* Inspector column — flush to top, right, and bottom edges */}
+          <div className="hidden xl:flex xl:w-[380px] xl:shrink-0 xl:flex-col">
+            <div className="flex h-full flex-col overflow-hidden border-l border-neutral-200 bg-[#f7f7f8]">
+              <div className="border-b border-neutral-200 px-5 py-4">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+                  Inspector
                 </div>
               </div>
 
-              <div className="hidden xl:sticky xl:top-0 xl:block xl:h-screen">
-                <div className="flex h-full flex-col overflow-hidden border-l border-neutral-200 bg-[#f7f7f8]">
-                  <div className="border-b border-neutral-200 px-5 py-4">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                      Inspector
-                    </div>
-                  </div>
-
-                  <div className="min-h-0 flex-1">
-                    <PageEditorModal
-                      {...sharedEditorProps}
-                      isOpen={!!selectedPage}
-                      isOverlay={false}
-                      showCloseButton={false}
-                      showPreview={false}
-                    />
-                  </div>
-                </div>
+              <div className="min-h-0 flex-1">
+                <PageEditorModal
+                  {...sharedEditorProps}
+                  isOpen={!!selectedPage}
+                  isOverlay={false}
+                  showCloseButton={false}
+                  showPreview={false}
+                />
               </div>
             </div>
           </div>

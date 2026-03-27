@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { ChangelogModal } from "@/app/_components/changelog-modal";
+import { AccountPanel } from "@/app/_components/account-panel";
+import { GameSwitcherModal } from "@/app/_components/game-switcher-modal";
 import {
   APP_VERSION,
   getFeatureTypeLabel,
-  getPublishStatusClasses,
 } from "@/app/_lib/authoring-utils";
 import { CanvasFeature, ContentBlock, PageItem, PublishStatus } from "@/app/_lib/authoring-types";
 
@@ -17,11 +18,6 @@ type PageSidebarProps = {
   selectedFeatureId: string | null;
   selectedPageId: string;
 };
-
-const PUBLISH_OPTIONS: { label: string; value: PublishStatus }[] = [
-  { label: "Draft", value: "draft" },
-  { label: "Published", value: "published" },
-];
 
 function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
@@ -48,66 +44,34 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
 function SidebarPageButton({
   isSelected,
   onOpenPage,
-  onPublishStatusChange,
   page,
 }: {
   isSelected: boolean;
   onOpenPage: (id: string) => void;
-  onPublishStatusChange: (pageId: string, status: PublishStatus) => void;
   page: PageItem;
 }) {
   return (
-    <div
-      className={`flex w-full items-center gap-1 rounded-2xl border transition ${
+    <button
+      type="button"
+      onClick={() => onOpenPage(page.id)}
+      aria-current={isSelected ? "page" : undefined}
+      className={`flex w-full items-center rounded-2xl border px-3 py-3 text-left transition ${
         isSelected
           ? "border-black bg-black text-white shadow-lg shadow-black/10 ring-2 ring-black/15"
           : "border-neutral-200 bg-neutral-50 text-neutral-800 hover:bg-white"
       }`}
     >
-      <button
-        type="button"
-        onClick={() => onOpenPage(page.id)}
-        aria-current={isSelected ? "page" : undefined}
-        className="min-w-0 flex-1 px-3 py-3 text-left"
-      >
-        <div className="min-w-0">
-          <div className="truncate text-sm font-medium">
-            {page.title || "Untitled page"}
-          </div>
-          {page.kind === "hotspot" && page.x !== null && page.y !== null ? (
-            <div
-              className={`mt-0.5 text-xs ${
-                isSelected ? "text-neutral-300" : "text-neutral-400"
-              }`}
-            >
-              {Math.round(page.x)}%, {Math.round(page.y)}%
-            </div>
-          ) : null}
+      <div className="min-w-0">
+        <div className="truncate text-sm font-medium">
+          {page.title || "Untitled page"}
         </div>
-      </button>
-
-      <div className="shrink-0 pr-2">
-        <select
-          value={page.publishStatus}
-          onChange={(e) =>
-            onPublishStatusChange(page.id, e.target.value as PublishStatus)
-          }
-          onClick={(e) => e.stopPropagation()}
-          aria-label={`Publish status for ${page.title || "this page"}`}
-          className={`cursor-pointer rounded-xl border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide outline-none transition ${
-            isSelected
-              ? "border-white/20 bg-white/15 text-white"
-              : getPublishStatusClasses(page.publishStatus)
-          }`}
-        >
-          {PUBLISH_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value} className="bg-white text-neutral-900">
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        {page.kind === "hotspot" && page.x !== null && page.y !== null ? (
+          <div className={`mt-0.5 text-xs ${isSelected ? "text-neutral-300" : "text-neutral-400"}`}>
+            {Math.round(page.x)}%, {Math.round(page.y)}%
+          </div>
+        ) : null}
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -225,7 +189,7 @@ function CollapsibleSection({
 
 export function PageSidebar({
   onOpenPage,
-  onPublishStatusChange,
+  onPublishStatusChange: _onPublishStatusChange,
   onSelectFeature,
   pages,
   selectedFeatureId,
@@ -235,11 +199,12 @@ export function PageSidebar({
   const navPages = pages.filter((p) => p.kind === "page");
   const hotspotItems = pages.filter((p) => p.kind === "hotspot" && p.x !== null);
 
-  // Which container rows are expanded to show their features
   const [changelogOpen, setChangelogOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [gameSwitcherOpen, setGameSwitcherOpen] = useState(false);
+  const [currentGameName, setCurrentGameName] = useState("Ugly Pickle");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
-  // Which collapsible nav sections are open
   const [openSections, setOpenSections] = useState<Set<string>>(
     () => new Set(["elements", "page-buttons", "hotspots", "containers"])
   );
@@ -261,11 +226,9 @@ export function PageSidebar({
     });
   };
 
-  const sharedItemProps = { onOpenPage, onPublishStatusChange };
-
   return (
-    <aside className="h-full border-r border-neutral-200 bg-white">
-      <div className="h-full overflow-y-auto p-5">
+    <aside className="flex h-full flex-col border-r border-neutral-200 bg-white">
+      <div className="min-h-0 flex-1 overflow-y-auto p-5">
         <div className="mb-6 flex items-center gap-2.5">
           <img src="/sherpa-icon.svg" alt="Sherpa" className="h-11 w-11 rounded-lg" draggable={false} />
           <div className="flex items-baseline gap-2">
@@ -294,7 +257,7 @@ export function PageSidebar({
                   </div>
 
                   <SidebarPageButton
-                    {...sharedItemProps}
+                    onOpenPage={onOpenPage}
                     isSelected={homePage.id === selectedPageId}
                     page={homePage}
                   />
@@ -354,7 +317,7 @@ export function PageSidebar({
                           <div className="flex items-stretch gap-1">
                             <div className="flex-1 min-w-0">
                               <SidebarPageButton
-                                {...sharedItemProps}
+                                onOpenPage={onOpenPage}
                                 isSelected={hotspot.id === selectedPageId}
                                 page={hotspot}
                               />
@@ -415,7 +378,7 @@ export function PageSidebar({
                   <div className="flex items-stretch gap-1">
                     <div className="flex-1 min-w-0">
                       <SidebarPageButton
-                        {...sharedItemProps}
+                        onOpenPage={onOpenPage}
                         isSelected={page.id === selectedPageId}
                         page={page}
                       />
@@ -473,7 +436,50 @@ export function PageSidebar({
         </div>
       </div>
 
+      {/* Bottom nav */}
+      <div className="shrink-0 border-t border-neutral-100 p-3">
+        {/* Game switcher */}
+        <button
+          type="button"
+          onClick={() => setGameSwitcherOpen(true)}
+          className="mb-2 flex w-full items-center gap-2.5 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-left hover:bg-white transition"
+        >
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-xs font-bold text-white">
+            {currentGameName[0]}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-xs font-semibold text-neutral-800">{currentGameName}</div>
+            <div className="text-[10px] text-neutral-400">Switch game</div>
+          </div>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0 text-neutral-300">
+            <path d="M3 4.5L6 1.5L9 4.5M3 7.5L6 10.5L9 7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+
+        {/* Account row */}
+        <button
+          type="button"
+          onClick={() => setAccountOpen(true)}
+          className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 hover:bg-neutral-100 transition"
+        >
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-600">
+            A
+          </div>
+          <div className="min-w-0">
+            <div className="truncate text-xs font-medium text-neutral-700">Admin User</div>
+            <div className="truncate text-[10px] text-neutral-400">admin@studio.com</div>
+          </div>
+        </button>
+      </div>
+
       <ChangelogModal isOpen={changelogOpen} onClose={() => setChangelogOpen(false)} />
+      <AccountPanel isOpen={accountOpen} onClose={() => setAccountOpen(false)} />
+      <GameSwitcherModal
+        isOpen={gameSwitcherOpen}
+        currentGameId="game-1"
+        onClose={() => setGameSwitcherOpen(false)}
+        onSelectGame={(_id, name) => setCurrentGameName(name)}
+      />
     </aside>
   );
 }

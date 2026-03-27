@@ -6,7 +6,75 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
-    version: "v1.0.1",
+    version: "v0.10.8",
+    date: "2026-03-27",
+    changes: [
+      "Account management: new section at the bottom of the left nav — profile, business info, security & privacy, notifications, session history & change log, team & access (with roles), language, billing, terms of service, and privacy policy",
+      "Game switcher: click the game button in the bottom nav to switch between publishing platforms, studios, and games — navigates via breadcrumb with role-based context",
+      "Global experience status: Draft/Published control moved from per-page selects to a single interactive badge in the preview header — click to open a status menu",
+      "Left nav restructured with a fixed bottom bar showing the current game switcher and account/avatar button",
+      "Analytics dashboard: /analytics route with sessions over time, hotspot performance ranking, device breakdown, top navigation paths, and interaction heatmap — placeholder data, ready to connect to PostHog",
+      "Game switcher: clicking a game now expands an action panel with 'Edit rules' and 'View analytics' options instead of immediately selecting",
+    ],
+  },
+  {
+    version: "v0.10.6",
+    date: "2026-03-26",
+    changes: [
+      "Image block: tap to open full-screen lightbox — enable per-block via 'Open full-screen on tap' toggle in the editor",
+      "Image block: optional caption field — text appears centered below the image",
+      "Image block: size control — Full (default), S (120px), M (240px), L (360px) max-width; sized images are centered within the content area",
+    ],
+  },
+  {
+    version: "v0.10.5",
+    date: "2026-03-26",
+    changes: [
+      "Step Rail: horizontal rail no longer shows a scroll bar — overflow is clipped and a max step count is enforced in the editor",
+      "Step Rail: horizontal orientation now animates by sliding up to hide and sliding down to reveal; vertical continues to slide left/right",
+      "Step Rail: hide trigger switched from IntersectionObserver to a scroll-event listener on the actual scroll container for reliable cross-layout detection",
+      "Step Rail: show/hide transitions are now animated — rail slides and fades rather than snapping",
+      "Step Rail: layout is preserved when hidden — the vertical rail column holds its width so surrounding text does not reflow",
+      "Accessibility issue toasts temporarily suppressed",
+    ],
+  },
+  {
+    version: "v0.10.4",
+    date: "2026-03-26",
+    changes: [
+      "New Section block — a lightweight anchor divider that marks a named section in the page's content; used as link targets for the Step Rail",
+      "New Step Rail block — a pure navigation rail (icons + connecting lines + completion state) that floats beside the page content as a sticky sidebar; links to Section blocks and auto-highlights the active section via IntersectionObserver as you scroll",
+      "New Carousel block — swipeable multi-slide content pager with touch swipe, keyboard arrow support, dot indicators, and prev/next buttons; each slide has full block editor support",
+      "Retired the Progress Bar block — superseded by the Step Rail + Section anchor system",
+      "Step Rail: vertical orientation renders as a sticky left sidebar outside the content flow; horizontal renders as a sticky top strip",
+      "Step Rail: tapping a step icon scrolls to the linked section; active step updates automatically as the user scrolls",
+      "Step Rail: rail fades in when the first linked section enters view, fades out once the last section leaves view",
+    ],
+  },
+  {
+    version: "v0.10.3",
+    date: "2026-03-26",
+    changes: [
+      "Progress Bar step rail now floats outside the content flow — vertical rail sits absolutely on the left edge, horizontal rail sits absolutely at the top edge; content takes the full available width/height",
+      "Full-page containers now show a dedicated close button fixed to the top-right corner of the container — larger target (40×40px), circle background, SVG X icon",
+      "Close button no longer appears in the title row for full-page containers",
+    ],
+  },
+  {
+    version: "v0.10.2",
+    date: "2026-03-26",
+    changes: [
+      "Progress Bar: connector track now runs between step icons — completed segments fill with the step's color, future segments stay neutral",
+      "Progress Bar: completed steps (before the active one) show a checkmark instead of a number",
+      "Progress Bar: future steps are dimmed; only steps behind the active one animate or fill",
+      "Progress Bar: Prev / Next buttons added below step content in both horizontal and vertical layouts",
+      "Progress Bar: icon shape is now a block-level setting (instead of per-step) — set it once in the Layout section",
+      "Progress Bar: pulse animation on the active step can be toggled off via the Layout section",
+      "Progress Bar editor: steps can be reordered with up/down arrows in each step header",
+    ],
+  },
+  {
+    version: "v0.10.1",
     date: "2026-03-25",
     changes: [
       "New Progress Bar block — a self-contained multi-step navigator with horizontal or vertical layout",
@@ -18,7 +86,7 @@ export const PATCH_NOTES: PatchNote[] = [
     ],
   },
   {
-    version: "v1.0.0",
+    version: "v0.10.0",
     date: "2026-03-25",
     changes: [
       "New Tabs block — add a tabbed toggle menu inside any container to switch between named sections",

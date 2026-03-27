@@ -13,7 +13,7 @@ import {
   TemplateId,
 } from "@/app/_lib/authoring-types";
 
-export const APP_VERSION = "v1.0.1";
+export const APP_VERSION = "v0.10.8";
 
 export type { PatchNote } from "@/app/_lib/patch-notes";
 export { PATCH_NOTES } from "@/app/_lib/patch-notes";
@@ -98,11 +98,16 @@ export function createBlock(type: ContentBlockType, value = ""): ContentBlock {
         { id: "tab-1", label: "Tab 1", blocks: [] },
         { id: "tab-2", label: "Tab 2", blocks: [] },
       ]})
-    : type === "progress-bar" && !value
-    ? JSON.stringify({ orientation: "horizontal", steps: [
-        { id: "step-1", label: "Step 1", color: "#3b82f6", iconShape: "circle", iconImageUrl: "", blocks: [] },
-        { id: "step-2", label: "Step 2", color: "#8b5cf6", iconShape: "circle", iconImageUrl: "", blocks: [] },
-        { id: "step-3", label: "Step 3", color: "#10b981", iconShape: "circle", iconImageUrl: "", blocks: [] },
+    : type === "step-rail" && !value
+    ? JSON.stringify({ orientation: "vertical", iconShape: "circle", showPing: true, steps: [
+        { id: "step-1", label: "Step 1", color: "#3b82f6", iconImageUrl: "", sectionBlockId: "" },
+        { id: "step-2", label: "Step 2", color: "#8b5cf6", iconImageUrl: "", sectionBlockId: "" },
+        { id: "step-3", label: "Step 3", color: "#10b981", iconImageUrl: "", sectionBlockId: "" },
+      ]})
+    : type === "carousel" && !value
+    ? JSON.stringify({ slides: [
+        { id: "slide-1", label: "Slide 1", blocks: [] },
+        { id: "slide-2", label: "Slide 2", blocks: [] },
       ]})
     : value;
   return {
@@ -405,6 +410,16 @@ export function getInteractionTypeLabel(interactionType: InteractionType) {
     default:
       return "Interaction";
   }
+}
+
+export function getExperienceStatusLabel(status: import("@/app/_lib/authoring-types").ExperienceStatus) {
+  return status === "published" ? "Published" : "Draft";
+}
+
+export function getExperienceStatusClasses(status: import("@/app/_lib/authoring-types").ExperienceStatus) {
+  return status === "published"
+    ? "bg-emerald-100 text-emerald-800"
+    : "bg-amber-100 text-amber-800";
 }
 
 export function getPublishStatusLabel(status: PublishStatus) {
