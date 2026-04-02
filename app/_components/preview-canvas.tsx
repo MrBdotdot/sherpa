@@ -1,32 +1,28 @@
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { IntroScreen } from "@/app/_components/canvas/intro-screen";
 import { CanvasBackground } from "@/app/_components/canvas/canvas-background";
+
+const ModelViewer = dynamic(
+  () => import("@/app/_components/canvas/model-viewer").then((m) => ({ default: m.ModelViewer })),
+  { ssr: false }
+);
 import { HotspotPin } from "@/app/_components/canvas/hotspot-pin";
+import { getExperienceStatusClasses, getExperienceStatusLabel } from "@/app/_lib/label-utils";
 import {
-  getFeatureTypeLabel,
-  getExperienceStatusClasses,
-  getExperienceStatusLabel,
-} from "@/app/_lib/authoring-utils";
-import {
-  CanvasFeature,
   ExperienceStatus,
   LayoutMode,
   PageItem,
   SystemSettings,
 } from "@/app/_lib/authoring-types";
-import { CanvasFeatureCard } from "@/app/_components/canvas/canvas-feature-card";
 import { ContentModule } from "@/app/_components/canvas/content-module";
-
-type FeatureDragState = {
-  id: string;
-  pointerOffsetX: number;
-  pointerOffsetY: number;
-};
-
-type ContentDragState = {
-  pointerOffsetX: number;
-  pointerOffsetY: number;
-};
+import {
+  ContentDragState,
+  EmptySurfaceGuidance,
+  FeatureDragState,
+  FeaturePlacer,
+  SnapGuides,
+} from "@/app/_components/canvas/preview-canvas-helpers";
 
 type PreviewCanvasProps = {
   activePage: PageItem;
@@ -46,6 +42,7 @@ type PreviewCanvasProps = {
   experienceStatus: ExperienceStatus;
   onExperienceStatusChange: (status: ExperienceStatus) => void;
   onCanvasClick: React.MouseEventHandler<HTMLDivElement>;
+  onPlace3dHotspot?: (pos: [number, number, number], normal: [number, number, number]) => void;
   onCanvasFeaturePointerDown: (
     event: React.PointerEvent<HTMLDivElement>,
     featureId: string
@@ -62,122 +59,14 @@ type PreviewCanvasProps = {
   onToggleLayoutEditMode: () => void;
   onSetLayoutMode: (mode: LayoutMode) => void;
   onTogglePreviewMode: () => void;
+  onOpenCommandPalette?: () => void;
   onHeroUpload?: (event: ChangeEvent<HTMLInputElement>) => void;
   isPreviewMode: boolean;
   selectedPageId: string;
+  /** When true the canvas stretches to fill its parent height instead of using a fixed min-height.
+   *  Use in the main studio layout; leave false (default) for modal/sidebar previews. */
+  fillHeight?: boolean;
 };
-
-const SNAP_LINES = [33.333, 50, 66.666];
-
-function EmptySurfaceGuidance({
-  featureCount,
-  hotspotCount,
-  onClose,
-}: {
-  featureCount: number;
-  hotspotCount: number;
-  onClose: () => void;
-}) {
-  return (
-    <div
-      className="absolute left-4 top-4 z-20 max-w-sm rounded-2xl border border-dashed border-neutral-300 bg-white p-4 text-sm text-neutral-600 shadow-sm"
-      onClick={(event) => event.stopPropagation()}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="font-medium text-neutral-900">Build the layout</div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-lg border border-neutral-300 px-2 py-1 text-[11px] font-medium text-neutral-600 hover:bg-neutral-50"
-        >
-          Close
-        </button>
-      </div>
-      <div className="mt-2 leading-6">
-        {featureCount === 0
-          ? "Add canvas features like images, QR codes, disclaimers, buttons, and dropdowns."
-          : "Turn on layout edit mode to move surface items directly on top of the image."}
-      </div>
-      <div className="mt-2 leading-6">
-        {hotspotCount === 0
-          ? "Click inside the image to create contextual hotspots."
-          : "Drag hotspots inside the image to align them with the right object or area."}
-      </div>
-    </div>
-  );
-}
-
-function SnapGuides({
-  featureDragState,
-  features,
-}: {
-  featureDragState: FeatureDragState | null;
-  features: CanvasFeature[];
-}) {
-  const activeFeature = features.find((f) => f.id === featureDragState?.id);
-  if (!featureDragState || !activeFeature) return null;
-
-  const showVertical = SNAP_LINES.filter((line) => Math.abs(line - activeFeature.x) <= 0.4);
-  const showHorizontal = SNAP_LINES.filter((line) => Math.abs(line - activeFeature.y) <= 0.4);
-
-  return (
-    <>
-      {showVertical.map((line) => (
-        <div key={`v-${line}`} aria-hidden="true" className="pointer-events-none absolute top-0 bottom-0 z-20 w-px bg-sky-500/80" style={{ left: `${line}%` }} />
-      ))}
-      {showHorizontal.map((line) => (
-        <div key={`h-${line}`} aria-hidden="true" className="pointer-events-none absolute left-0 right-0 z-20 h-px bg-sky-500/80" style={{ top: `${line}%` }} />
-      ))}
-    </>
-  );
-}
-
-/** Shared feature placer used in both portrait and landscape layouts */
-function FeaturePlacer({
-  features,
-  isLayoutEditMode,
-  accentColor,
-  surfaceStyleClass,
-  onCanvasFeaturePointerDown,
-  onSelectPage,
-}: {
-  features: CanvasFeature[];
-  isLayoutEditMode: boolean;
-  accentColor: string;
-  surfaceStyleClass: string;
-  onCanvasFeaturePointerDown: (event: React.PointerEvent<HTMLDivElement>, featureId: string) => void;
-  onSelectPage: (id: string) => void;
-}) {
-  return (
-    <>
-      {features.map((feature) => (
-        <div
-          key={feature.id}
-          data-a11y-id={feature.id}
-          data-a11y-type="feature"
-          className={`absolute z-20 ${isLayoutEditMode ? "cursor-grab active:cursor-grabbing" : ""}`}
-          style={{ left: `${feature.x}%`, top: `${feature.y}%`, transform: "translate3d(-50%, -50%, 0)", touchAction: "none" }}
-          onPointerDown={(event) => onCanvasFeaturePointerDown(event, feature.id)}
-          onClick={(event) => {
-            event.stopPropagation();
-            if (!isLayoutEditMode && feature.linkUrl) {
-              if (feature.type === "page-button") onSelectPage(feature.linkUrl);
-              else if (feature.type === "button" && feature.buttonLinkMode === "page") onSelectPage(feature.linkUrl);
-            }
-          }}
-        >
-          {isLayoutEditMode ? (
-            <div className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-              <span>{getFeatureTypeLabel(feature.type)}</span>
-              <span className="opacity-60">Move</span>
-            </div>
-          ) : null}
-          <CanvasFeatureCard accentColor={accentColor} feature={feature} surfaceStyleClass={surfaceStyleClass} />
-        </div>
-      ))}
-    </>
-  );
-}
 
 const LAYOUT_MODES: { mode: LayoutMode; label: string }[] = [
   { mode: "desktop", label: "Desktop" },
@@ -204,6 +93,7 @@ export function PreviewCanvas({
   experienceStatus,
   onExperienceStatusChange,
   onCanvasClick,
+  onPlace3dHotspot,
   onCanvasFeaturePointerDown,
   onContentCardPointerDown,
   onDeleteHotspot,
@@ -214,8 +104,10 @@ export function PreviewCanvas({
   onToggleLayoutEditMode,
   onSetLayoutMode,
   onTogglePreviewMode,
+  onOpenCommandPalette,
   onHeroUpload,
   selectedPageId,
+  fillHeight = false,
 }: PreviewCanvasProps) {
   const surfaceStyleClass =
     systemSettings.surfaceStyle === "solid"
@@ -225,8 +117,14 @@ export function PreviewCanvas({
         : "border-white/60 bg-white shadow-lg";
 
   const accentColor = systemSettings.accentColor || "";
-  const accentActiveStyle = accentColor ? { backgroundColor: accentColor, borderColor: accentColor } : {};
-  const accentRingStyle = accentColor ? { boxShadow: `0 0 0 4px ${accentColor}25` } : {};
+  const accentActiveStyle = useMemo(
+    () => (accentColor ? { backgroundColor: accentColor, borderColor: accentColor } : {}),
+    [accentColor]
+  );
+  const accentRingStyle = useMemo(
+    () => (accentColor ? { boxShadow: `0 0 0 4px ${accentColor}25` } : {}),
+    [accentColor]
+  );
 
   const hotspotSize = systemSettings.hotspotSize ?? "medium";
   const hotspotContainerSize = hotspotSize === "small" ? "h-5 w-5" : hotspotSize === "large" ? "h-8 w-8" : "h-6 w-6";
@@ -237,27 +135,111 @@ export function PreviewCanvas({
   const isPortraitFull = isPortrait && systemSettings.portraitLayout === "full";
   const isPortraitSplit = isPortrait && !isPortraitFull;
   const isMobileFrame = layoutMode !== "desktop";
+  const isModel3d = systemSettings.backgroundType === "model-3d" && !!systemSettings.modelUrl;
+
+  // Build sphere marker list for the 3D viewer — only hotspots with a stored
+  // group-local worldPosition are included; 2D hotspots are rendered as pins.
+  const model3dMarkers = useMemo(
+    () =>
+      isModel3d
+        ? hotspotPages
+            .filter((p) => p.worldPosition !== undefined)
+            .map((p) => ({
+              id: p.id,
+              position: p.worldPosition as [number, number, number],
+              normal: p.worldNormal,
+              title: p.title,
+              isSelected: p.id === selectedPageId,
+            }))
+        : [],
+    [isModel3d, hotspotPages, selectedPageId]
+  );
   const portraitSplitRatio = systemSettings.portraitSplitRatio ?? 55;
   const portraitBackground = systemSettings.portraitBackground ?? "#1a1a2e";
 
-  const effectiveHotspotPages = hotspotPages.map((page) => ({
-    ...page,
-    x: isPortrait ? (page.mobileX ?? page.x) : page.x,
-    y: isPortrait ? (page.mobileY ?? page.y) : page.y,
-  }));
+  const [portraitPanX, setPortraitPanX] = useState(50);
+  const [stripImageAspect, setStripImageAspect] = useState(0);
+  const stripPanRef = useRef<{ startX: number; startPan: number; pointerId: number; moved: boolean } | null>(null);
 
-  const effectiveFeatures = surfacePage.canvasFeatures.map((f) => ({
-    ...f,
-    x: isPortrait ? (f.mobileX ?? f.x) : f.x,
-    y: isPortrait ? (f.mobileY ?? f.y) : f.y,
-  }));
+  // Hotspot layer offset to track image pan in portrait split mode.
+  // Portrait canvas is always 390 × (780 * ratio/100) px.
+  const PORTRAIT_CANVAS_W = 390;
+  const portraitStripH = PORTRAIT_CANVAS_W * 2 * portraitSplitRatio / 100; // 780 * ratio/100
+  const stripOverflow = stripImageAspect > 0 ? Math.max(0, stripImageAspect * portraitStripH - PORTRAIT_CANVAS_W) : 0;
+  const hotspotPanOffset = stripOverflow * (50 - portraitPanX) / 100;
 
-  const contentZoneFeatures = isPortraitSplit
-    ? effectiveFeatures.filter((f) => f.portraitZone === "content")
-    : [];
-  const stripFeatures = isPortraitSplit
-    ? effectiveFeatures.filter((f) => f.portraitZone !== "content")
-    : effectiveFeatures;
+  const [landscapePanX, setLandscapePanX] = useState(50);
+  const [landscapePanY, setLandscapePanY] = useState(50);
+  const [landscapeImageAspect, setLandscapeImageAspect] = useState(0);
+  const landscapePanRef = useRef<{ startX: number; startY: number; startPanX: number; startPanY: number; pointerId: number; moved: boolean } | null>(null);
+
+  // Hotspot layer offset for landscape mode. Canvas is always 667 × 375 px.
+  // Only one axis overflows at a time depending on image vs canvas aspect ratio.
+  const LANDSCAPE_CANVAS_W = 667;
+  const LANDSCAPE_CANVAS_H = 375;
+  const LANDSCAPE_CANVAS_ASPECT = LANDSCAPE_CANVAS_W / LANDSCAPE_CANVAS_H;
+  const landscapeOverflowX = landscapeImageAspect > LANDSCAPE_CANVAS_ASPECT
+    ? landscapeImageAspect * LANDSCAPE_CANVAS_H - LANDSCAPE_CANVAS_W : 0;
+  const landscapeOverflowY = landscapeImageAspect > 0 && landscapeImageAspect < LANDSCAPE_CANVAS_ASPECT
+    ? LANDSCAPE_CANVAS_W / landscapeImageAspect - LANDSCAPE_CANVAS_H : 0;
+  const landscapeHotspotOffsetX = landscapeOverflowX * (50 - landscapePanX) / 100;
+  const landscapeHotspotOffsetY = landscapeOverflowY * (50 - landscapePanY) / 100;
+
+  const effectiveHotspotPages = useMemo(
+    () =>
+      hotspotPages.map((page) => ({
+        ...page,
+        x: isPortrait ? (page.mobileX ?? page.x) : page.x,
+        y: isPortrait ? (page.mobileY ?? page.y) : page.y,
+      })),
+    [hotspotPages, isPortrait]
+  );
+
+  const effectiveFeatures = useMemo(
+    () =>
+      surfacePage.canvasFeatures.map((f) => ({
+        ...f,
+        x: isPortrait ? (f.mobileX ?? f.x) : f.x,
+        y: isPortrait ? (f.mobileY ?? f.y) : f.y,
+      })),
+    [surfacePage.canvasFeatures, isPortrait]
+  );
+
+  const contentZoneFeatures = useMemo(
+    () => (isPortraitSplit ? effectiveFeatures.filter((f) => f.portraitZone === "content") : []),
+    [isPortraitSplit, effectiveFeatures]
+  );
+  const stripFeatures = useMemo(
+    () =>
+      isPortraitSplit
+        ? effectiveFeatures.filter((f) => f.portraitZone !== "content")
+        : effectiveFeatures,
+    [isPortraitSplit, effectiveFeatures]
+  );
+
+  // Probe image dimensions whenever layout mode or hero image changes — onLoad on the
+  // <img> only fires on first load, but when switching layout modes the image is cached.
+  useEffect(() => {
+    if (!isPortraitSplit) return;
+    const src = surfacePage.heroImage;
+    if (!src || src.startsWith("color:")) return;
+    const img = new Image();
+    img.onload = () => setStripImageAspect(img.naturalWidth / img.naturalHeight);
+    img.src = src;
+    if (img.complete && img.naturalWidth > 0) setStripImageAspect(img.naturalWidth / img.naturalHeight);
+  }, [surfacePage.heroImage, isPortraitSplit]);
+
+  // Probe image dimensions for landscape mode in case the image is already cached
+  // (onLoad on the <img> won't fire when switching layout modes after first load).
+  useEffect(() => {
+    if (layoutMode !== "mobile-landscape") return;
+    const src = surfacePage.heroImage;
+    if (!src || src.startsWith("color:")) return;
+    const img = new Image();
+    img.onload = () => setLandscapeImageAspect(img.naturalWidth / img.naturalHeight);
+    img.src = src;
+    if (img.complete && img.naturalWidth > 0) setLandscapeImageAspect(img.naturalWidth / img.naturalHeight);
+  }, [surfacePage.heroImage, layoutMode]);
 
   // ── Experience status popover ─────────────────────────────────
   const [statusMenuOpen, setStatusMenuOpen] = useState(false);
@@ -306,6 +288,29 @@ export function PreviewCanvas({
     syncModuleState(null, false);
   }
 
+  // ── 3D hotspot: track module position to the orbiting hotspot ─────────────
+  const moduleElRef = useRef<HTMLDivElement | null>(null);
+  const arrowElRef = useRef<HTMLDivElement | null>(null);
+
+  // True when the open module belongs to a 3D hotspot — i.e. it has a
+  // worldPosition and is a floating modal/tooltip (not full-page/side-sheet/bottom-sheet).
+  const is3dTrackingModule = isModel3d && !!modulePage &&
+    modulePage.worldPosition !== undefined &&
+    (modulePage.interactionType === "modal" || modulePage.interactionType === "tooltip");
+
+  // The selected 3D hotspot id to project — only when tracking is active.
+  const tracked3dId = is3dTrackingModule ? modulePage!.id : undefined;
+
+  const handle3dHotspotScreenPos = useCallback((xPct: number, yPct: number) => {
+    if (!moduleElRef.current) return;
+    moduleElRef.current.style.left = `${xPct}%`;
+    moduleElRef.current.style.top = `${yPct}%`;
+    if (arrowElRef.current) {
+      arrowElRef.current.style.left = `${xPct}%`;
+      arrowElRef.current.style.top = `${yPct}%`;
+    }
+  }, []);
+
   const sharedHotspotPinProps = {
     isLayoutEditMode,
     isPreviewMode,
@@ -325,6 +330,7 @@ export function PreviewCanvas({
     isLayoutEditMode,
     accentColor,
     surfaceStyleClass,
+    pages,
     onCanvasFeaturePointerDown,
     onSelectPage,
   };
@@ -344,10 +350,10 @@ export function PreviewCanvas({
 
   return (
     <div
-      className={isPreviewMode ? "fixed inset-0 z-50 flex flex-col bg-black" : "relative overflow-hidden rounded-3xl border border-neutral-200 bg-[#f4f5f7]"}
+      className={isPreviewMode ? "fixed inset-0 z-50 flex flex-col bg-black" : `relative overflow-hidden rounded-3xl border border-neutral-200 bg-[#f4f5f7]${fillHeight ? " flex flex-col flex-1 min-h-0" : ""}`}
       onClick={() => { if (statusMenuOpen) setStatusMenuOpen(false); }}
     >
-      <div className={`border-b border-neutral-200 bg-white px-4 py-3 ${isPreviewMode ? "flex shrink-0 items-center justify-end" : ""}`}>
+      <div className={`shrink-0 border-b border-neutral-200 bg-white px-4 py-3 ${isPreviewMode ? "flex items-center justify-end" : ""}`}>
         {isPreviewMode ? (
           <button
             type="button"
@@ -419,6 +425,20 @@ export function PreviewCanvas({
             </div>
 
             <div className="flex flex-1 justify-end gap-2">
+              {onOpenCommandPalette && (
+                <button
+                  type="button"
+                  onClick={onOpenCommandPalette}
+                  className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-neutral-500 shadow-sm hover:bg-neutral-50 hover:text-neutral-800"
+                  aria-label="Search and actions"
+                  title="Search and actions (⌘K)"
+                >
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+                    <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" strokeWidth="1.4" />
+                    <path d="M8.5 8.5L11.5 11.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                  </svg>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={onToggleLayoutEditMode}
@@ -440,27 +460,61 @@ export function PreviewCanvas({
         )}
       </div>
 
-      <div className={isPreviewMode ? "relative flex-1 overflow-hidden" : isMobileFrame ? "flex flex-col items-center bg-neutral-800 py-10 px-4" : "p-4"}>
+      <div className={
+        isPreviewMode && isMobileFrame ? "relative flex-1 overflow-hidden flex items-center justify-center bg-neutral-900"
+        : isPreviewMode ? "relative flex-1 overflow-hidden"
+        : isMobileFrame ? "flex flex-col items-center bg-neutral-800 py-10 px-4"
+        : fillHeight ? "flex flex-1 min-h-0 flex-col p-4"
+        : "p-4"
+      }>
         <div
           ref={canvasRef}
           className={`overflow-hidden ${
-            isPreviewMode
+            isPreviewMode && layoutMode === "mobile-portrait"
+              ? "relative flex flex-col w-[390px] rounded-[44px] border-[6px] border-neutral-700 shadow-[0_40px_80px_rgba(0,0,0,0.6)]"
+              : isPreviewMode && layoutMode === "mobile-landscape"
+              ? "relative max-w-full w-[667px] rounded-[44px] border-[6px] border-neutral-700 bg-white shadow-[0_40px_80px_rgba(0,0,0,0.6)]"
+              : isPreviewMode
               ? "relative h-full w-full"
               : layoutMode === "mobile-portrait"
               ? "relative flex flex-col w-[390px] rounded-[44px] border-[6px] border-neutral-700 shadow-[0_40px_80px_rgba(0,0,0,0.6)]"
               : layoutMode === "mobile-landscape"
               ? "relative max-w-full w-[667px] rounded-[44px] border-[6px] border-neutral-700 bg-white shadow-[0_40px_80px_rgba(0,0,0,0.6)]"
+              : fillHeight ? "relative flex-1 min-h-0 rounded-[28px] border border-neutral-200 bg-white shadow-sm"
               : "relative min-h-[620px] rounded-[28px] border border-neutral-200 bg-white shadow-sm"
           }`}
           style={{
-            height: !isPreviewMode
-              ? layoutMode === "mobile-portrait" ? 780
+            height: layoutMode === "mobile-portrait" ? 780
               : layoutMode === "mobile-landscape" ? 375
-              : undefined
-              : undefined,
+              : (!isPreviewMode ? undefined : undefined),
             touchAction: "none",
           }}
-          onClick={isPortraitSplit ? undefined : onCanvasClick}
+          onClick={isPortraitSplit ? undefined : (e) => {
+            if (layoutMode === "mobile-landscape" && landscapePanRef.current?.moved) return;
+            onCanvasClick(e);
+          }}
+          onPointerDown={layoutMode === "mobile-landscape" ? (e) => {
+            if ((e.target as HTMLElement).closest("[data-hotspot],[data-a11y-type]")) return;
+            landscapePanRef.current = { startX: e.clientX, startY: e.clientY, startPanX: landscapePanX, startPanY: landscapePanY, pointerId: e.pointerId, moved: false };
+            e.currentTarget.setPointerCapture(e.pointerId);
+          } : undefined}
+          onPointerMove={layoutMode === "mobile-landscape" ? (e) => {
+            const pan = landscapePanRef.current;
+            if (!pan || pan.pointerId !== e.pointerId) return;
+            const dx = e.clientX - pan.startX;
+            const dy = e.clientY - pan.startY;
+            if (Math.abs(dx) > 4 || Math.abs(dy) > 4) pan.moved = true;
+            const containerWidth = canvasRef?.current?.offsetWidth ?? LANDSCAPE_CANVAS_W;
+            const containerHeight = canvasRef?.current?.offsetHeight ?? LANDSCAPE_CANVAS_H;
+            setLandscapePanX(Math.max(0, Math.min(100, pan.startPanX + (-(dx / containerWidth) * 100))));
+            setLandscapePanY(Math.max(0, Math.min(100, pan.startPanY + (-(dy / containerHeight) * 100))));
+          } : undefined}
+          onPointerUp={layoutMode === "mobile-landscape" ? (e) => {
+            if (landscapePanRef.current?.pointerId === e.pointerId) landscapePanRef.current = null;
+          } : undefined}
+          onPointerCancel={layoutMode === "mobile-landscape" ? (e) => {
+            if (landscapePanRef.current?.pointerId === e.pointerId) landscapePanRef.current = null;
+          } : undefined}
         >
           {isPortraitSplit ? (
             <>
@@ -487,9 +541,49 @@ export function PreviewCanvas({
                 ref={imageStripRef}
                 className="relative overflow-hidden"
                 style={{ flex: portraitSplitRatio }}
-                onClick={onCanvasClick}
+                onClick={(e) => { if (!stripPanRef.current?.moved) onCanvasClick(e); }}
+                onPointerDown={(e) => {
+                  if ((e.target as HTMLElement).closest("[data-hotspot],[data-a11y-type]")) return;
+                  stripPanRef.current = { startX: e.clientX, startPan: portraitPanX, pointerId: e.pointerId, moved: false };
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                }}
+                onPointerMove={(e) => {
+                  const pan = stripPanRef.current;
+                  if (!pan || pan.pointerId !== e.pointerId) return;
+                  const dx = e.clientX - pan.startX;
+                  if (Math.abs(dx) > 4) pan.moved = true;
+                  const containerWidth = imageStripRef?.current?.offsetWidth ?? 390;
+                  const deltaPan = -(dx / containerWidth) * 100;
+                  setPortraitPanX(Math.max(0, Math.min(100, pan.startPan + deltaPan)));
+                }}
+                onPointerUp={(e) => { if (stripPanRef.current?.pointerId === e.pointerId) stripPanRef.current = null; }}
+                onPointerCancel={(e) => { if (stripPanRef.current?.pointerId === e.pointerId) stripPanRef.current = null; }}
               >
-                <CanvasBackground heroImage={surfacePage.heroImage} isPreviewMode={isPreviewMode} onHeroUpload={onHeroUpload} compact />
+                {isModel3d ? (
+                  <ModelViewer
+                    modelUrl={systemSettings.modelUrl!}
+                    scale={systemSettings.modelScale}
+                    rotationX={systemSettings.modelRotationX}
+                    rotationY={systemSettings.modelRotationY}
+                    environment={systemSettings.modelEnvironment}
+                    isAuthoring={!isPreviewMode}
+                    hotspotMarkers={model3dMarkers}
+                    accentColor={accentColor}
+                    selectedHotspotId={tracked3dId}
+                    onPlace3dHotspot={onPlace3dHotspot}
+                    onSelectHotspot={onSelectPage}
+                    onHotspotScreenPos={is3dTrackingModule ? handle3dHotspotScreenPos : undefined}
+                  />
+                ) : (
+                  <CanvasBackground
+                    heroImage={surfacePage.heroImage}
+                    isPreviewMode={isPreviewMode}
+                    onHeroUpload={onHeroUpload}
+                    compact
+                    objectPositionX={portraitPanX}
+                    onImageLoad={(w, h) => setStripImageAspect(w / h)}
+                  />
+                )}
 
                 {featureDragState ? (
                   <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10">
@@ -505,12 +599,19 @@ export function PreviewCanvas({
                 <SnapGuides featureDragState={featureDragState} features={stripFeatures} />
                 <FeaturePlacer features={stripFeatures} {...sharedFeaturePlacerProps} />
 
-                {surfacePage.kind === "home" && effectiveHotspotPages.map((page, index) => {
-                  if (page.x === null || page.y === null) return null;
-                  return (
-                    <HotspotPin key={page.id} page={page} index={index} isSelected={page.id === selectedPageId} {...sharedHotspotPinProps} />
-                  );
-                })}
+                {surfacePage.kind === "home" && (
+                  <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{ transform: `translateX(${hotspotPanOffset}px)` }}
+                  >
+                    {effectiveHotspotPages.map((page, index) => {
+                      if (page.x === null || page.y === null) return null;
+                      return (
+                        <HotspotPin key={page.id} page={page} index={index} isSelected={page.id === selectedPageId} {...sharedHotspotPinProps} />
+                      );
+                    })}
+                  </div>
+                )}
 
                 {(surfacePage.canvasFeatures.length === 0 || hotspotPages.length === 0) && !isLayoutEditMode && showLayoutHelp ? (
                   <EmptySurfaceGuidance featureCount={surfacePage.canvasFeatures.length} hotspotCount={hotspotPages.length} onClose={onDismissLayoutHelp} />
@@ -519,7 +620,31 @@ export function PreviewCanvas({
             </>
           ) : (
             <>
-              <CanvasBackground heroImage={surfacePage.heroImage} isPreviewMode={isPreviewMode} onHeroUpload={onHeroUpload} />
+              {isModel3d ? (
+                <ModelViewer
+                  modelUrl={systemSettings.modelUrl!}
+                  scale={systemSettings.modelScale}
+                  rotationX={systemSettings.modelRotationX}
+                  rotationY={systemSettings.modelRotationY}
+                  environment={systemSettings.modelEnvironment}
+                  isAuthoring={!isPreviewMode}
+                  hotspotMarkers={model3dMarkers}
+                  accentColor={accentColor}
+                  selectedHotspotId={tracked3dId}
+                  onPlace3dHotspot={onPlace3dHotspot}
+                  onSelectHotspot={onSelectPage}
+                  onHotspotScreenPos={is3dTrackingModule ? handle3dHotspotScreenPos : undefined}
+                />
+              ) : (
+                <CanvasBackground
+                  heroImage={surfacePage.heroImage}
+                  isPreviewMode={isPreviewMode}
+                  onHeroUpload={onHeroUpload}
+                  objectPositionX={layoutMode === "mobile-landscape" ? landscapePanX : undefined}
+                  objectPositionY={layoutMode === "mobile-landscape" ? landscapePanY : undefined}
+                  onImageLoad={layoutMode === "mobile-landscape" ? (w, h) => setLandscapeImageAspect(w / h) : undefined}
+                />
+              )}
 
               {featureDragState || contentDragState ? (
                 <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10">
@@ -535,18 +660,27 @@ export function PreviewCanvas({
               <SnapGuides featureDragState={featureDragState} features={effectiveFeatures} />
               <FeaturePlacer features={effectiveFeatures} {...sharedFeaturePlacerProps} />
 
-              {surfacePage.kind === "home" && effectiveHotspotPages.map((page, index) => {
-                if (page.x === null || page.y === null) return null;
-                return (
-                  <HotspotPin key={page.id} page={page} index={index} isSelected={page.id === selectedPageId} {...sharedHotspotPinProps} />
-                );
-              })}
+              {surfacePage.kind === "home" && (
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={layoutMode === "mobile-landscape" ? { transform: `translateX(${landscapeHotspotOffsetX}px) translateY(${landscapeHotspotOffsetY}px)` } : undefined}
+                >
+                  {effectiveHotspotPages.map((page, index) => {
+                    if (page.x === null || page.y === null) return null;
+                    return (
+                      <HotspotPin key={page.id} page={page} index={index} isSelected={page.id === selectedPageId} {...sharedHotspotPinProps} />
+                    );
+                  })}
+                </div>
+              )}
 
               {modulePage ? (
                 <ContentModule
                   key={modulePage.id}
                   page={{ ...modulePage, contentX: modulePage.contentX, contentY: modulePage.contentY }}
                   {...sharedContentModuleProps}
+                  moduleRef={is3dTrackingModule ? moduleElRef : undefined}
+                  arrowRef={is3dTrackingModule ? arrowElRef : undefined}
                 />
               ) : null}
 

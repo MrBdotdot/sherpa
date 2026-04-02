@@ -19,7 +19,8 @@ export type CanvasFeatureType =
   | "button"
   | "dropdown"
   | "page-button"
-  | "locale";
+  | "locale"
+  | "search";
 export type TemplateId =
   | "blank"
   | "how-to-play"
@@ -42,6 +43,14 @@ export type DisplayStyleKey =
 
 export type ImageFit = "cover" | "contain" | "fill" | "center";
 
+export type ImageBlockHotspot = {
+  id: string;
+  x: number;   // 0–100 percentage from left edge of image
+  y: number;   // 0–100 percentage from top edge of image
+  label: string;
+  content: string;
+};
+
 export type ContentBlock = {
   id: string;
   type: ContentBlockType;
@@ -49,8 +58,10 @@ export type ContentBlock = {
   variant?: "info" | "warning" | "tip";
   imageFit?: ImageFit;
   imageCaption?: string;
-  imageSize?: "small" | "medium" | "large";
+  /** Max-width in pixels; undefined = full width */
+  imageSize?: number;
   imageLightbox?: boolean;
+  imageHotspots?: ImageBlockHotspot[];
   blockWidth?: "full" | "half";
   textAlign?: "left" | "center" | "right";
   verticalAlign?: "top" | "middle" | "bottom";
@@ -116,6 +127,10 @@ export type PageItem = {
   cardSize: "compact" | "medium" | "xl" | "large";
   contentTintColor: string;
   contentTintOpacity: number;
+  /** 3D world-space position for hotspots placed on a 3D model background [x, y, z] */
+  worldPosition?: [number, number, number];
+  /** Surface normal at the hotspot's placement point, used for visibility culling [x, y, z] */
+  worldNormal?: [number, number, number];
 };
 
 export type DragState = {
@@ -136,6 +151,18 @@ export type SystemSettings = {
   portraitLayout?: "split" | "full";  // split = image strip + content zone; full = portrait image fills entire canvas
   portraitSplitRatio?: number;  // % of canvas height for image strip (default 55, range 40–75)
   portraitBackground?: string;  // CSS color for the content zone (default "#1a1a2e")
+  /** Canvas background type: "image" (default 2D hero) or "model-3d" (interactive 3D GLB) */
+  backgroundType?: "image" | "model-3d";
+  /** URL or object URL of the .glb / .gltf model to use when backgroundType is "model-3d" */
+  modelUrl?: string;
+  /** User scale multiplier applied on top of auto-fit normalisation (default 1.0) */
+  modelScale?: number;
+  /** Initial Y-axis rotation of the model in degrees — sets which face greets the viewer (default 0) */
+  modelRotationY?: number;
+  /** Initial X-axis tilt of the model in degrees (default 0) */
+  modelRotationX?: number;
+  /** Environment / lighting preset; "none" uses plain directional lights */
+  modelEnvironment?: "none" | "apartment" | "city" | "dawn" | "forest" | "lobby" | "night" | "park" | "studio" | "sunset" | "warehouse";
 };
 
 export type PageTemplate = {

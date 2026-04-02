@@ -1,123 +1,11 @@
 "use client";
 
-import { ChangeEvent, useState } from "react";
-import { createPortal } from "react-dom";
+import { ChangeEvent, useEffect, useRef, useState, useCallback } from "react";
 import { ContentBlock, ContentBlockType, DisplayStyleKey, ImageFit, PageItem } from "@/app/_lib/authoring-types";
-import { DISPLAY_STYLE_OPTIONS, getDisplayStyleKey } from "@/app/_lib/authoring-utils";
-import { BlockEditor, CONTENT_ELEMENT_TYPES, type BlockFormat } from "@/app/_components/editor/block-editor";
+import { DISPLAY_STYLE_OPTIONS, getDisplayStyleKey } from "@/app/_lib/display-style";
+import { BlockEditor, type BlockFormat } from "@/app/_components/editor/block-editor";
+import { BlockPickerModal } from "@/app/_components/editor/block-picker-modal";
 import { SelectField } from "@/app/_components/editor/editor-ui";
-import { useFocusTrap } from "@/app/_hooks/useFocusTrap";
-
-const BLOCK_GROUPS: Array<{
-  label: string;
-  items: typeof CONTENT_ELEMENT_TYPES;
-}> = [
-  {
-    label: "Text",
-    items: CONTENT_ELEMENT_TYPES.filter((i) => ["text", "callout"].includes(i.type as string)),
-  },
-  {
-    label: "Sections",
-    items: CONTENT_ELEMENT_TYPES.filter((i) => ["tabs", "section", "step-rail", "carousel"].includes(i.type as string)),
-  },
-  {
-    label: "Media",
-    items: CONTENT_ELEMENT_TYPES.filter((i) => ["image", "video"].includes(i.type as string)),
-  },
-  {
-    label: "Interactive",
-    items: CONTENT_ELEMENT_TYPES.filter((i) => i.kind === "action-link" || i.type === "consent"),
-  },
-];
-
-const BLOCK_ICONS: Record<string, string> = {
-  text: "¶",
-  steps: "①",
-  callout: "◈",
-  tabs: "⊟",
-  section: "§",
-  "step-rail": "◎",
-  carousel: "⊞",
-  image: "▨",
-  video: "▶",
-  consent: "✎",
-  "action-link": "↗",
-};
-
-function BlockPickerModal({
-  onAddBlock,
-  onAddSocialLink,
-  onClose,
-}: {
-  onAddBlock: (type: ContentBlockType) => void;
-  onAddSocialLink: () => void;
-  onClose: () => void;
-}) {
-  const dialogRef = useFocusTrap<HTMLDivElement>(true);
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[300] flex items-end justify-center bg-black/40 p-4 sm:items-center"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
-    >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="block-picker-title"
-        className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl"
-      >
-        <div className="mb-4 flex items-center justify-between">
-          <div id="block-picker-title" className="text-base font-semibold text-neutral-900">
-            Add content block
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close picker"
-            className="rounded-xl border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-50"
-          >
-            Cancel
-          </button>
-        </div>
-        <div className="space-y-4">
-          {BLOCK_GROUPS.map((group) => (
-            <div key={group.label}>
-              <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                {group.label}
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {group.items.map((item) => {
-                  const icon = BLOCK_ICONS[item.type ?? "action-link"] ?? "·";
-                  return (
-                    <button
-                      key={item.label}
-                      type="button"
-                      onClick={() => {
-                        if (item.kind === "block") {
-                          onAddBlock(item.type!);
-                        } else {
-                          onAddSocialLink();
-                        }
-                        onClose();
-                      }}
-                      className="flex flex-col gap-1.5 rounded-2xl border border-neutral-200 px-3 py-3 text-left hover:border-neutral-300 hover:bg-neutral-50"
-                    >
-                      <span className="text-base leading-none text-neutral-400" aria-hidden="true">{icon}</span>
-                      <span className="text-sm font-medium text-neutral-900">{item.label}</span>
-                      <span className="text-[11px] leading-4 text-neutral-400">{item.description}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>,
-    document.body
-  );
-}
 
 export function ContentTab({
   onAddBlock,
@@ -136,10 +24,12 @@ export function ContentTab({
   onDisplayStyleChange,
   onMoveBlockDown,
   onMoveBlockUp,
+  onReorderBlocks,
   onRemoveBlock,
   onRemoveSocialLink,
   onSocialLinkChange,
   pages,
+  scrollToBlockId,
   selectedPage,
 }: {
   onAddBlock: (type: ContentBlockType) => void;
@@ -158,13 +48,36 @@ export function ContentTab({
   onDisplayStyleChange: (style: DisplayStyleKey) => void;
   onMoveBlockDown: (blockId: string) => void;
   onMoveBlockUp: (blockId: string) => void;
+  onReorderBlocks: (fromIndex: number, toIndex: number) => void;
   onRemoveBlock: (blockId: string) => void;
   onRemoveSocialLink: (socialId: string) => void;
   onSocialLinkChange: (socialId: string, field: "label" | "url", value: string) => void;
   pages: PageItem[];
+  scrollToBlockId?: string | null;
   selectedPage: PageItem;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [highlightBlockId, setHighlightBlockId] = useState<string | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const handleDrop = useCallback((overIndex: number) => {
+    if (dragIndex === null) return;
+    const to = dragIndex < overIndex ? overIndex - 1 : overIndex;
+    if (to !== dragIndex) onReorderBlocks(dragIndex, to);
+    setDragIndex(null);
+    setDropIndex(null);
+  }, [dragIndex, onReorderBlocks]);
+
+  useEffect(() => {
+    if (!scrollToBlockId) return;
+    const el = blockRefs.current[scrollToBlockId];
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    setHighlightBlockId(scrollToBlockId);
+    const t = setTimeout(() => setHighlightBlockId(null), 1400);
+    return () => clearTimeout(t);
+  }, [scrollToBlockId]);
   const totalItems = selectedPage.blocks.length + selectedPage.socialLinks.length;
   const currentDisplayStyle = getDisplayStyleKey(selectedPage);
   const showTint = selectedPage.interactionType === "modal"
@@ -255,30 +168,78 @@ export function ContentTab({
       {/* Blocks + social links */}
       {totalItems > 0 ? (
         <div className="space-y-3">
-          {selectedPage.blocks.map((block, index) => (
-            <BlockEditor
-              key={block.id}
-              block={block}
-              index={index}
-              isFirst={index === 0}
-              isLast={index === selectedPage.blocks.length - 1}
-              pages={pages}
-              selectedPageId={selectedPage.id}
-              onBlockChange={onBlockChange}
-              onBlockFitChange={onBlockFitChange}
-              onBlockImagePositionChange={onBlockImagePositionChange}
-              onBlockPropsChange={onBlockPropsChange}
-              onBlockFormatChange={onBlockFormatChange}
-              onBlockImageUpload={onBlockImageUpload}
-              onBlockVariantChange={onBlockVariantChange}
-              onBlockVerticalAlignChange={onBlockVerticalAlignChange}
-              onBlockWidthChange={onBlockWidthChange}
-              onBlockTextAlignChange={onBlockTextAlignChange}
-              onMoveBlockDown={onMoveBlockDown}
-              onMoveBlockUp={onMoveBlockUp}
-              onRemoveBlock={onRemoveBlock}
-            />
-          ))}
+          {selectedPage.blocks.map((block, index) => {
+            const showDropLine = dropIndex === index && dragIndex !== null && dragIndex !== index && dragIndex !== index - 1;
+            return (
+              <div
+                key={block.id}
+                ref={(el) => { blockRefs.current[block.id] = el; }}
+                className={`group relative rounded-2xl transition-shadow duration-300 ${highlightBlockId === block.id ? "ring-2 ring-black/25 shadow-lg" : ""} ${dragIndex === index ? "opacity-40" : ""}`}
+                onDragOver={(e) => { e.preventDefault(); setDropIndex(index); }}
+                onDrop={(e) => { e.preventDefault(); handleDrop(index); }}
+              >
+                {showDropLine && (
+                  <div className="pointer-events-none absolute -top-2 inset-x-2 z-20 h-0.5 rounded-full bg-blue-500" />
+                )}
+                {/* Drag handle */}
+                <div
+                  draggable
+                  onDragStart={(e) => {
+                    setDragIndex(index);
+                    e.dataTransfer.effectAllowed = "move";
+                    const el = blockRefs.current[block.id];
+                    if (el) e.dataTransfer.setDragImage(el, 40, 20);
+                  }}
+                  onDragEnd={() => { setDragIndex(null); setDropIndex(null); }}
+                  className="absolute inset-y-0 left-0 z-10 flex w-6 cursor-grab items-center justify-center rounded-l-2xl opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/5 active:cursor-grabbing"
+                  aria-label="Drag to reorder"
+                >
+                  <svg width="10" height="14" viewBox="0 0 10 14" fill="none" aria-hidden="true">
+                    <circle cx="3" cy="3" r="1.2" fill="#9ca3af"/>
+                    <circle cx="7" cy="3" r="1.2" fill="#9ca3af"/>
+                    <circle cx="3" cy="7" r="1.2" fill="#9ca3af"/>
+                    <circle cx="7" cy="7" r="1.2" fill="#9ca3af"/>
+                    <circle cx="3" cy="11" r="1.2" fill="#9ca3af"/>
+                    <circle cx="7" cy="11" r="1.2" fill="#9ca3af"/>
+                  </svg>
+                </div>
+                <BlockEditor
+                  block={block}
+                  index={index}
+                  isFirst={index === 0}
+                  isLast={index === selectedPage.blocks.length - 1}
+                  pages={pages}
+                  selectedPageId={selectedPage.id}
+                  onBlockChange={onBlockChange}
+                  onBlockFitChange={onBlockFitChange}
+                  onBlockImagePositionChange={onBlockImagePositionChange}
+                  onBlockPropsChange={onBlockPropsChange}
+                  onBlockFormatChange={onBlockFormatChange}
+                  onBlockImageUpload={onBlockImageUpload}
+                  onBlockVariantChange={onBlockVariantChange}
+                  onBlockVerticalAlignChange={onBlockVerticalAlignChange}
+                  onBlockWidthChange={onBlockWidthChange}
+                  onBlockTextAlignChange={onBlockTextAlignChange}
+                  onMoveBlockDown={onMoveBlockDown}
+                  onMoveBlockUp={onMoveBlockUp}
+                  onRemoveBlock={onRemoveBlock}
+                />
+              </div>
+            );
+          })}
+
+          {/* Drop zone after last block */}
+          {dragIndex !== null && (
+            <div
+              className="relative h-3"
+              onDragOver={(e) => { e.preventDefault(); setDropIndex(selectedPage.blocks.length); }}
+              onDrop={(e) => { e.preventDefault(); handleDrop(selectedPage.blocks.length); }}
+            >
+              {dropIndex === selectedPage.blocks.length && dragIndex !== selectedPage.blocks.length - 1 && (
+                <div className="pointer-events-none absolute inset-x-2 top-1 h-0.5 rounded-full bg-blue-500" />
+              )}
+            </div>
+          )}
 
           {selectedPage.socialLinks.map((item) => (
             <div key={item.id} className="rounded-2xl border border-neutral-200 bg-white p-4">

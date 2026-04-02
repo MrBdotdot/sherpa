@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { CanvasFeature } from "@/app/_lib/authoring-types";
+import { CanvasFeature, PageItem } from "@/app/_lib/authoring-types";
+import { SearchFeatureCard } from "@/app/_components/canvas/search-feature-card";
 
 function ImageFeatureCard({
   feature,
@@ -148,12 +149,27 @@ function LocaleFeatureCard({
 export function CanvasFeatureCard({
   accentColor,
   feature,
+  pages = [],
+  onNavigate,
   surfaceStyleClass,
 }: {
   accentColor: string;
   feature: CanvasFeature;
+  pages?: PageItem[];
+  onNavigate?: (id: string) => void;
   surfaceStyleClass: string;
 }) {
+  if (feature.type === "search") {
+    return (
+      <SearchFeatureCard
+        feature={feature}
+        pages={pages}
+        onNavigate={onNavigate}
+        surfaceStyleClass={surfaceStyleClass}
+      />
+    );
+  }
+
   if (feature.type === "qr") {
     const qrSize = feature.qrSize ?? 120;
     let bgStyle: React.CSSProperties = {};

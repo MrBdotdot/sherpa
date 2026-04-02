@@ -8,11 +8,17 @@ export function CanvasBackground({
   isPreviewMode,
   onHeroUpload,
   compact = false,
+  objectPositionX = 50,
+  objectPositionY = 50,
+  onImageLoad,
 }: {
   heroImage: string;
   isPreviewMode: boolean;
   onHeroUpload?: (event: ChangeEvent<HTMLInputElement>) => void;
   compact?: boolean;
+  objectPositionX?: number;
+  objectPositionY?: number;
+  onImageLoad?: (naturalWidth: number, naturalHeight: number) => void;
 }) {
   const isColorBackground = heroImage?.startsWith("color:");
   const heroColorValue = isColorBackground ? heroImage.slice(6) : "";
@@ -28,7 +34,9 @@ export function CanvasBackground({
         src={heroImage || DEFAULT_HERO}
         alt="Preview background"
         className="h-full w-full select-none object-cover"
+        style={{ objectPosition: `${objectPositionX}% ${objectPositionY}%` }}
         draggable={false}
+        onLoad={(e) => onImageLoad?.(e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)}
       />
     );
   }

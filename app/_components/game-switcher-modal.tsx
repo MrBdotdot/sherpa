@@ -199,7 +199,7 @@ type GameSwitcherModalProps = {
   isOpen: boolean;
   currentGameId?: string;
   onClose: () => void;
-  onSelectGame: (gameId: string, gameName: string) => void;
+  onSelectGame: (gameId: string, gameName: string, studioName: string) => void;
 };
 
 export function GameSwitcherModal({ isOpen, currentGameId, onClose, onSelectGame }: GameSwitcherModalProps) {
@@ -230,7 +230,7 @@ export function GameSwitcherModal({ isOpen, currentGameId, onClose, onSelectGame
   }
 
   function handleEditRules(game: GameEntry) {
-    onSelectGame(game.id, game.name);
+    onSelectGame(game.id, game.name, game.studio);
     handleClose();
   }
 

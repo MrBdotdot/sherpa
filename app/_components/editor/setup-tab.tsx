@@ -1,17 +1,12 @@
 "use client";
 
-import { ChangeEvent, useState } from "react";
-import { DisplayStyleKey, PageButtonPlacement, PageItem, SystemSettings, TemplateId } from "@/app/_lib/authoring-types";
-import { applyDisplayStyle, DISPLAY_STYLE_OPTIONS, getDisplayStyleKey, getPlacementLabel, PAGE_TEMPLATES } from "@/app/_lib/authoring-utils";
+import { ChangeEvent } from "react";
+import { PageButtonPlacement, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
+import { getPlacementLabel } from "@/app/_lib/label-utils";
 import { EditorSection, EditorSubsection, SelectField } from "@/app/_components/editor/editor-ui";
+import { CreatePageConfig, NewContainerForm } from "@/app/_components/editor/new-container-form";
 
-type CreatePageConfig = {
-  templateId: TemplateId | null;
-  title: string;
-  displayStyle: DisplayStyleKey;
-  contentTintColor: string;
-  contentTintOpacity: number;
-};
+export type { CreatePageConfig };
 
 export function SetupTab({
   onCreatePageWithConfig,
@@ -32,171 +27,10 @@ export function SetupTab({
   selectedPage: PageItem;
   systemSettings: SystemSettings;
 }) {
-  const [createStep, setCreateStep] = useState<"template" | "config" | null>(null);
-  const [configTemplateId, setConfigTemplateId] = useState<TemplateId | null>(null);
-  const [configTitle, setConfigTitle] = useState("");
-  const [configDisplayStyle, setConfigDisplayStyle] = useState<DisplayStyleKey>("card");
-  const [configTintColor, setConfigTintColor] = useState("");
-  const [configTintOpacity, setConfigTintOpacity] = useState(85);
-
-  const openTemplatePicker = () => setCreateStep("template");
-  const closeCreate = () => setCreateStep(null);
-
-  const pickTemplate = (templateId: TemplateId | null) => {
-    const template = PAGE_TEMPLATES.find((t) => t.id === templateId);
-    setConfigTemplateId(templateId);
-    setConfigTitle(template?.title ?? "");
-    const fakeInteraction = template?.interactionType ?? "modal";
-    const fakePage = { interactionType: fakeInteraction, cardSize: "medium" as const };
-    setConfigDisplayStyle(getDisplayStyleKey(fakePage as Parameters<typeof getDisplayStyleKey>[0]));
-    setConfigTintColor("");
-    setConfigTintOpacity(85);
-    setCreateStep("config");
-  };
-
-  const confirmCreate = () => {
-    onCreatePageWithConfig({
-      templateId: configTemplateId,
-      title: configTitle,
-      displayStyle: configDisplayStyle,
-      contentTintColor: configTintColor,
-      contentTintOpacity: configTintOpacity,
-    });
-    setCreateStep(null);
-  };
-
   return (
     <div className="divide-y divide-neutral-200">
       {/* New container */}
-      <div className="p-4 space-y-2">
-        <button
-          type="button"
-          onClick={createStep === null ? openTemplatePicker : closeCreate}
-          className={`w-full rounded-2xl border px-3 py-2.5 text-sm font-medium transition ${
-            createStep !== null
-              ? "border-black bg-black text-white"
-              : "border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-50"
-          }`}
-        >
-          {createStep !== null ? "✕ Cancel" : "+ Template"}
-        </button>
-
-        {createStep === "template" ? (
-          <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm">
-            <div className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-              Choose a template
-            </div>
-            <button
-              type="button"
-              onClick={() => pickTemplate(null)}
-              className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-left text-sm font-medium text-neutral-800 hover:bg-neutral-50"
-            >
-              Blank
-            </button>
-            <div className="mt-1.5 space-y-1.5">
-              {PAGE_TEMPLATES.map((template) => (
-                <button
-                  key={template.id}
-                  type="button"
-                  onClick={() => pickTemplate(template.id)}
-                  className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-left hover:bg-neutral-50"
-                >
-                  <div className="text-sm font-medium text-neutral-900">{template.title}</div>
-                  <div className="mt-0.5 text-xs leading-4 text-neutral-400">{template.description}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        {createStep === "config" ? (
-          <div className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm space-y-3">
-            <div className="px-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-              Configure
-            </div>
-            <input
-              type="text"
-              value={configTitle}
-              onChange={(e) => setConfigTitle(e.target.value)}
-              placeholder="Container name"
-              autoFocus
-              className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
-            />
-            <div className="space-y-1.5">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
-                Display style
-              </div>
-              <select
-                value={configDisplayStyle}
-                onChange={(e) => setConfigDisplayStyle(e.target.value as DisplayStyleKey)}
-                className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
-              >
-                {DISPLAY_STYLE_OPTIONS.map((opt) => (
-                  <option key={opt.key} value={opt.key}>{opt.label}</option>
-                ))}
-              </select>
-              <div className="px-0.5 text-[10px] leading-4 text-neutral-400">
-                {DISPLAY_STYLE_OPTIONS.find((o) => o.key === configDisplayStyle)?.description}
-              </div>
-            </div>
-            {(() => {
-              const { interactionType } = applyDisplayStyle(configDisplayStyle);
-              const showTint = interactionType === "modal" || interactionType === "side-sheet" || interactionType === "full-page";
-              if (!showTint) return null;
-              return (
-                <div className="space-y-2">
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
-                    Background tint
-                  </div>
-                  <label className="flex items-center gap-2 cursor-pointer select-none text-sm text-neutral-700">
-                    <input
-                      type="checkbox"
-                      checked={!!configTintColor}
-                      onChange={(e) => setConfigTintColor(e.target.checked ? "#ffffff" : "")}
-                      className="rounded"
-                    />
-                    Custom color
-                  </label>
-                  {configTintColor ? (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={configTintColor}
-                          onChange={(e) => setConfigTintColor(e.target.value)}
-                          className="h-8 w-10 cursor-pointer rounded-lg border border-neutral-300 p-0.5"
-                        />
-                        <span className="text-xs text-neutral-500 font-mono">{configTintColor}</span>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-[10px] text-neutral-400">
-                          <span>Opacity</span>
-                          <span>{configTintOpacity}%</span>
-                        </div>
-                        <input
-                          type="range"
-                          min={10}
-                          max={100}
-                          value={configTintOpacity}
-                          onChange={(e) => setConfigTintOpacity(Number(e.target.value))}
-                          className="w-full accent-neutral-900"
-                        />
-                      </div>
-                    </>
-                  ) : null}
-                </div>
-              );
-            })()}
-            <button
-              type="button"
-              onClick={confirmCreate}
-              className="w-full rounded-xl bg-neutral-900 px-3 py-2.5 text-sm font-medium text-white hover:bg-neutral-800"
-            >
-              Create container
-            </button>
-          </div>
-        ) : null}
-      </div>
+      <NewContainerForm onCreatePageWithConfig={onCreatePageWithConfig} />
 
       {/* This page */}
       <EditorSection title="This page">
@@ -243,81 +77,235 @@ export function SetupTab({
             description="Hero image or color shown behind this page's content."
           >
             <div className="space-y-3">
-              <div className="flex gap-2">
-                {(["image", "color"] as const).map((mode) => {
-                  const isColor = selectedPage.heroImage.startsWith("color:");
-                  const isActive = mode === "color" ? isColor : !isColor;
-                  return (
-                    <button
-                      key={mode}
-                      type="button"
-                      aria-pressed={isActive}
-                      onClick={() => {
-                        if (mode === "color" && !isColor) {
-                          onPageHeroUrlChange({ target: { value: "color:#1a1a2e" } } as React.ChangeEvent<HTMLInputElement>);
-                        } else if (mode === "image" && isColor) {
-                          onPageHeroUrlChange({ target: { value: "" } } as React.ChangeEvent<HTMLInputElement>);
-                        }
-                      }}
-                      className={`rounded-full border px-3 py-1 text-xs font-medium transition capitalize ${
-                        isActive
-                          ? "border-neutral-900 bg-neutral-900 text-white"
-                          : "border-neutral-300 text-neutral-600 hover:bg-neutral-50"
-                      }`}
-                    >
-                      {mode}
-                    </button>
-                  );
-                })}
-              </div>
+              {(() => {
+                const isModel3d = selectedPage.kind === "home" && systemSettings.backgroundType === "model-3d";
+                const isColor = !isModel3d && selectedPage.heroImage.startsWith("color:");
+                const isImage = !isModel3d && !isColor;
 
-              {selectedPage.heroImage.startsWith("color:") ? (
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    value={selectedPage.heroImage.replace("color:", "") || "#1a1a2e"}
-                    onChange={(e) =>
-                      onPageHeroUrlChange({ target: { value: `color:${e.target.value}` } } as React.ChangeEvent<HTMLInputElement>)
-                    }
-                    aria-label="Background color picker"
-                    className="h-9 w-9 shrink-0 cursor-pointer rounded-xl border border-neutral-300 p-0.5"
-                  />
-                  <input
-                    type="text"
-                    value={selectedPage.heroImage.replace("color:", "")}
-                    onChange={(e) =>
-                      onPageHeroUrlChange({ target: { value: `color:${e.target.value}` } } as React.ChangeEvent<HTMLInputElement>)
-                    }
-                    placeholder="#1a1a2e"
-                    aria-label="Background color hex value"
-                    className="w-full rounded-2xl border border-neutral-300 px-4 py-3 font-mono text-sm outline-none transition focus:border-black"
-                  />
-                </div>
-              ) : (
-                <>
-                  <input
-                    type="text"
-                    value={selectedPage.heroImage}
-                    onChange={onPageHeroUrlChange}
-                    placeholder="Paste image URL"
-                    aria-label="Hero image URL"
-                    className="w-full rounded-2xl border border-neutral-300 px-4 py-3 text-sm outline-none transition focus:border-black"
-                  />
-                  <label className="inline-flex cursor-pointer items-center rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
-                    Upload from computer
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={onHeroUpload}
-                      className="hidden"
-                    />
-                  </label>
-                </>
-              )}
+                const modes = selectedPage.kind === "home"
+                  ? (["image", "color", "model-3d"] as const)
+                  : (["image", "color"] as const);
+
+                return (
+                  <>
+                    <div className="flex flex-wrap gap-2">
+                      {modes.map((mode) => {
+                        const isActive = mode === "model-3d" ? isModel3d : mode === "color" ? isColor : isImage;
+                        return (
+                          <button
+                            key={mode}
+                            type="button"
+                            aria-pressed={isActive}
+                            onClick={() => {
+                              if (mode === "model-3d") {
+                                onSystemSettingChange("backgroundType", "model-3d");
+                              } else if (mode === "color") {
+                                onSystemSettingChange("backgroundType", "image");
+                                if (!selectedPage.heroImage.startsWith("color:")) {
+                                  onPageHeroUrlChange({ target: { value: "color:#1a1a2e" } } as React.ChangeEvent<HTMLInputElement>);
+                                }
+                              } else {
+                                onSystemSettingChange("backgroundType", "image");
+                                if (selectedPage.heroImage.startsWith("color:")) {
+                                  onPageHeroUrlChange({ target: { value: "" } } as React.ChangeEvent<HTMLInputElement>);
+                                }
+                              }
+                            }}
+                            className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                              isActive
+                                ? "border-neutral-900 bg-neutral-900 text-white"
+                                : "border-neutral-300 text-neutral-600 hover:bg-neutral-50"
+                            }`}
+                          >
+                            {mode === "model-3d" ? "3D model" : mode.charAt(0).toUpperCase() + mode.slice(1)}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {isModel3d ? (
+                      <>
+                        <input
+                          type="text"
+                          value={systemSettings.modelUrl ?? ""}
+                          onChange={(e) => onSystemSettingChange("modelUrl", e.target.value)}
+                          placeholder="Paste .glb or .gltf URL"
+                          aria-label="3D model URL"
+                          className="w-full rounded-2xl border border-neutral-300 px-4 py-3 text-sm outline-none transition focus:border-black"
+                        />
+                        <label className="inline-flex cursor-pointer items-center rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
+                          Upload .glb file
+                          <input
+                            type="file"
+                            accept=".glb,.gltf"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const url = URL.createObjectURL(file);
+                              onSystemSettingChange("modelUrl", url);
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+                        <p className="text-[11px] leading-4 text-neutral-400">
+                          Drag to orbit · Scroll to zoom · Right-drag or two-finger to pan.
+                          Uploaded files are session-only; use a URL for persistence.
+                        </p>
+                      </>
+                    ) : isColor ? (
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="color"
+                          value={selectedPage.heroImage.replace("color:", "") || "#1a1a2e"}
+                          onChange={(e) =>
+                            onPageHeroUrlChange({ target: { value: `color:${e.target.value}` } } as React.ChangeEvent<HTMLInputElement>)
+                          }
+                          aria-label="Background color picker"
+                          className="h-9 w-9 shrink-0 cursor-pointer rounded-xl border border-neutral-300 p-0.5"
+                        />
+                        <input
+                          type="text"
+                          value={selectedPage.heroImage.replace("color:", "")}
+                          onChange={(e) =>
+                            onPageHeroUrlChange({ target: { value: `color:${e.target.value}` } } as React.ChangeEvent<HTMLInputElement>)
+                          }
+                          placeholder="#1a1a2e"
+                          aria-label="Background color hex value"
+                          className="w-full rounded-2xl border border-neutral-300 px-4 py-3 font-mono text-sm outline-none transition focus:border-black"
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <input
+                          type="text"
+                          value={selectedPage.heroImage}
+                          onChange={onPageHeroUrlChange}
+                          placeholder="Paste image URL"
+                          aria-label="Hero image URL"
+                          className="w-full rounded-2xl border border-neutral-300 px-4 py-3 text-sm outline-none transition focus:border-black"
+                        />
+                        <label className="inline-flex cursor-pointer items-center rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
+                          Upload from computer
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={onHeroUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      </>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </EditorSubsection>
         </div>
       </EditorSection>
+
+      {/* 3D model settings — only visible when backgroundType is "model-3d" on the home page */}
+      {systemSettings.backgroundType === "model-3d" && selectedPage.kind === "home" ? (
+        <EditorSection title="3D model">
+          <div className="space-y-4">
+            {/* Scale */}
+            <div>
+              <div className="mb-1.5 flex items-center justify-between text-xs">
+                <span className="font-semibold uppercase tracking-[0.16em] text-neutral-400">Scale</span>
+                <span className="font-medium text-neutral-500">{(systemSettings.modelScale ?? 1).toFixed(2)}×</span>
+              </div>
+              <input
+                type="range"
+                min={0.1}
+                max={4}
+                step={0.05}
+                value={systemSettings.modelScale ?? 1}
+                onChange={(e) => onSystemSettingChange("modelScale", Number(e.target.value))}
+                className="w-full accent-neutral-900"
+                aria-label="Model scale"
+              />
+              <div className="mt-1 flex justify-between text-[10px] text-neutral-400">
+                <span>0.1×</span>
+                <span>4×</span>
+              </div>
+            </div>
+
+            {/* Initial rotation Y */}
+            <div>
+              <div className="mb-1.5 flex items-center justify-between text-xs">
+                <span className="font-semibold uppercase tracking-[0.16em] text-neutral-400">Initial spin (Y)</span>
+                <span className="font-medium text-neutral-500">{systemSettings.modelRotationY ?? 0}°</span>
+              </div>
+              <input
+                type="range"
+                min={-180}
+                max={180}
+                step={5}
+                value={systemSettings.modelRotationY ?? 0}
+                onChange={(e) => onSystemSettingChange("modelRotationY", Number(e.target.value))}
+                className="w-full accent-neutral-900"
+                aria-label="Initial Y rotation"
+              />
+              <div className="mt-1 flex justify-between text-[10px] text-neutral-400">
+                <span>−180°</span>
+                <span>+180°</span>
+              </div>
+            </div>
+
+            {/* Initial rotation X */}
+            <div>
+              <div className="mb-1.5 flex items-center justify-between text-xs">
+                <span className="font-semibold uppercase tracking-[0.16em] text-neutral-400">Initial tilt (X)</span>
+                <span className="font-medium text-neutral-500">{systemSettings.modelRotationX ?? 0}°</span>
+              </div>
+              <input
+                type="range"
+                min={-90}
+                max={90}
+                step={5}
+                value={systemSettings.modelRotationX ?? 0}
+                onChange={(e) => onSystemSettingChange("modelRotationX", Number(e.target.value))}
+                className="w-full accent-neutral-900"
+                aria-label="Initial X rotation"
+              />
+              <div className="mt-1 flex justify-between text-[10px] text-neutral-400">
+                <span>−90°</span>
+                <span>+90°</span>
+              </div>
+            </div>
+
+            {/* Environment / lighting */}
+            <div>
+              <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+                Lighting environment
+              </div>
+              <select
+                value={systemSettings.modelEnvironment ?? "none"}
+                onChange={(e) => onSystemSettingChange(
+                  "modelEnvironment",
+                  e.target.value as SystemSettings["modelEnvironment"]
+                )}
+                className="w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-black"
+                aria-label="Lighting environment"
+              >
+                <option value="none">Plain directional lights</option>
+                <option value="apartment">Apartment</option>
+                <option value="city">City</option>
+                <option value="dawn">Dawn</option>
+                <option value="forest">Forest</option>
+                <option value="lobby">Lobby</option>
+                <option value="night">Night</option>
+                <option value="park">Park</option>
+                <option value="studio">Studio</option>
+                <option value="sunset">Sunset</option>
+                <option value="warehouse">Warehouse</option>
+              </select>
+              <p className="mt-1.5 text-[11px] leading-4 text-neutral-400">
+                Image-based lighting gives reflective / PBR materials a realistic sheen.
+              </p>
+            </div>
+          </div>
+        </EditorSection>
+      ) : null}
 
       {/* Global */}
       <EditorSection title="Global">

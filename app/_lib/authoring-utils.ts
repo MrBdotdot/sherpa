@@ -3,7 +3,7 @@ import {
   CanvasFeatureType,
   ContentBlock,
   ContentBlockType,
-  DisplayStyleKey,
+  ImageBlockHotspot,
   InteractionType,
   PageButtonPlacement,
   PageItem,
@@ -13,7 +13,7 @@ import {
   TemplateId,
 } from "@/app/_lib/authoring-types";
 
-export const APP_VERSION = "v0.10.8";
+export const APP_VERSION = "v0.13.6";
 
 export type { PatchNote } from "@/app/_lib/patch-notes";
 export { PATCH_NOTES } from "@/app/_lib/patch-notes";
@@ -26,55 +26,45 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
   {
     id: "how-to-play",
     title: "How to Play",
-    summary: "Give players a fast onboarding path before they jump in.",
+    summary: "",
     description: "A quick explainer page with setup, turn flow, and the win condition.",
-    blocks: [
-      { type: "text", value: "1. Set up the board and deal the starting cards." },
-      { type: "text", value: "2. Take turns in clockwise order and resolve each action." },
-      { type: "text", value: "3. The first player to complete the objective wins." },
-    ],
+    blocks: [],
     interactionType: "modal",
     pageButtonPlacement: "bottom",
   },
   {
     id: "full-rules",
     title: "Full Rules",
-    summary: "A deeper rules reference for players who want everything in one place.",
+    summary: "",
     description: "Best for complete rules, examples, and edge cases.",
-    blocks: [
-      { type: "text", value: "Overview\nExplain the goal, setup, and round structure in detail." },
-      { type: "text", value: "Key Rules\nList scoring, restrictions, and tie-breakers." },
-    ],
+    blocks: [],
     interactionType: "full-page",
     pageButtonPlacement: "right",
   },
   {
     id: "faq",
     title: "FAQ",
-    summary: "Answer the most common player questions before they get stuck.",
+    summary: "",
     description: "A lightweight support page for clarifications and edge cases.",
-    blocks: [
-      { type: "text", value: "Q: What happens if two players finish at the same time?\nA: Add your answer here." },
-      { type: "text", value: "Q: Can players trade items?\nA: Add your answer here." },
-    ],
+    blocks: [],
     interactionType: "side-sheet",
     pageButtonPlacement: "left",
   },
   {
     id: "legal",
     title: "Disclaimer",
-    summary: "Include legal, safety, or store-policy text without interrupting the core experience.",
+    summary: "",
     description: "A good place for legal notes, age restrictions, or event disclaimers.",
-    blocks: [{ type: "text", value: "Add legal or disclaimer copy here." }],
+    blocks: [],
     interactionType: "tooltip",
     pageButtonPlacement: "top",
   },
   {
     id: "social-cta",
     title: "Follow Us",
-    summary: "Drive players to socials, purchasing, or another external destination.",
+    summary: "",
     description: "Use this for social links, buy-now CTAs, or contact actions.",
-    blocks: [{ type: "text", value: "Invite players to follow, buy, or contact you." }],
+    blocks: [],
     socialLinks: [
       { label: "Instagram", url: "https://instagram.com/" },
       { label: "TikTok", url: "https://tiktok.com/" },
@@ -123,6 +113,16 @@ export function createSocialLink(label = "", url = ""): SocialLink {
     id: createId("social"),
     label,
     url,
+  };
+}
+
+export function createImageHotspot(x = 50, y = 50): ImageBlockHotspot {
+  return {
+    id: createId("imghs"),
+    x,
+    y,
+    label: "",
+    content: "",
   };
 }
 
@@ -225,6 +225,18 @@ export function createCanvasFeature(
         optionsText: "English|EN\nEspañol|ES\nFrançais|FR\nDeutsch|DE",
         x: 90,
         y: 6,
+      };
+    case "search":
+      return {
+        id: createId("feature"),
+        type,
+        label: "Search rules…",
+        description: "",
+        linkUrl: "",
+        imageUrl: "",
+        optionsText: "",
+        x: 50,
+        y: 8,
       };
     default:
       return {
@@ -332,13 +344,15 @@ export function createTemplatePage(templateId: TemplateId, count: number): PageI
   });
 }
 
+export const DEFAULT_HOTSPOT_BLOCK_TEXT = "Add contextual content for this hotspot.";
+
 export function createHotspotPage(count: number, heroImage: string): PageItem {
   return createBasePage({
     kind: "hotspot",
     title: `Hotspot ${count}`,
     summary: "",
     heroImage,
-    blocks: [createBlock("text", "Add contextual content for this hotspot.")],
+    blocks: [createBlock("text", DEFAULT_HOTSPOT_BLOCK_TEXT)],
     interactionType: "tooltip",
   });
 }
@@ -362,173 +376,3 @@ export function createInitialPages(): PageItem[] {
   ];
 }
 
-export function getQrImageUrl(value: string) {
-  const data = encodeURIComponent(value || "https://example.com");
-  return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${data}`;
-}
-
-export function getPageKindLabel(kind: PageItem["kind"]) {
-  switch (kind) {
-    case "home":
-      return "Landing page";
-    case "page":
-      return "Page button";
-    case "hotspot":
-      return "Image hotspot";
-    default:
-      return "Page";
-  }
-}
-
-export function getPageRoleDescription(kind: PageItem["kind"]) {
-  switch (kind) {
-    case "home":
-      return "The starting surface players see first.";
-    case "page":
-      return "A container that sits on top of the home page.";
-    case "hotspot":
-      return "Contextual callouts attached to a point on the hero image.";
-    default:
-      return "";
-  }
-}
-
-export function getInteractionTypeLabel(interactionType: InteractionType) {
-  switch (interactionType) {
-    case "modal":
-      return "Modal";
-    case "side-sheet":
-      return "Side sheet";
-    case "bottom-sheet":
-      return "Bottom sheet";
-    case "tooltip":
-      return "Tooltip";
-    case "full-page":
-      return "Full page";
-    case "external-link":
-      return "External link";
-    default:
-      return "Interaction";
-  }
-}
-
-export function getExperienceStatusLabel(status: import("@/app/_lib/authoring-types").ExperienceStatus) {
-  return status === "published" ? "Published" : "Draft";
-}
-
-export function getExperienceStatusClasses(status: import("@/app/_lib/authoring-types").ExperienceStatus) {
-  return status === "published"
-    ? "bg-emerald-100 text-emerald-800"
-    : "bg-amber-100 text-amber-800";
-}
-
-export function getPublishStatusLabel(status: PublishStatus) {
-  switch (status) {
-    case "draft":
-      return "Draft";
-    case "published":
-      return "Published";
-    default:
-      return "Status";
-  }
-}
-
-export function getPublishStatusClasses(status: PublishStatus) {
-  switch (status) {
-    case "draft":
-      return "bg-amber-100 text-amber-800";
-    case "published":
-      return "bg-emerald-100 text-emerald-800";
-    default:
-      return "bg-neutral-100 text-neutral-700";
-  }
-}
-
-export function getPlacementLabel(placement: PageButtonPlacement) {
-  switch (placement) {
-    case "top":
-      return "Top";
-    case "bottom":
-      return "Bottom";
-    case "left":
-      return "Left rail";
-    case "right":
-      return "Right rail";
-    case "stack":
-      return "Centered stack";
-    default:
-      return "Placement";
-  }
-}
-
-export type DisplayStyleOption = { key: DisplayStyleKey; label: string; description: string };
-
-export const DISPLAY_STYLE_OPTIONS: DisplayStyleOption[] = [
-  { key: "tooltip", label: "Tooltip", description: "Small pop-up attached to a hotspot" },
-  { key: "compact-card", label: "Compact", description: "Small centered panel — 360px" },
-  { key: "card", label: "Standard", description: "Medium centered panel — 520px" },
-  { key: "large-card", label: "Large", description: "Wide centered panel — 660px" },
-  { key: "wide-card", label: "Extra wide", description: "Extra-wide centered panel — 800px" },
-  { key: "side-sheet", label: "Side panel", description: "Narrow panel from the right edge — 320px" },
-  { key: "wide-side-sheet", label: "Wide side panel", description: "Wide panel from the right edge — 480px" },
-  { key: "bottom-sheet", label: "Bottom sheet", description: "Full-width panel that slides up from the bottom" },
-  { key: "full-screen", label: "Full screen", description: "Covers the entire canvas" },
-  { key: "external-link", label: "External link", description: "Opens a URL outside the app" },
-];
-
-export function getDisplayStyleKey(page: PageItem): DisplayStyleKey {
-  const { interactionType, cardSize } = page;
-  if (interactionType === "tooltip") return "tooltip";
-  if (interactionType === "full-page") return "full-screen";
-  if (interactionType === "external-link") return "external-link";
-  if (interactionType === "bottom-sheet") return "bottom-sheet";
-  if (interactionType === "modal") {
-    if (cardSize === "compact") return "compact-card";
-    if (cardSize === "xl") return "large-card";
-    if (cardSize === "large") return "wide-card";
-    return "card";
-  }
-  if (interactionType === "side-sheet") {
-    if (cardSize === "large") return "wide-side-sheet";
-    return "side-sheet";
-  }
-  return "card";
-}
-
-export function applyDisplayStyle(style: DisplayStyleKey): { interactionType: InteractionType; cardSize: PageItem["cardSize"] } {
-  switch (style) {
-    case "tooltip": return { interactionType: "tooltip", cardSize: "medium" };
-    case "compact-card": return { interactionType: "modal", cardSize: "compact" };
-    case "card": return { interactionType: "modal", cardSize: "medium" };
-    case "large-card": return { interactionType: "modal", cardSize: "xl" };
-    case "wide-card": return { interactionType: "modal", cardSize: "large" };
-    case "side-sheet": return { interactionType: "side-sheet", cardSize: "medium" };
-    case "wide-side-sheet": return { interactionType: "side-sheet", cardSize: "large" };
-    case "bottom-sheet": return { interactionType: "bottom-sheet", cardSize: "medium" };
-    case "full-screen": return { interactionType: "full-page", cardSize: "medium" };
-    case "external-link": return { interactionType: "external-link", cardSize: "medium" };
-  }
-}
-
-export function getFeatureTypeLabel(type: CanvasFeatureType) {
-  switch (type) {
-    case "qr":
-      return "QR code";
-    case "image":
-      return "Image";
-    case "heading":
-      return "Heading";
-    case "disclaimer":
-      return "Disclaimer";
-    case "button":
-      return "Button";
-    case "dropdown":
-      return "Dropdown";
-    case "page-button":
-      return "Page button";
-    case "locale":
-      return "Language";
-    default:
-      return "Feature";
-  }
-}

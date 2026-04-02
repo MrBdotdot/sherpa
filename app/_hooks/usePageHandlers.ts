@@ -1,21 +1,15 @@
 "use client";
 
 import { ChangeEvent, Dispatch, SetStateAction } from "react";
-import {
-  applyDisplayStyle,
-  createCanvasFeature,
-  createStandardPage,
-  createTemplatePage,
-  HOME_PAGE_ID,
-} from "@/app/_lib/authoring-utils";
+import { applyDisplayStyle } from "@/app/_lib/display-style";
 import {
   DisplayStyleKey,
   InteractionType,
   PageButtonPlacement,
   PageItem,
   PublishStatus,
-  TemplateId,
 } from "@/app/_lib/authoring-types";
+import { usePageCrud } from "@/app/_hooks/usePageCrud";
 
 interface UsePageHandlersProps {
   pages: PageItem[];
@@ -42,8 +36,19 @@ export function usePageHandlers({
   setSelectedFeatureId,
   setShowDeleteModal,
 }: UsePageHandlersProps) {
-  const selectedPage = pages.find((page) => page.id === selectedPageId) ?? null;
-  const standardPages = pages.filter((page) => page.kind === "page");
+  const crud = usePageCrud({
+    pages,
+    setPages,
+    selectedPageId,
+    setSelectedPageId,
+    pushPagesHistory,
+    updateSelectedPage,
+    setIsContentModalOpen,
+    setInspectorTab,
+    setShowDeleteModal,
+  });
+
+  // ── Navigation ────────────────────────────────────────────────
 
   const openPageEditor = (id: string) => {
     setSelectedPageId(id);
@@ -51,7 +56,6 @@ export function usePageHandlers({
     setIsContentModalOpen(true);
     const page = pages.find((p) => p.id === id);
     if (!page) return;
-    // Hotspots are content-only — always land on the content tab
     if (page.kind === "hotspot") {
       setInspectorTab("content");
     } else if (page.canvasFeatures.length === 0 && (page.blocks.length > 0 || page.socialLinks.length > 0)) {
@@ -68,60 +72,7 @@ export function usePageHandlers({
     setInspectorTab("surface");
   };
 
-  const handleCreatePage = () => {
-    pushPagesHistory();
-    const newPage = createStandardPage(standardPages.length + 1);
-    setPages((prev) => [...prev, newPage]);
-    setSelectedPageId(newPage.id);
-    setIsContentModalOpen(true);
-  };
-
-  /** Creates a new standard page without opening it, and returns the new page ID. */
-  const handleCreatePageForButton = (): string => {
-    pushPagesHistory();
-    const newPage = createStandardPage(standardPages.length + 1);
-    setPages((prev) => [...prev, newPage]);
-    return newPage.id;
-  };
-
-  const handleCreateTemplatePage = (templateId: TemplateId) => {
-    pushPagesHistory();
-    const newPage = createTemplatePage(templateId, standardPages.length + 1);
-    setPages((prev) => [...prev, newPage]);
-    setSelectedPageId(newPage.id);
-    setIsContentModalOpen(true);
-  };
-
-  const handleDeleteSelectedPage = () => {
-    pushPagesHistory();
-    if (!selectedPage || selectedPage.kind === "home") {
-      setShowDeleteModal(false);
-      return;
-    }
-
-    const deletedId = selectedPage.id;
-    setPages((prev) =>
-      prev
-        .filter((page) => page.id !== deletedId)
-        .map((page) =>
-          page.kind === "home"
-            ? { ...page, canvasFeatures: page.canvasFeatures.filter((f) => f.linkUrl !== deletedId) }
-            : page
-        )
-    );
-    setSelectedPageId(HOME_PAGE_ID);
-    setIsContentModalOpen(false);
-    setShowDeleteModal(false);
-  };
-
-  const handleDeleteHotspot = (pageId: string) => {
-    pushPagesHistory();
-    setPages((prev) => prev.filter((p) => p.id !== pageId));
-    if (selectedPageId === pageId) {
-      setSelectedPageId(HOME_PAGE_ID);
-      setIsContentModalOpen(false);
-    }
-  };
+  // ── Page styling ──────────────────────────────────────────────
 
   const handleResetPagePosition = () => {
     updateSelectedPage((page) => ({ ...page, x: null, y: null }));
@@ -151,70 +102,11 @@ export function usePageHandlers({
     updateSelectedPage((page) => ({ ...page, interactionType, cardSize }));
   };
 
-  const handleCreatePageWithConfig = ({
-    templateId,
-    title,
-    displayStyle,
-    contentTintColor,
-    contentTintOpacity,
-  }: {
-    templateId: TemplateId | null;
-    title: string;
-    displayStyle: DisplayStyleKey;
-    contentTintColor: string;
-    contentTintOpacity: number;
-  }) => {
-    pushPagesHistory();
-    const { interactionType, cardSize } = applyDisplayStyle(displayStyle);
-    const base =
-      templateId && templateId !== "blank"
-        ? createTemplatePage(templateId, standardPages.length + 1)
-        : createStandardPage(standardPages.length + 1);
-    const newPage = {
-      ...base,
-      title: title.trim() || base.title,
-      interactionType,
-      cardSize,
-      contentTintColor,
-      contentTintOpacity,
-    };
-    const placementPos: Record<string, [number, number]> = {
-      top: [50, 8],
-      bottom: [50, 88],
-      left: [12, 50],
-      right: [88, 50],
-      stack: [50, 50],
-    };
-    const [bx, by] = placementPos[newPage.pageButtonPlacement] ?? [50, 85];
-    const pageButton = {
-      ...createCanvasFeature("page-button"),
-      label: newPage.title.trim() || "Page",
-      linkUrl: newPage.id,
-      x: bx,
-      y: by,
-    };
-
-    setPages((prev) => {
-      const homeIdx = prev.findIndex((p) => p.kind === "home");
-      if (homeIdx === -1) return [...prev, newPage];
-      return prev.map((p, i) =>
-        i === homeIdx
-          ? { ...p, canvasFeatures: [...p.canvasFeatures, pageButton] }
-          : p
-      ).concat(newPage);
-    });
-    setSelectedPageId(newPage.id);
-    setIsContentModalOpen(true);
-    if (newPage.canvasFeatures.length === 0 && (newPage.blocks.length > 0 || newPage.socialLinks.length > 0)) {
-      setInspectorTab("content");
-    } else {
-      setInspectorTab("surface");
-    }
-  };
-
   const handlePageButtonPlacementChange = (value: PageButtonPlacement) => {
     updateSelectedPage((page) => ({ ...page, pageButtonPlacement: value }));
   };
+
+  // ── Publishing ────────────────────────────────────────────────
 
   const handlePublishStatusChange = (value: PublishStatus) => {
     updateSelectedPage((page) => ({ ...page, publishStatus: value }));
@@ -235,12 +127,6 @@ export function usePageHandlers({
   return {
     openPageEditor,
     handleSidebarFeatureClick,
-    handleCreatePage,
-    handleCreateTemplatePage,
-    handleCreatePageWithConfig,
-    handleCreatePageForButton,
-    handleDeleteSelectedPage,
-    handleDeleteHotspot,
     handleResetPagePosition,
     handlePageHeroUrlChange,
     handlePageHeroUpload,
@@ -252,5 +138,6 @@ export function usePageHandlers({
     handleSidebarPublishStatusChange,
     handlePublicUrlChange,
     handleQrToggle,
+    ...crud,
   };
 }

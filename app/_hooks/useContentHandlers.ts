@@ -15,6 +15,27 @@ export function useContentHandlers({
 }: UseContentHandlersProps) {
   const handleAddBlock = (type: ContentBlockType) => {
     pushPagesHistory();
+    if (type === "step-rail") {
+      // Create a section block for each default step and pre-link them so the
+      // step rail is usable immediately without manual wiring.
+      const s1 = createBlock("section", "Step 1");
+      const s2 = createBlock("section", "Step 2");
+      const s3 = createBlock("section", "Step 3");
+      const srBlock = createBlock("step-rail");
+      const srData = JSON.parse(srBlock.value) as {
+        orientation: string; iconShape: string; showPing: boolean;
+        steps: { id: string; label: string; color: string; iconImageUrl: string; sectionBlockId: string }[];
+      };
+      srData.steps[0].sectionBlockId = s1.id;
+      srData.steps[1].sectionBlockId = s2.id;
+      srData.steps[2].sectionBlockId = s3.id;
+      const linkedSrBlock = { ...srBlock, value: JSON.stringify(srData) };
+      updateSelectedPage((page) => ({
+        ...page,
+        blocks: [...page.blocks, linkedSrBlock, s1, s2, s3],
+      }));
+      return;
+    }
     updateSelectedPage((page) => ({
       ...page,
       blocks: [...page.blocks, createBlock(type)],
@@ -57,6 +78,17 @@ export function useContentHandlers({
       if (index >= page.blocks.length - 1) return page;
       const blocks = [...page.blocks];
       [blocks[index], blocks[index + 1]] = [blocks[index + 1], blocks[index]];
+      return { ...page, blocks };
+    });
+  };
+
+  const handleReorderBlocks = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    pushPagesHistory();
+    updateSelectedPage((page) => {
+      const blocks = [...page.blocks];
+      const [item] = blocks.splice(fromIndex, 1);
+      blocks.splice(toIndex, 0, item);
       return { ...page, blocks };
     });
   };
@@ -170,6 +202,7 @@ export function useContentHandlers({
     handleBlockVariantChange,
     handleMoveBlockUp,
     handleMoveBlockDown,
+    handleReorderBlocks,
     handleBlockImageUpload,
     handleBlockImageFitChange,
     handleRemoveBlock,

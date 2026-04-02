@@ -1,22 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { ChangelogModal } from "@/app/_components/changelog-modal";
-import { AccountPanel } from "@/app/_components/account-panel";
-import { GameSwitcherModal } from "@/app/_components/game-switcher-modal";
-import {
-  APP_VERSION,
-  getFeatureTypeLabel,
-} from "@/app/_lib/authoring-utils";
+import { APP_VERSION } from "@/app/_lib/authoring-utils";
+import { getFeatureTypeLabel } from "@/app/_lib/label-utils";
 import { CanvasFeature, ContentBlock, PageItem, PublishStatus } from "@/app/_lib/authoring-types";
 
 type PageSidebarProps = {
-  onOpenPage: (id: string) => void;
+  onAddPage: () => void;
+  onOpenPage: (id: string, blockId?: string) => void;
   onPublishStatusChange: (pageId: string, status: PublishStatus) => void;
+  onReorderBlocks: (pageId: string, fromIndex: number, toIndex: number) => void;
   onSelectFeature: (pageId: string, featureId: string) => void;
   pages: PageItem[];
   selectedFeatureId: string | null;
   selectedPageId: string;
+  currentGameName?: string;
+  currentStudioName?: string;
+  onOpenChangelog?: () => void;
+  onOpenAccount?: () => void;
+  onOpenGameSwitcher?: () => void;
 };
 
 function ChevronIcon({ expanded }: { expanded: boolean }) {
@@ -47,7 +49,7 @@ function SidebarPageButton({
   page,
 }: {
   isSelected: boolean;
-  onOpenPage: (id: string) => void;
+  onOpenPage: (id: string, blockId?: string) => void;
   page: PageItem;
 }) {
   return (
@@ -122,6 +124,74 @@ function getTabSections(blocks: ContentBlock[]) {
   return result;
 }
 
+const BLOCK_LABELS: Record<string, string> = {
+  text: "Text", callout: "Callout", image: "Image", tabs: "Tabs",
+  section: "Section", "step-rail": "Step Rail", carousel: "Carousel", consent: "Consent",
+};
+
+function getBlockPreview(block: ContentBlock): string {
+  if (block.type === "text" || block.type === "callout" || block.type === "section") {
+    return block.value.split("\n")[0].slice(0, 48) || (BLOCK_LABELS[block.type] ?? block.type);
+  }
+  return BLOCK_LABELS[block.type] ?? block.type;
+}
+
+function SidebarBlockItem({
+  block,
+  index,
+  pageId,
+  onOpen,
+  dragIndex,
+  dropIndex,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+}: {
+  block: ContentBlock;
+  index: number;
+  pageId: string;
+  onOpen: () => void;
+  dragIndex: number | null;
+  dropIndex: number | null;
+  onDragStart: (index: number) => void;
+  onDragOver: (index: number) => void;
+  onDrop: (index: number) => void;
+  onDragEnd: () => void;
+}) {
+  const isBeingDragged = dragIndex === index;
+  const showDropLine = dropIndex === index && dragIndex !== null && dragIndex !== index && dragIndex !== index - 1;
+
+  return (
+    <div
+      className={`relative ${isBeingDragged ? "opacity-40" : ""}`}
+      onDragOver={(e) => { e.preventDefault(); onDragOver(index); }}
+      onDrop={(e) => { e.preventDefault(); onDrop(index); }}
+    >
+      {showDropLine && (
+        <div className="pointer-events-none absolute -top-1.5 inset-x-0 z-20 h-0.5 rounded-full bg-blue-500" />
+      )}
+      <div
+        draggable
+        onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(index); }}
+        onDragEnd={onDragEnd}
+        className="flex w-full cursor-grab items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 py-2 active:cursor-grabbing"
+      >
+        <button
+          type="button"
+          onClick={onOpen}
+          className="flex min-w-0 flex-1 items-center gap-2 text-left text-xs text-neutral-700 hover:text-neutral-900 transition"
+        >
+          <span className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-neutral-200 text-neutral-500">
+            {BLOCK_LABELS[block.type] ?? block.type}
+          </span>
+          <span className="truncate font-medium">{getBlockPreview(block)}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function SidebarTabItem({ label, onOpen }: { label: string; onOpen: () => void }) {
   return (
     <button
@@ -145,6 +215,7 @@ function CollapsibleSection({
   open,
   onToggle,
   count,
+  action,
 }: {
   children?: React.ReactNode;
   emptyText?: string;
@@ -153,16 +224,17 @@ function CollapsibleSection({
   open: boolean;
   onToggle: () => void;
   count?: number;
+  action?: React.ReactNode;
 }) {
   return (
     <div>
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={open}
-        className="mb-1.5 flex w-full items-center justify-between gap-2 rounded-lg px-0.5 py-0.5 text-left hover:opacity-70"
-      >
-        <div className="flex items-center gap-1.5">
+      <div className="mb-1.5 flex w-full items-center justify-between gap-2 px-0.5 py-0.5">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={open}
+          className="flex flex-1 items-center gap-1.5 rounded-lg text-left hover:opacity-70"
+        >
           <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
             {title}
           </span>
@@ -171,9 +243,10 @@ function CollapsibleSection({
               {count}
             </span>
           ) : null}
-        </div>
-        <ChevronIcon expanded={open} />
-      </button>
+          <ChevronIcon expanded={open} />
+        </button>
+        {action ? action : null}
+      </div>
       {open ? (
         isEmpty ? (
           <div className="rounded-2xl border border-dashed border-neutral-200 px-3 py-3 text-xs leading-5 text-neutral-400">
@@ -188,25 +261,45 @@ function CollapsibleSection({
 }
 
 export function PageSidebar({
+  onAddPage,
   onOpenPage,
   onPublishStatusChange: _onPublishStatusChange,
+  onReorderBlocks,
   onSelectFeature,
   pages,
   selectedFeatureId,
   selectedPageId,
+  currentGameName = "Ugly Pickle",
+  currentStudioName = "Bee Studio",
+  onOpenChangelog,
+  onOpenAccount,
+  onOpenGameSwitcher,
 }: PageSidebarProps) {
+  const [blockDrag, setBlockDrag] = useState<{ pageId: string; dragIndex: number; dropIndex: number } | null>(null);
+
+  function makeBlockDragHandlers(pageId: string, blockCount: number) {
+    return {
+      dragIndex: blockDrag?.pageId === pageId ? blockDrag.dragIndex : null,
+      dropIndex: blockDrag?.pageId === pageId ? blockDrag.dropIndex : null,
+      onDragStart: (index: number) => setBlockDrag({ pageId, dragIndex: index, dropIndex: index }),
+      onDragOver: (index: number) => setBlockDrag((prev) => prev ? { ...prev, dropIndex: index } : null),
+      onDrop: (overIndex: number) => {
+        if (!blockDrag || blockDrag.pageId !== pageId) return;
+        const to = blockDrag.dragIndex < overIndex ? overIndex - 1 : overIndex;
+        if (to !== blockDrag.dragIndex) onReorderBlocks(pageId, blockDrag.dragIndex, to);
+        setBlockDrag(null);
+      },
+      onDragEnd: () => setBlockDrag(null),
+    };
+  }
   const homePages = pages.filter((p) => p.kind === "home");
   const navPages = pages.filter((p) => p.kind === "page");
   const hotspotItems = pages.filter((p) => p.kind === "hotspot" && p.x !== null);
 
-  const [changelogOpen, setChangelogOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
-  const [gameSwitcherOpen, setGameSwitcherOpen] = useState(false);
-  const [currentGameName, setCurrentGameName] = useState("Ugly Pickle");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const [openSections, setOpenSections] = useState<Set<string>>(
-    () => new Set(["elements", "page-buttons", "hotspots", "containers"])
+    () => new Set(["elements", "page-buttons", "hotspots", "pages"])
   );
 
   const toggleSection = (key: string) =>
@@ -235,7 +328,7 @@ export function PageSidebar({
             <div className="text-lg font-semibold text-neutral-900">Sherpa</div>
             <button
               type="button"
-              onClick={() => setChangelogOpen(true)}
+              onClick={() => onOpenChangelog?.()}
               className="rounded-full border border-neutral-200 px-2 py-0.5 text-xs text-neutral-500 hover:border-neutral-300 hover:bg-neutral-50"
             >
               {APP_VERSION}
@@ -300,6 +393,7 @@ export function PageSidebar({
                     ))}
                   </CollapsibleSection>
 
+                  {/* Hotspots nested under the landing page — they are pins on the hero image */}
                   <CollapsibleSection
                     title="Hotspots"
                     open={openSections.has("hotspots")}
@@ -311,6 +405,7 @@ export function PageSidebar({
                     {hotspotItems.map((hotspot) => {
                       const isExpanded = expandedIds.has(hotspot.id);
                       const tabSections = getTabSections(hotspot.blocks);
+                      const hasExpandable = tabSections.length > 0 || hotspot.blocks.length > 0;
                       const expandId = `hotspot-expand-${hotspot.id}`;
                       return (
                         <li key={hotspot.id} className="space-y-1">
@@ -322,20 +417,20 @@ export function PageSidebar({
                                 page={hotspot}
                               />
                             </div>
-                            {tabSections.length > 0 ? (
+                            {hasExpandable ? (
                               <button
                                 type="button"
                                 onClick={() => toggleExpanded(hotspot.id)}
                                 aria-expanded={isExpanded}
                                 aria-controls={expandId}
-                                aria-label={`${isExpanded ? "Collapse" : "Expand"} tabs for ${hotspot.title || "this hotspot"}`}
+                                aria-label={`${isExpanded ? "Collapse" : "Expand"} contents of ${hotspot.title || "this hotspot"}`}
                                 className="flex shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-2 text-neutral-400 transition hover:bg-white hover:text-neutral-700"
                               >
                                 <ChevronIcon expanded={isExpanded} />
                               </button>
                             ) : null}
                           </div>
-                          {isExpanded && tabSections.length > 0 ? (
+                          {isExpanded && hasExpandable ? (
                             <ul id={expandId} role="list" className="space-y-1 border-l-2 border-neutral-100 pl-3 ml-2">
                               {tabSections.map((tab) => (
                                 <li key={tab.tabId}>
@@ -345,6 +440,49 @@ export function PageSidebar({
                                   />
                                 </li>
                               ))}
+                              {hotspot.blocks.length > 0 ? (
+                                <>
+                                  {tabSections.length > 0 ? (
+                                    <li>
+                                      <div className="pb-0.5 pt-1 px-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">Blocks</div>
+                                    </li>
+                                  ) : null}
+                                  {(() => {
+                                    const dh = makeBlockDragHandlers(hotspot.id, hotspot.blocks.length);
+                                    return (
+                                      <>
+                                        {hotspot.blocks.map((block, bi) => (
+                                          <li key={block.id}>
+                                            <SidebarBlockItem
+                                              block={block}
+                                              index={bi}
+                                              pageId={hotspot.id}
+                                              onOpen={() => onOpenPage(hotspot.id, block.id)}
+                                              dragIndex={dh.dragIndex}
+                                              dropIndex={dh.dropIndex}
+                                              onDragStart={dh.onDragStart}
+                                              onDragOver={dh.onDragOver}
+                                              onDrop={dh.onDrop}
+                                              onDragEnd={dh.onDragEnd}
+                                            />
+                                          </li>
+                                        ))}
+                                        {dh.dragIndex !== null && (
+                                          <li
+                                            className="relative h-3"
+                                            onDragOver={(e) => { e.preventDefault(); dh.onDragOver(hotspot.blocks.length); }}
+                                            onDrop={(e) => { e.preventDefault(); dh.onDrop(hotspot.blocks.length); }}
+                                          >
+                                            {dh.dropIndex === hotspot.blocks.length && dh.dragIndex !== hotspot.blocks.length - 1 && (
+                                              <div className="pointer-events-none absolute inset-x-0 top-1 h-0.5 rounded-full bg-blue-500" />
+                                            )}
+                                          </li>
+                                        )}
+                                      </>
+                                    );
+                                  })()}
+                                </>
+                              ) : null}
                             </ul>
                           ) : null}
                         </li>
@@ -357,22 +495,35 @@ export function PageSidebar({
           </div>
         ) : null}
 
-        {/* Containers */}
+        {/* Pages */}
         <div className="mt-4">
           <CollapsibleSection
-            title="Containers"
-            open={openSections.has("containers")}
-            onToggle={() => toggleSection("containers")}
+            title="Screens"
+            open={openSections.has("pages")}
+            onToggle={() => toggleSection("pages")}
             isEmpty={navPages.length === 0}
-            emptyText="No containers yet. Use + New container to add one."
+            emptyText="No screens yet — click + New screen to add one."
             count={navPages.length}
+            action={
+              <button
+                type="button"
+                onClick={onAddPage}
+                title="Add a new screen"
+                className="flex items-center gap-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1 text-[11px] font-semibold text-neutral-500 hover:bg-white hover:text-neutral-700 transition"
+              >
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                  <path d="M5 1v8M1 5h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+                New screen
+              </button>
+            }
           >
             {navPages.map((page) => {
               const isExpanded = expandedIds.has(page.id);
               const tabSections = getTabSections(page.blocks);
               const hasFeatures = page.canvasFeatures.length > 0;
-              const hasExpandable = hasFeatures || tabSections.length > 0;
-              const expandId = `container-expand-${page.id}`;
+              const hasExpandable = hasFeatures || tabSections.length > 0 || page.blocks.length > 0;
+              const expandId = `page-expand-${page.id}`;
               return (
                 <li key={page.id} className="space-y-1">
                   <div className="flex items-stretch gap-1">
@@ -389,7 +540,7 @@ export function PageSidebar({
                         onClick={() => toggleExpanded(page.id)}
                         aria-expanded={isExpanded}
                         aria-controls={expandId}
-                        aria-label={`${isExpanded ? "Collapse" : "Expand"} contents of ${page.title || "this container"}`}
+                        aria-label={`${isExpanded ? "Collapse" : "Expand"} contents of ${page.title || "this screen"}`}
                         className="flex shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-2 text-neutral-400 transition hover:bg-white hover:text-neutral-700"
                       >
                         <ChevronIcon expanded={isExpanded} />
@@ -427,6 +578,49 @@ export function PageSidebar({
                           ))}
                         </>
                       ) : null}
+                      {page.blocks.length > 0 ? (
+                        <>
+                          {(hasFeatures || tabSections.length > 0) ? (
+                            <li>
+                              <div className="pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400 px-0.5">Blocks</div>
+                            </li>
+                          ) : null}
+                          {(() => {
+                            const dh = makeBlockDragHandlers(page.id, page.blocks.length);
+                            return (
+                              <>
+                                {page.blocks.map((block, bi) => (
+                                  <li key={block.id}>
+                                    <SidebarBlockItem
+                                      block={block}
+                                      index={bi}
+                                      pageId={page.id}
+                                      onOpen={() => onOpenPage(page.id, block.id)}
+                                      dragIndex={dh.dragIndex}
+                                      dropIndex={dh.dropIndex}
+                                      onDragStart={dh.onDragStart}
+                                      onDragOver={dh.onDragOver}
+                                      onDrop={dh.onDrop}
+                                      onDragEnd={dh.onDragEnd}
+                                    />
+                                  </li>
+                                ))}
+                                {dh.dragIndex !== null && (
+                                  <li
+                                    className="relative h-3"
+                                    onDragOver={(e) => { e.preventDefault(); dh.onDragOver(page.blocks.length); }}
+                                    onDrop={(e) => { e.preventDefault(); dh.onDrop(page.blocks.length); }}
+                                  >
+                                    {dh.dropIndex === page.blocks.length && dh.dragIndex !== page.blocks.length - 1 && (
+                                      <div className="pointer-events-none absolute inset-x-0 top-1 h-0.5 rounded-full bg-blue-500" />
+                                    )}
+                                  </li>
+                                )}
+                              </>
+                            );
+                          })()}
+                        </>
+                      ) : null}
                     </ul>
                   ) : null}
                 </li>
@@ -441,14 +635,14 @@ export function PageSidebar({
         {/* Game switcher */}
         <button
           type="button"
-          onClick={() => setGameSwitcherOpen(true)}
+          onClick={() => onOpenGameSwitcher?.()}
           className="mb-2 flex w-full items-center gap-2.5 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-left hover:bg-white transition"
         >
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-xs font-bold text-white">
             {currentGameName[0]}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-xs font-semibold text-neutral-800">{currentGameName}</div>
+            <div className="truncate text-xs font-semibold text-neutral-800">{currentStudioName} / {currentGameName}</div>
             <div className="text-[10px] text-neutral-400">Switch game</div>
           </div>
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0 text-neutral-300">
@@ -459,7 +653,7 @@ export function PageSidebar({
         {/* Account row */}
         <button
           type="button"
-          onClick={() => setAccountOpen(true)}
+          onClick={() => onOpenAccount?.()}
           className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 hover:bg-neutral-100 transition"
         >
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-600">
@@ -472,14 +666,6 @@ export function PageSidebar({
         </button>
       </div>
 
-      <ChangelogModal isOpen={changelogOpen} onClose={() => setChangelogOpen(false)} />
-      <AccountPanel isOpen={accountOpen} onClose={() => setAccountOpen(false)} />
-      <GameSwitcherModal
-        isOpen={gameSwitcherOpen}
-        currentGameId="game-1"
-        onClose={() => setGameSwitcherOpen(false)}
-        onSelectGame={(_id, name) => setCurrentGameName(name)}
-      />
     </aside>
   );
 }

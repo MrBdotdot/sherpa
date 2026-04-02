@@ -2,8 +2,9 @@
 
 import React from "react";
 import { PageItem, SystemSettings } from "@/app/_lib/authoring-types";
-import { getQrImageUrl } from "@/app/_lib/authoring-utils";
+import { getQrImageUrl } from "@/app/_lib/label-utils";
 import { PreviewBlocks } from "@/app/_components/canvas/preview-blocks";
+import { StepRailBlock, parseSRPreview } from "@/app/_components/canvas/step-rail-block";
 
 function hexToRgba(hex: string, opacity: number): string {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -59,7 +60,12 @@ export function ContentModule({
   onNavigate,
   onContentCardPointerDown,
   portraitZone = false,
-}: ContentModuleProps) {
+  moduleRef,
+  arrowRef,
+}: ContentModuleProps & {
+  moduleRef?: React.Ref<HTMLDivElement>;
+  arrowRef?: React.Ref<HTMLDivElement>;
+}) {
   const ctype = page.interactionType;
   const cardSize = page.cardSize ?? "medium";
   const isHotspotSelection = page.kind === "hotspot" && !isLayoutEditMode;
@@ -165,6 +171,34 @@ export function ContentModule({
     );
   }
 
+  // ── Step rail helpers ──────────────────────────────────────────
+  const stepRailBlock = page.blocks.find((b) => b.type === "step-rail");
+  const pageWithoutRail = stepRailBlock
+    ? { ...page, blocks: page.blocks.filter((b) => b.type !== "step-rail") }
+    : page;
+  const srOrientation: "horizontal" | "vertical" = (() => {
+    if (!stepRailBlock) return "vertical";
+    try { return (JSON.parse(stepRailBlock.value).orientation as "horizontal" | "vertical") ?? "vertical"; }
+    catch { return "vertical"; }
+  })();
+
+  // Split blocks into three ranges: before the first linked section, the linked span, and after.
+  const srBlocks = pageWithoutRail.blocks;
+  const srLinkedSectionIds = stepRailBlock
+    ? parseSRPreview(stepRailBlock.value).steps.filter((s) => s.sectionBlockId).map((s) => s.sectionBlockId)
+    : [];
+  const srLastLinkedId = srLinkedSectionIds.at(-1);
+  const srFirstLinkedIdx = srLinkedSectionIds[0] ? srBlocks.findIndex((b) => b.id === srLinkedSectionIds[0]) : -1;
+  const srLastLinkedIdx = srLastLinkedId ? srBlocks.findIndex((b) => b.id === srLastLinkedId) : -1;
+  // First section block after the last linked section is the trailing cutoff
+  const srFirstBeyondIdx = srLastLinkedIdx >= 0
+    ? (() => { const idx = srBlocks.findIndex((b, i) => i > srLastLinkedIdx && b.type === "section"); return idx; })()
+    : -1;
+  const srPreBlocks = srFirstLinkedIdx > 0 ? srBlocks.slice(0, srFirstLinkedIdx) : [];
+  const srRailEnd = srFirstBeyondIdx >= 0 ? srFirstBeyondIdx : srBlocks.length;
+  const srRailSpanBlocks = srFirstLinkedIdx >= 0 ? srBlocks.slice(srFirstLinkedIdx, srRailEnd) : srBlocks;
+  const srPostBlocks = srFirstBeyondIdx >= 0 ? srBlocks.slice(srFirstBeyondIdx) : [];
+
   // ── Shared inner content ───────────────────────────────────────
   function renderContent(showInlineClose: boolean) {
     const titleNode = (
@@ -195,10 +229,95 @@ export function ContentModule({
       </div>
     );
 
+    function previewBlocks(blocks: typeof srBlocks, withHeader?: React.ReactNode) {
+      return (
+        <PreviewBlocks
+          accentColor={accentColor}
+          onNavigate={onNavigate}
+          onDismissContent={onDismissContent}
+          page={{ ...pageWithoutRail, blocks, summary: "" }}
+          pages={pages}
+          header={withHeader}
+        />
+      );
+    }
+
+    const noRailContent = (
+      <PreviewBlocks accentColor={accentColor} onNavigate={onNavigate} onDismissContent={onDismissContent} page={pageWithoutRail} pages={pages} header={titleNode} />
+    );
+
     return (
       <>
         <div className={mutedTextClass}>
-          <PreviewBlocks accentColor={accentColor} onNavigate={onNavigate} onDismissContent={onDismissContent} page={page} pages={pages} header={titleNode} />
+          {!stepRailBlock && noRailContent}
+          {stepRailBlock && srOrientation === "vertical" && (
+            // All three regions use the same two-column layout so the content
+            // column stays at a consistent left edge throughout.
+            // Rail column is w-10 (40px) + gap-2 (8px) = 48px gutter.
+            <div className="space-y-2">
+              {/* Title always in the content column */}
+              <div className="flex gap-2">
+                <div className="w-10 flex-shrink-0" />
+                <div className="min-w-0 flex-1">{titleNode}</div>
+              </div>
+              {/* Pre-section content */}
+              {(srPreBlocks.length > 0 || page.summary.trim()) && (
+                <div className="flex gap-2">
+                  <div className="w-10 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <PreviewBlocks
+                      accentColor={accentColor}
+                      onNavigate={onNavigate}
+                      onDismissContent={onDismissContent}
+                      page={{ ...pageWithoutRail, blocks: srPreBlocks, summary: page.summary }}
+                      pages={pages}
+                    />
+                  </div>
+                </div>
+              )}
+              {/* Rail beside linked sections — sticky within scroll container */}
+              {srRailSpanBlocks.length > 0 && (
+                <div className="flex items-start gap-2">
+                  <div className="w-10 flex-shrink-0 self-start" style={{ position: "sticky", top: 0 }}>
+                    <StepRailBlock block={stepRailBlock} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    {previewBlocks(srRailSpanBlocks)}
+                  </div>
+                </div>
+              )}
+              {/* Post-section content */}
+              {srPostBlocks.length > 0 && (
+                <div className="flex gap-2">
+                  <div className="w-10 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">{previewBlocks(srPostBlocks)}</div>
+                </div>
+              )}
+            </div>
+          )}
+          {stepRailBlock && srOrientation === "horizontal" && (
+            <div className="space-y-2">
+              {titleNode}
+              {(srPreBlocks.length > 0 || page.summary.trim()) && (
+                <PreviewBlocks
+                  accentColor={accentColor}
+                  onNavigate={onNavigate}
+                  onDismissContent={onDismissContent}
+                  page={{ ...pageWithoutRail, blocks: srPreBlocks, summary: page.summary }}
+                  pages={pages}
+                />
+              )}
+              {srRailSpanBlocks.length > 0 && (
+                <div>
+                  <div style={{ position: "sticky", top: 0, zIndex: 10 }}>
+                    <StepRailBlock block={stepRailBlock} />
+                  </div>
+                  {previewBlocks(srRailSpanBlocks)}
+                </div>
+              )}
+              {srPostBlocks.length > 0 && previewBlocks(srPostBlocks)}
+            </div>
+          )}
         </div>
 
       {page.socialLinks.length > 0 || page.showQrCode ? (
@@ -373,6 +492,7 @@ export function ContentModule({
         />
       ) : null}
       <div
+        ref={moduleRef}
         className="absolute z-30 flex flex-col items-end"
         style={wrapperStyle}
         onClick={(e) => e.stopPropagation()}
@@ -397,6 +517,7 @@ export function ContentModule({
       </div>
       {ctype === "tooltip" ? (
         <div
+          ref={arrowRef}
           aria-hidden="true"
           className="pointer-events-none absolute z-30"
           style={{

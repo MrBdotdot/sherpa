@@ -2,7 +2,7 @@
 
 import { ChangeEvent } from "react";
 import { InteractionType, PageButtonPlacement, PageItem } from "@/app/_lib/authoring-types";
-import { getInteractionTypeLabel, getPlacementLabel } from "@/app/_lib/authoring-utils";
+import { getInteractionTypeLabel, getPlacementLabel } from "@/app/_lib/label-utils";
 import { EditorSection, EditorSubsection, SelectField } from "@/app/_components/editor/editor-ui";
 
 export function PageSetupSection({

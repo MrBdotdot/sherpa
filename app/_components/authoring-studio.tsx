@@ -6,7 +6,11 @@ import { ConfirmDeleteModal } from "@/app/_components/confirm-delete-modal";
 import { PageEditorModal } from "@/app/_components/page-editor-modal";
 import { PageSidebar } from "@/app/_components/page-sidebar";
 import { PreviewCanvas } from "@/app/_components/preview-canvas";
-import { createInitialPages, HOME_PAGE_ID } from "@/app/_lib/authoring-utils";
+import { ChangelogModal } from "@/app/_components/changelog-modal";
+import { AccountPanel } from "@/app/_components/account-panel";
+import { GameSwitcherModal } from "@/app/_components/game-switcher-modal";
+import { CommandPalette } from "@/app/_components/command-palette";
+import { createId, createInitialPages, HOME_PAGE_ID } from "@/app/_lib/authoring-utils";
 import { ExperienceStatus, LayoutMode, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 import {
   loadPersistedState,
@@ -20,6 +24,7 @@ import { useContentHandlers } from "@/app/_hooks/useContentHandlers";
 import { useCanvasFeatureHandlers } from "@/app/_hooks/useCanvasFeatureHandlers";
 import { useA11yMonitor } from "@/app/_hooks/useA11yMonitor";
 import { A11yNotificationStack } from "@/app/_components/a11y-notification";
+import { usePaletteEntries } from "@/app/_hooks/usePaletteEntries";
 
 const STORAGE_KEY = "sherpa-v1";
 
@@ -35,6 +40,7 @@ export function AuthoringStudio() {
     surfaceStyle: "glass",
     accentColor: "",
     hotspotSize: "medium",
+    modelEnvironment: "studio",
   });
   const [experienceStatus, setExperienceStatus] = useState<ExperienceStatus>("draft");
   const [isLayoutEditMode, setIsLayoutEditMode] = useState(false);
@@ -44,8 +50,30 @@ export function AuthoringStudio() {
   const [isContentModalOpen, setIsContentModalOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>("surface");
+  const [scrollToBlock, setScrollToBlock] = useState<{ id: string; ts: number } | null>(null);
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(null);
+  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isGameSwitcherOpen, setIsGameSwitcherOpen] = useState(false);
+  const [isChangelogOpen, setIsChangelogOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [currentGameId, setCurrentGameId] = useState("game-1");
+  const [currentGameName, setCurrentGameName] = useState("Ugly Pickle");
+  const [currentStudioName, setCurrentStudioName] = useState("Bee Studio");
   const [hydrated, setHydrated] = useState(false);
+
+  // Refs for the keyboard handler — avoid stale closures without re-registering the listener
+  const selectedFeatureIdRef = useRef(selectedFeatureId);
+  useEffect(() => { selectedFeatureIdRef.current = selectedFeatureId; }, [selectedFeatureId]);
+  const selectedPageIdRef = useRef(selectedPageId);
+  useEffect(() => { selectedPageIdRef.current = selectedPageId; }, [selectedPageId]);
+  const layoutModeRef = useRef(layoutMode);
+  useEffect(() => { layoutModeRef.current = layoutMode; }, [layoutMode]);
+  const isPreviewModeRef = useRef(isPreviewMode);
+  useEffect(() => { isPreviewModeRef.current = isPreviewMode; }, [isPreviewMode]);
+  const isFocusModeRef = useRef(isFocusMode);
+  useEffect(() => { isFocusModeRef.current = isFocusMode; }, [isFocusMode]);
+  const lastNudgeTimeRef = useRef(0);
 
   // Load persisted state after first mount to avoid SSR/client hydration mismatch
   useEffect(() => {
@@ -74,7 +102,11 @@ export function AuthoringStudio() {
   );
 
   const hotspotPages = useMemo(
-    () => pages.filter((page) => page.kind === "hotspot" && page.x !== null && page.y !== null),
+    () => pages.filter(
+      (page) =>
+        page.kind === "hotspot" &&
+        ((page.x !== null && page.y !== null) || page.worldPosition !== undefined)
+    ),
     [pages]
   );
 
@@ -95,7 +127,7 @@ export function AuthoringStudio() {
     );
   }, [selectedPageId]);
 
-  const { pagesHistoryRef, pagesRedoRef, pushPagesHistory } = useStudioHistory(pages, setPages);
+  const { pagesHistoryRef, pagesRedoRef, pushPagesHistory, HISTORY_LIMIT } = useStudioHistory(pages, setPages);
 
   const {
     canvasRef,
@@ -109,6 +141,7 @@ export function AuthoringStudio() {
     handleCanvasFeaturePointerDown,
     handleContentCardPointerDown,
     handleCanvasClick,
+    handle3dHotspotPlace,
     handleDismissContent,
     handleTogglePreviewMode,
   } = useDrag({
@@ -130,7 +163,7 @@ export function AuthoringStudio() {
   const {
     openPageEditor,
     handleSidebarFeatureClick,
-    handleCreatePage: _handleCreatePage,
+    handleCreatePage,
     handleCreateTemplatePage: _handleCreateTemplatePage,
     handleCreatePageWithConfig,
     handleCreatePageForButton,
@@ -167,6 +200,7 @@ export function AuthoringStudio() {
     handleBlockImageFitChange,
     handleMoveBlockUp,
     handleMoveBlockDown,
+    handleReorderBlocks,
     handleBlockImageUpload,
     handleRemoveBlock,
     handleAddSocialLink,
@@ -194,6 +228,30 @@ export function AuthoringStudio() {
     updateSelectedPage,
     setSystemSettings,
     setShowLayoutHelp,
+  });
+
+  const handleSelectPage = useCallback((id: string) => {
+    setSelectedPageId(id);
+    const page = pages.find((p) => p.id === id);
+    if (page?.kind === "hotspot" || page?.kind === "page") setInspectorTab("content");
+  }, [pages, setSelectedPageId, setInspectorTab]);
+
+  const extraPaletteEntries = usePaletteEntries({
+    selectedFeatureId,
+    selectedPage,
+    isLayoutEditMode,
+    handleSystemSettingChange,
+    handlePublishStatusChange,
+    pushPagesHistory,
+    setPages,
+    setSelectedFeatureId,
+    setIsLayoutEditMode,
+    setInspectorTab,
+    setShowDeleteModal,
+    setIsGameSwitcherOpen,
+    setIsChangelogOpen,
+    setIsAccountOpen,
+    handleDismissContent,
   });
 
   // Accessibility monitor — scans the preview canvas after each change
@@ -237,34 +295,183 @@ export function AuthoringStudio() {
     [pages, setSelectedPageId, setSelectedFeatureId, setInspectorTab, setIsContentModalOpen]
   );
 
-  // ESC exits preview mode; Ctrl/Cmd+Z undoes; Ctrl/Cmd+Shift+Z redoes
+  // Keyboard shortcuts — all state read via refs so the listener never needs re-registration
   useEffect(() => {
+    const isTyping = () => {
+      const el = document.activeElement;
+      return (
+        el instanceof HTMLInputElement ||
+        el instanceof HTMLTextAreaElement ||
+        (el instanceof HTMLElement && el.isContentEditable)
+      );
+    };
+
+    const pushHistory = () => {
+      pagesHistoryRef.current = [...pagesHistoryRef.current.slice(-(HISTORY_LIMIT - 1)), pagesRef.current];
+      pagesRedoRef.current = [];
+    };
+
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && isPreviewMode) {
-        setIsPreviewMode(false);
-      }
-      if ((event.ctrlKey || event.metaKey) && event.key === "z" && !event.shiftKey) {
+      const mod = event.ctrlKey || event.metaKey;
+
+      // Ctrl/Cmd+Z — undo
+      if (mod && event.key === "z" && !event.shiftKey) {
         const history = pagesHistoryRef.current;
         if (history.length === 0) return;
         event.preventDefault();
         const prev = history[history.length - 1];
         pagesHistoryRef.current = history.slice(0, -1);
-        pagesRedoRef.current = [...pagesRedoRef.current.slice(-49), pagesRef.current];
+        pagesRedoRef.current = [...pagesRedoRef.current.slice(-(HISTORY_LIMIT - 1)), pagesRef.current];
         setPages(prev);
+        return;
       }
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z" && event.shiftKey) {
+
+      // Ctrl/Cmd+Shift+Z — redo
+      if (mod && event.key.toLowerCase() === "z" && event.shiftKey) {
         const redoStack = pagesRedoRef.current;
         if (redoStack.length === 0) return;
         event.preventDefault();
         const next = redoStack[redoStack.length - 1];
         pagesRedoRef.current = redoStack.slice(0, -1);
-        pagesHistoryRef.current = [...pagesHistoryRef.current.slice(-49), pagesRef.current];
+        pagesHistoryRef.current = [...pagesHistoryRef.current.slice(-(HISTORY_LIMIT - 1)), pagesRef.current];
         setPages(next);
+        return;
+      }
+
+      // Escape — exit preview mode
+      if (event.key === "Escape" && isPreviewModeRef.current) {
+        setIsPreviewMode(false);
+        return;
+      }
+
+      // Ctrl/Cmd+K — open command palette
+      if (mod && event.key === "k") {
+        event.preventDefault();
+        setIsCommandPaletteOpen(true);
+        return;
+      }
+
+      // Ctrl/Cmd+D — duplicate selected canvas feature
+      if (mod && event.key === "d") {
+        const featureId = selectedFeatureIdRef.current;
+        if (!featureId) return;
+        event.preventDefault();
+        pushHistory();
+        setPages((prev) => {
+          const pageIdx = prev.findIndex((p) => p.canvasFeatures.some((f) => f.id === featureId));
+          if (pageIdx === -1) return prev;
+          const feature = prev[pageIdx].canvasFeatures.find((f) => f.id === featureId);
+          if (!feature) return prev;
+          const clone = {
+            ...feature,
+            id: createId("feature"),
+            x: Math.min(feature.x + 3, 95),
+            y: Math.min(feature.y + 3, 95),
+          };
+          return prev.map((p, i) =>
+            i === pageIdx ? { ...p, canvasFeatures: [...p.canvasFeatures, clone] } : p
+          );
+        });
+        return;
+      }
+
+      // Guard — bare keys must not fire while typing in an input
+      if (isTyping()) return;
+
+      // Delete / Backspace — delete selected canvas feature, or selected hotspot
+      if (event.key === "Delete" || event.key === "Backspace") {
+        const featureId = selectedFeatureIdRef.current;
+        if (featureId) {
+          event.preventDefault();
+          pushHistory();
+          setPages((prev) =>
+            prev.map((p) => ({
+              ...p,
+              canvasFeatures: p.canvasFeatures.filter((f) => f.id !== featureId),
+            }))
+          );
+          setSelectedFeatureId(null);
+          return;
+        }
+        const pageId = selectedPageIdRef.current;
+        const page = pagesRef.current.find((p) => p.id === pageId);
+        if (page?.kind === "hotspot") {
+          event.preventDefault();
+          pushHistory();
+          setPages((prev) => prev.filter((p) => p.id !== pageId));
+          setSelectedPageId(HOME_PAGE_ID);
+        }
+        return;
+      }
+
+      // 1 / 2 / 3 — layout mode
+      if (event.key === "1") { setLayoutMode("desktop"); return; }
+      if (event.key === "2") { setLayoutMode("mobile-landscape"); return; }
+      if (event.key === "3") { setLayoutMode("mobile-portrait"); return; }
+
+      // P — toggle preview mode
+      if (event.key === "p" || event.key === "P") {
+        setIsPreviewMode((prev) => !prev);
+        return;
+      }
+
+      // F — toggle focus mode (hide sidebar + inspector)
+      if (event.key === "f" || event.key === "F") {
+        setIsFocusMode((prev) => !prev);
+        return;
+      }
+
+      // [ / ] — cycle through pages
+      if (event.key === "[" || event.key === "]") {
+        const allPages = pagesRef.current;
+        const idx = allPages.findIndex((p) => p.id === selectedPageIdRef.current);
+        if (idx === -1) return;
+        const newIdx =
+          event.key === "["
+            ? (idx - 1 + allPages.length) % allPages.length
+            : (idx + 1) % allPages.length;
+        setSelectedPageId(allPages[newIdx].id);
+        return;
+      }
+
+      // Arrow keys — nudge selected canvas feature by 0.25% (Shift = 1%)
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+        const featureId = selectedFeatureIdRef.current;
+        if (!featureId) return;
+        event.preventDefault();
+        const now = Date.now();
+        if (now - lastNudgeTimeRef.current > 400) pushHistory();
+        lastNudgeTimeRef.current = now;
+        const step = event.shiftKey ? 1 : 0.25;
+        const portrait = layoutModeRef.current === "mobile-portrait";
+        setPages((prev) =>
+          prev.map((p) => ({
+            ...p,
+            canvasFeatures: p.canvasFeatures.map((f) => {
+              if (f.id !== featureId) return f;
+              if (portrait) {
+                const mx = f.mobileX ?? f.x;
+                const my = f.mobileY ?? f.y;
+                return {
+                  ...f,
+                  mobileX: event.key === "ArrowLeft" ? Math.max(0, mx - step) : event.key === "ArrowRight" ? Math.min(100, mx + step) : mx,
+                  mobileY: event.key === "ArrowUp" ? Math.max(0, my - step) : event.key === "ArrowDown" ? Math.min(100, my + step) : my,
+                };
+              }
+              return {
+                ...f,
+                x: event.key === "ArrowLeft" ? Math.max(0, f.x - step) : event.key === "ArrowRight" ? Math.min(100, f.x + step) : f.x,
+                y: event.key === "ArrowUp" ? Math.max(0, f.y - step) : event.key === "ArrowDown" ? Math.min(100, f.y + step) : f.y,
+              };
+            }),
+          }))
+        );
       }
     };
+
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isPreviewMode]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sharedEditorProps = {
     activePreviewPage,
@@ -286,9 +493,13 @@ export function AuthoringStudio() {
     onHeroUpload: handlePageHeroUpload,
     onHotspotPointerDown: handleHotspotPointerDown,
     onDisplayStyleChange: handleDisplayStyleChange,
-    onInspectorTabChange: setInspectorTab,
+    onInspectorTabChange: (tab: InspectorTab) => {
+      if (tab === "surface") handleDismissContent();
+      setInspectorTab(tab);
+    },
     onMoveBlockDown: handleMoveBlockDown,
     onMoveBlockUp: handleMoveBlockUp,
+    onReorderBlocks: handleReorderBlocks,
     onPageButtonPlacementChange: handlePageButtonPlacementChange,
     onPageHeroUrlChange: handlePageHeroUrlChange,
     onPublicUrlChange: handlePublicUrlChange,
@@ -298,7 +509,7 @@ export function AuthoringStudio() {
     onRemoveBlock: handleRemoveBlock,
     onRemoveSocialLink: handleRemoveSocialLink,
     onResetPagePosition: handleResetPagePosition,
-    onSelectPage: setSelectedPageId,
+    onSelectPage: handleSelectPage,
     onSocialLinkChange: handleSocialLinkChange,
     onSystemSettingChange: handleSystemSettingChange,
     onTitleChange: handleTitleChange,
@@ -310,6 +521,7 @@ export function AuthoringStudio() {
     onBlockImagePositionChange: handleBlockImagePositionChange,
     onBlockPropsChange: handleBlockPropsChange,
     onOpenPage: openPageEditor,
+    scrollToBlockId: scrollToBlock?.id ?? null,
     isPortraitMode: layoutMode === "mobile-portrait" && systemSettings.portraitLayout !== "full",
     selectedPage,
     selectedPageId,
@@ -337,17 +549,19 @@ export function AuthoringStudio() {
     systemSettings,
     showLayoutHelp,
     onCanvasClick: handleCanvasClick,
+    onPlace3dHotspot: handle3dHotspotPlace,
     onCanvasFeaturePointerDown: handleCanvasFeaturePointerDown,
     onContentCardPointerDown: handleContentCardPointerDown,
     onDeleteHotspot: handleDeleteHotspot,
     onDismissContent: handleDismissContent,
     onDismissLayoutHelp: () => setShowLayoutHelp(false),
     onHotspotPointerDown: handleHotspotPointerDown,
-    onSelectPage: setSelectedPageId,
+    onSelectPage: handleSelectPage,
     onToggleLayoutEditMode: () => setIsLayoutEditMode((prev) => !prev),
     onSetLayoutMode: setLayoutMode,
     onTogglePreviewMode: handleTogglePreviewMode,
     onHeroUpload: handlePageHeroUpload,
+    onOpenCommandPalette: () => setIsCommandPaletteOpen(true),
     isPreviewMode,
     selectedPageId,
   } as const;
@@ -355,20 +569,44 @@ export function AuthoringStudio() {
   return (
     <main className="min-h-screen bg-[#f3f4f6] text-neutral-900">
       <div className="flex min-h-screen">
-        <div className="hidden h-screen w-[300px] shrink-0 overflow-hidden border-r border-neutral-200 bg-white lg:block">
+        <div className={`${isFocusMode ? "hidden" : "hidden lg:block"} h-screen w-[300px] shrink-0 overflow-hidden border-r border-neutral-200 bg-white`}>
           <PageSidebar
-            onOpenPage={openPageEditor}
+            onAddPage={handleCreatePage}
+            onReorderBlocks={(pageId, fromIndex, toIndex) => {
+              pushPagesHistory();
+              setPages((prev) => prev.map((p) => {
+                if (p.id !== pageId) return p;
+                const blocks = [...p.blocks];
+                const [moved] = blocks.splice(fromIndex, 1);
+                blocks.splice(toIndex, 0, moved);
+                return { ...p, blocks };
+              }));
+            }}
+            onOpenPage={(pageId, blockId) => {
+              openPageEditor(pageId);
+              if (blockId) {
+                setInspectorTab("content");
+                setScrollToBlock({ id: blockId, ts: Date.now() });
+              } else {
+                setScrollToBlock(null);
+              }
+            }}
             onPublishStatusChange={handleSidebarPublishStatusChange}
             onSelectFeature={handleSidebarFeatureClick}
             pages={pages}
             selectedFeatureId={selectedFeatureId}
             selectedPageId={selectedPageId}
+            currentGameName={currentGameName}
+            currentStudioName={currentStudioName}
+            onOpenChangelog={() => setIsChangelogOpen(true)}
+            onOpenAccount={() => setIsAccountOpen(true)}
+            onOpenGameSwitcher={() => setIsGameSwitcherOpen(true)}
           />
         </div>
 
         <section className="min-w-0 flex-1 bg-[#eef1f4] p-4 md:p-6 lg:flex lg:h-screen lg:overflow-hidden lg:p-0">
           {/* Canvas column — padded uniformly on all sides */}
-          <div className="min-w-0 flex-1 lg:overflow-hidden lg:p-8">
+          <div className="min-w-0 flex-1 lg:flex lg:flex-col lg:overflow-hidden lg:p-8">
             <div className="mb-4 flex items-center gap-2 xl:hidden">
               <select
                 value={selectedPageId}
@@ -394,13 +632,13 @@ export function AuthoringStudio() {
               </button>
             </div>
 
-            <div className="rounded-[28px] border border-white/70 bg-white p-2 sm:p-4 md:p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
-              <PreviewCanvas {...sharedCanvasProps} />
+            <div className="rounded-[28px] border border-white/70 bg-white p-2 sm:p-4 md:p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] lg:flex-1 lg:min-h-0 lg:flex lg:flex-col">
+              <PreviewCanvas {...sharedCanvasProps} fillHeight />
             </div>
           </div>
 
           {/* Inspector column — flush to top, right, and bottom edges */}
-          <div className="hidden xl:flex xl:w-[380px] xl:shrink-0 xl:flex-col">
+          <div className={`${isFocusMode ? "hidden" : "hidden xl:flex"} xl:w-[380px] xl:shrink-0 xl:flex-col`}>
             <div className="flex h-full flex-col overflow-hidden border-l border-neutral-200 bg-[#f7f7f8]">
               <div className="border-b border-neutral-200 px-5 py-4">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
@@ -431,6 +669,32 @@ export function AuthoringStudio() {
         />
       </div>
 
+      {isFocusMode && (
+        <button
+          type="button"
+          onClick={() => setIsFocusMode(false)}
+          className="fixed right-4 top-4 z-50 rounded-lg bg-black/30 px-3 py-1.5 text-xs text-white backdrop-blur-sm hover:bg-black/50"
+        >
+          Exit focus mode <span className="opacity-60">F</span>
+        </button>
+      )}
+
+      {isCommandPaletteOpen && (
+        <CommandPalette
+          pages={pages}
+          context={inspectorTab === "content" ? "content" : null}
+          extraEntries={extraPaletteEntries}
+          onSelectPage={(id) => openPageEditor(id)}
+          onAddCanvasFeature={handleAddCanvasFeature}
+          onAddBlock={handleAddBlock}
+          onCreatePage={handleCreatePage}
+          onSetLayoutMode={setLayoutMode}
+          onTogglePreview={() => setIsPreviewMode((prev) => !prev)}
+          onToggleFocus={() => setIsFocusMode((prev) => !prev)}
+          onClose={() => setIsCommandPaletteOpen(false)}
+        />
+      )}
+
       <ConfirmDeleteModal
         isOpen={showDeleteModal && !!selectedPage}
         pageTitle={selectedPage?.title || "this page"}
@@ -442,6 +706,19 @@ export function AuthoringStudio() {
         violations={violations}
         onDismiss={dismissViolation}
         onNavigate={handleA11yNavigate}
+      />
+
+      <ChangelogModal isOpen={isChangelogOpen} onClose={() => setIsChangelogOpen(false)} />
+      <AccountPanel isOpen={isAccountOpen} onClose={() => setIsAccountOpen(false)} />
+      <GameSwitcherModal
+        isOpen={isGameSwitcherOpen}
+        currentGameId={currentGameId}
+        onClose={() => setIsGameSwitcherOpen(false)}
+        onSelectGame={(id, name, studio) => {
+          setCurrentGameId(id);
+          setCurrentGameName(name);
+          setCurrentStudioName(studio);
+        }}
       />
     </main>
   );

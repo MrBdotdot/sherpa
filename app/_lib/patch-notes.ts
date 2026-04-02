@@ -6,6 +6,237 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.13.6",
+    date: "2026-04-01",
+    changes: [
+      "Performance: memoized model3dMarkers, effectiveHotspotPages, effectiveFeatures, accentColor style objects in preview-canvas; EmptySurfaceGuidance, SnapGuides, FeaturePlacer wrapped with React.memo to prevent re-renders during drag",
+      "useDrag split into useHotspotDrag, useFeatureDrag, useContentDrag — composite hook unchanged from callsite",
+      "usePageHandlers CRUD operations extracted to usePageCrud — composite hook unchanged from callsite",
+      "block-editor.tsx: CalloutBlockEditor, ImageBlockEditor, ConsentBlockEditor extracted to block-type-editors.tsx; file reduced from 832 to 678 lines",
+    ],
+  },
+  {
+    version: "v0.13.5",
+    date: "2026-04-01",
+    changes: [
+      "Code modularized — account-panel split into account-form-ui + account-sections; preview-canvas helpers extracted to canvas/preview-canvas-helpers; NewContainerForm extracted from setup-tab; authoring-utils labels moved to label-utils, display-style helpers to display-style; BlockPickerModal extracted from content-tab; CanvasFeatureTypeBody extracted from canvas-feature-editor",
+    ],
+  },
+  {
+    version: "v0.13.4",
+    date: "2026-04-01",
+    changes: [
+      "Code modularized — TabsBlockEditor extracted to tabs-block-editor.tsx, CarouselBlockEditor to carousel-block-editor.tsx; block-editor.tsx reduced from 1251 to 832 lines",
+    ],
+  },
+  {
+    version: "v0.13.3",
+    date: "2026-04-01",
+    changes: [
+      "Nav pages renamed to Screens in the sidebar to distinguish them from the landing page canvas",
+    ],
+  },
+  {
+    version: "v0.13.2",
+    date: "2026-04-01",
+    changes: [
+      "Command palette expanded — now covers switching games, opening analytics, account settings, changelog, inspector tab switching, layout edit mode, design settings (font, surface, hotspot size, portrait layout), and contextual publish/delete actions for the current page and selected canvas element",
+      "Keyword highlighting — matched search terms appear in bold in both the command palette results and the search canvas element snippets",
+      "Code modularized — search index logic extracted to _lib/search-index.ts, SearchFeatureCard to canvas/search-feature-card.tsx, palette entries to usePaletteEntries hook; modal state lifted from PageSidebar to AuthoringStudio",
+    ],
+  },
+  {
+    version: "v0.13.1",
+    date: "2026-04-01",
+    changes: [
+      "Search canvas element — place a live search bar anywhere on the canvas; results appear inline with snippets and breadcrumb paths showing where each match lives",
+      "Breadcrumb navigation in search results — each breadcrumb segment is individually clickable to jump directly to that page or section",
+      "Tabs and carousel blocks are indexed by section/slide, so search surfaces results within nested content, not just top-level pages",
+    ],
+  },
+  {
+    version: "v0.13.0",
+    date: "2026-03-31",
+    changes: [
+      "Command palette (⌘K or search icon in toolbar) — jump to any page, add canvas features, switch layout modes, and trigger actions from a single keyboard-driven interface",
+      "Delete / Backspace — removes the selected canvas feature or hotspot without reaching for the inspector",
+      "⌘D — duplicates the selected canvas feature, offset by 3% so it's immediately visible",
+      "1 / 2 / 3 — switches between Desktop, Landscape, and Portrait layout modes",
+      "P — toggles preview mode; Esc still exits it",
+      "F — toggles focus mode, hiding the sidebar and inspector for a distraction-free canvas; press F again or click the exit button to return",
+      "[ / ] — cycles through pages in order",
+      "Arrow keys — nudges the selected canvas feature by 0.25%; Shift+Arrow nudges by 1%; debounced so a held key produces a single undo step",
+    ],
+  },
+  {
+    version: "v0.12.9",
+    date: "2026-03-28",
+    changes: [
+      "Fixed inline markup keys — match position used instead of incrementing counter, preventing React reconciliation flicker on links and colored spans",
+      "Fixed hotspot empty-check string — exported as a shared constant so hotspot-pin.tsx and authoring-utils.ts can never drift out of sync",
+      "Fixed useMobileDetect — now listens to window resize events so mobile layout responds when the browser window is resized",
+      "Undo/redo history limit raised from 50 to 100 steps; limit is now a single constant shared across all three stack operations",
+    ],
+  },
+  {
+    version: "v0.12.8",
+    date: "2026-03-28",
+    changes: [
+      "3D authoring: Orbit / Place mode toggle — default is Orbit (safe), switch to Place to add hotspots, eliminating accidental placement while examining the model",
+      "3D authoring: hotspot sphere markers now show the hotspot title as a floating label, making it easy to identify all hotspots without clicking each one",
+      "3D authoring: camera reset button (↺) snaps back to the initial view position and orientation",
+    ],
+  },
+  {
+    version: "v0.12.7",
+    date: "2026-03-28",
+    changes: [
+      "3D hotspot content panels (modal/tooltip) now track the orbiting hotspot — the panel follows the 3D position in real time as you rotate the model, with no React re-renders (direct DOM update via useFrame)",
+    ],
+  },
+  {
+    version: "v0.12.6",
+    date: "2026-03-28",
+    changes: [
+      "3D hotspot markers (spheres in authoring mode, HTML pins in preview) now sit on top of the model surface instead of sinking into it — offset along the stored surface normal by one sphere radius",
+    ],
+  },
+  {
+    version: "v0.12.5",
+    date: "2026-03-28",
+    changes: [
+      "Fixed 3D model orbit: hotspot overlay divs were covering the WebGL canvas and swallowing all pointer events — OrbitControls now receives drags correctly",
+    ],
+  },
+  {
+    version: "v0.12.4",
+    date: "2026-03-28",
+    changes: [
+      "3D hotspot overlay (Chunk 4): hotspots placed on a 3D model now render as interactive HTML pins (matching the 2D hotspot visual) projected onto the canvas in real time",
+      "Back-face culling: hotspot pins automatically hide when the surface normal they were placed on faces away from the camera — they reappear as you orbit back around",
+      "In authoring mode, blue sphere markers remain; HTML pins are shown in preview mode only",
+      "Fixed non-portrait layout missing model settings props (scale, rotation, environment, hotspots)",
+    ],
+  },
+  {
+    version: "v0.12.3",
+    date: "2026-03-28",
+    changes: [
+      "3D hotspot placement (Chunk 3): when a 3D model background is active, click anywhere on the model surface to place a hotspot — a crosshair cursor and hint label indicate authoring mode",
+      "Placed hotspots appear as blue spheres in the 3D scene; the selected hotspot glows white — click a sphere to select it",
+      "Hotspot world-position is stored in the model's group-local coordinate space so markers stay glued to the surface even if scale or rotation are later adjusted",
+    ],
+  },
+  {
+    version: "v0.12.2",
+    date: "2026-03-28",
+    changes: [
+      "3D model settings (Chunk 2): when a 3D model background is active, a new '3D model' settings section appears with scale, initial spin (Y), initial tilt (X), and a lighting environment dropdown",
+      "Lighting presets (apartment, city, dawn, forest, lobby, night, park, studio, sunset, warehouse) use image-based lighting for realistic reflections on PBR materials",
+    ],
+  },
+  {
+    version: "v0.12.1",
+    date: "2026-03-28",
+    changes: [
+      "Image block width is now a continuous slider (80–800px) instead of Small / Medium / Large buttons — slide all the way right for full width",
+    ],
+  },
+  {
+    version: "v0.12.0",
+    date: "2026-03-28",
+    changes: [
+      "3D model background (Chunk 1): set any home page background to a .glb / .gltf model — paste a URL or upload a file in Settings → Background → 3D model",
+      "Orbit controls built in: drag to rotate, scroll to zoom, right-drag to pan",
+      "Switching back to a 2D image or color background is always available via the same toggle",
+      "Data model extended: hotspot PageItems now carry worldPosition and worldNormal fields for upcoming angle-based visibility (Chunk 4)",
+    ],
+  },
+  {
+    version: "v0.11.9",
+    date: "2026-03-28",
+    changes: [
+      "Content blocks can now be reordered by dragging — hover a block to reveal the grip handle on its left edge, then drag to the desired position",
+    ],
+  },
+  {
+    version: "v0.11.8",
+    date: "2026-03-27",
+    changes: [
+      "Half-width block grids now auto-collapse to a single column in narrow containers (side sheets, compact cards) instead of squeezing into 2 fixed columns",
+      "Tabs bar now scrolls horizontally in narrow containers instead of overflowing",
+    ],
+  },
+  {
+    version: "v0.11.7",
+    date: "2026-03-27",
+    changes: [
+      "Adding a Step Rail block now automatically creates pre-linked Section blocks for each step — no manual wiring needed",
+    ],
+  },
+  {
+    version: "v0.11.6",
+    date: "2026-03-27",
+    changes: [
+      "Landscape mode now supports drag-to-pan — drag left/right on the board to reveal parts cut off by the frame, with hotspot pins following the pan",
+    ],
+  },
+  {
+    version: "v0.11.5",
+    date: "2026-03-27",
+    changes: [
+      "Portrait hotspot pins now follow the image when you drag-to-pan the board strip",
+    ],
+  },
+  {
+    version: "v0.11.4",
+    date: "2026-03-27",
+    changes: [
+      "Selecting a hotspot from the canvas now automatically switches the inspector to the Content tab",
+      "Preview mode in landscape and portrait now shows the correct mobile frame instead of stretching to desktop dimensions",
+    ],
+  },
+  {
+    version: "v0.11.3",
+    date: "2026-03-27",
+    changes: [
+      "Portrait image strip now supports horizontal drag-to-pan — drag left/right on the board image to reveal parts cut off by the frame",
+    ],
+  },
+  {
+    version: "v0.11.2",
+    date: "2026-03-27",
+    changes: [
+      "Refactor: extracted FocalPointPicker, ImageHotspotEditor, StepRailBlockEditor into dedicated files; extracted ConsentFormBlock, inline-markup utilities, ImageBlock, StepRailBlock/SectionBlock from preview-blocks.tsx",
+    ],
+  },
+  {
+    version: "v0.11.1",
+    date: "2026-03-27",
+    changes: [
+      "Image block hotspot popovers now appear correctly to the left or right of the image frame — previously they were clipped by the modal card's scroll container",
+    ],
+  },
+  {
+    version: "v0.11.0",
+    date: "2026-03-27",
+    changes: [
+      "Image block hotspots: click anywhere on an image block to place a hotspot pin — each pin has a label and content field edited inline in the Content tab",
+      "Image block hotspots: in the player preview, pins pulse on the image and reveal a popover with the label and content on tap",
+    ],
+  },
+  {
+    version: "v0.10.9",
+    date: "2026-03-27",
+    changes: [
+      "Left nav IA: renamed 'Containers' to 'Pages', moved Hotspots section under the Landing page entry, added '+ New page' button inline with the Pages section header",
+      "Left nav IA: game switcher bottom bar now shows 'Studio / Game' format for clearer workspace context",
+      "Inspector tabs renamed: 'Surface' → 'Canvas', 'Setup' → 'Settings'",
+      "Inspector tab order changed for page editors: Content → Canvas → Settings (reflects natural authoring workflow)",
+      "Home page inspector: Content tab now shown as dimmed with a tooltip explaining why it is unavailable on the landing page",
+    ],
+  },
+  {
     version: "v0.10.8",
     date: "2026-03-27",
     changes: [

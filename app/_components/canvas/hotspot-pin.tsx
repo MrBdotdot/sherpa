@@ -2,12 +2,12 @@
 
 import React from "react";
 import { PageItem } from "@/app/_lib/authoring-types";
+import { DEFAULT_HOTSPOT_BLOCK_TEXT } from "@/app/_lib/authoring-utils";
 
 function isHotspotEmpty(page: PageItem): boolean {
-  const DEFAULT_HOTSPOT_BLOCK = "Add contextual content for this hotspot.";
   const hasRealSummary = page.summary.trim().length > 0;
   const hasRealBlocks = page.blocks.some(
-    (b) => b.value.trim() !== "" && b.value.trim() !== DEFAULT_HOTSPOT_BLOCK
+    (b) => b.value.trim() !== "" && b.value.trim() !== DEFAULT_HOTSPOT_BLOCK_TEXT
   );
   return !hasRealSummary && !hasRealBlocks;
 }
@@ -51,7 +51,8 @@ export function HotspotPin({
 
   return (
     <div
-      className="absolute"
+      data-hotspot
+      className="absolute pointer-events-auto"
       style={{
         left: `${page.x}%`,
         top: `${page.y}%`,
