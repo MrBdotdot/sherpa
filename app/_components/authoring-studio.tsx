@@ -10,7 +10,7 @@ import { ChangelogModal } from "@/app/_components/changelog-modal";
 import { AccountPanel } from "@/app/_components/account-panel";
 import { GameSwitcherModal } from "@/app/_components/game-switcher-modal";
 import { CommandPalette } from "@/app/_components/command-palette";
-import { createId, createInitialPages, HOME_PAGE_ID } from "@/app/_lib/authoring-utils";
+import { createId, createSamplePages, HOME_PAGE_ID } from "@/app/_lib/authoring-utils";
 import { ExperienceStatus, LayoutMode, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 import {
   loadPersistedState,
@@ -31,7 +31,7 @@ const STORAGE_KEY = "sherpa-v1";
 type InspectorTab = "surface" | "content" | "setup";
 
 export function AuthoringStudio() {
-  const [pages, setPages] = useState<PageItem[]>(createInitialPages);
+  const [pages, setPages] = useState<PageItem[]>(createSamplePages);
   const pagesRef = useRef(pages);
   useEffect(() => { pagesRef.current = pages; }, [pages]);
   const [selectedPageId, setSelectedPageId] = useState<string>(HOME_PAGE_ID);
@@ -637,12 +637,12 @@ export function AuthoringStudio() {
             </div>
           </div>
 
-          {/* Inspector column — flush to top, right, and bottom edges */}
+          {/* Editing Panel column — flush to top, right, and bottom edges */}
           <div className={`${isFocusMode ? "hidden" : "hidden xl:flex"} xl:w-[380px] xl:shrink-0 xl:flex-col`}>
             <div className="flex h-full flex-col overflow-hidden border-l border-neutral-200 bg-[#f7f7f8]">
               <div className="border-b border-neutral-200 px-5 py-4">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                  Inspector
+                  Editing Panel
                 </div>
               </div>
 

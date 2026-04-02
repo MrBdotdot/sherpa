@@ -6,6 +6,22 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.13.9",
+    date: "2026-04-02",
+    changes: [
+      "First-run experience: new users now open to a fully-populated sample game ('Realm Quest') showcasing all canvas features, card types, content blocks, and interaction types",
+    ],
+  },
+  {
+    version: "v0.13.8",
+    date: "2026-04-02",
+    changes: [
+      "Terminology: right panel renamed from 'Inspector' to 'Editing Panel'",
+      "Terminology: 'Page buttons' renamed to 'Card buttons' throughout the UI (parity with Pages→Cards rename)",
+      "Terminology: command palette view entries updated to 'Board tab', 'Content tab', 'Settings tab'",
+    ],
+  },
+  {
     version: "v0.13.7",
     date: "2026-04-01",
     changes: [
