@@ -71,7 +71,7 @@ export function SurfaceTab({
           {pageButtons.length > 0 ? (
             <div className="space-y-4">
               {elements.length > 0 ? (
-                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Page buttons</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Card buttons</div>
               ) : null}
               {pageButtons.map(renderFeature)}
             </div>

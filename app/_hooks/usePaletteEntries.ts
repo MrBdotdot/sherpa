@@ -48,9 +48,9 @@ export function usePaletteEntries({
       { id: "nav-account", label: "Account settings", group: "Navigate", alwaysShow: true, onRun: () => setIsAccountOpen(true) },
       { id: "nav-changelog", label: "View changelog", group: "Navigate", alwaysShow: true, onRun: () => setIsChangelogOpen(true) },
       // View
-      { id: "view-surface", label: "Surface inspector", group: "View", alwaysShow: true, onRun: () => { handleDismissContent(); setInspectorTab("surface"); } },
-      { id: "view-content", label: "Content inspector", group: "View", alwaysShow: true, onRun: () => setInspectorTab("content") },
-      { id: "view-setup", label: "Setup inspector", group: "View", alwaysShow: true, onRun: () => setInspectorTab("setup") },
+      { id: "view-surface", label: "Board tab", group: "View", alwaysShow: true, onRun: () => { handleDismissContent(); setInspectorTab("surface"); } },
+      { id: "view-content", label: "Content tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("content") },
+      { id: "view-setup", label: "Settings tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("setup") },
       // Canvas
       { id: "canvas-layout-edit", label: isLayoutEditMode ? "Exit layout edit mode" : "Enter layout edit mode", group: "Canvas", alwaysShow: true, onRun: () => setIsLayoutEditMode((prev) => !prev) },
       // Design (only visible when queried)

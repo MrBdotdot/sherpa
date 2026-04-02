@@ -375,11 +375,11 @@ export function PageSidebar({
                   </CollapsibleSection>
 
                   <CollapsibleSection
-                    title="Page buttons"
+                    title="Card buttons"
                     open={openSections.has("page-buttons")}
                     onToggle={() => toggleSection("page-buttons")}
                     isEmpty={pageButtons.length === 0}
-                    emptyText="No page buttons yet."
+                    emptyText="No card buttons yet."
                     count={pageButtons.length}
                   >
                     {pageButtons.map((feature) => (
