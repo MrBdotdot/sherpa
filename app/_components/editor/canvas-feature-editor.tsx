@@ -6,9 +6,9 @@ import { CanvasFeatureTypeBody } from "@/app/_components/editor/canvas-feature-t
 
 export const CANVAS_ELEMENT_TYPES: Array<{ type: CanvasFeatureType; label: string; description: string }> = [
   { type: "image", label: "Image", description: "Image with optional link or link list" },
-  { type: "heading", label: "Heading", description: "Large heading text on the canvas" },
+  { type: "heading", label: "Heading", description: "Large heading text on the board" },
   { type: "qr", label: "QR code", description: "Scannable code image" },
-  { type: "button", label: "Button", description: "Link button on the canvas surface" },
+  { type: "button", label: "Button", description: "Link button on the board" },
   { type: "dropdown", label: "Dropdown", description: "Multi-destination selector" },
   { type: "search", label: "Search", description: "Full-text search with breadcrumb navigation" },
   { type: "locale", label: "Language switcher", description: "Lets players switch between available languages" },

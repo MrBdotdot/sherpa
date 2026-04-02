@@ -33,12 +33,12 @@ export function SetupTab({
       <NewContainerForm onCreatePageWithConfig={onCreatePageWithConfig} />
 
       {/* This page */}
-      <EditorSection title="This page">
+      <EditorSection title="This card">
         <div className="space-y-4">
           {selectedPage.kind === "page" ? (
             <EditorSubsection
               title="Button placement"
-              description="Where this container's button sits on the home surface."
+              description="Where this card's button sits on the main page."
             >
               <div className="space-y-4">
                 <SelectField

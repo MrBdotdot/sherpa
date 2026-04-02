@@ -13,7 +13,7 @@ import {
   TemplateId,
 } from "@/app/_lib/authoring-types";
 
-export const APP_VERSION = "v0.13.6";
+export const APP_VERSION = "v0.13.7";
 
 export type { PatchNote } from "@/app/_lib/patch-notes";
 export { PATCH_NOTES } from "@/app/_lib/patch-notes";

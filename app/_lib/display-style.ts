@@ -11,7 +11,7 @@ export const DISPLAY_STYLE_OPTIONS: DisplayStyleOption[] = [
   { key: "side-sheet", label: "Side panel", description: "Narrow panel from the right edge — 320px" },
   { key: "wide-side-sheet", label: "Wide side panel", description: "Wide panel from the right edge — 480px" },
   { key: "bottom-sheet", label: "Bottom sheet", description: "Full-width panel that slides up from the bottom" },
-  { key: "full-screen", label: "Full screen", description: "Covers the entire canvas" },
+  { key: "full-screen", label: "Full screen", description: "Covers the entire board" },
   { key: "external-link", label: "External link", description: "Opens a URL outside the app" },
 ];
 

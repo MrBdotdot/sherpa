@@ -101,7 +101,7 @@ type PageEditorModalProps = {
 };
 
 const TAB_LABELS: Record<InspectorTab, string> = {
-  surface: "Canvas",
+  surface: "Board",
   content: "Content",
   setup: "Settings",
 };
@@ -198,21 +198,21 @@ export function PageEditorModal({
         }`}
       >
         <div className="min-w-0 flex-1">
-          <label htmlFor={titleId} className="sr-only">Page name</label>
+          <label htmlFor={titleId} className="sr-only">Card name</label>
           <div className="flex items-center gap-2">
             <input
               id={titleId}
               type="text"
               value={selectedPage.title}
               onChange={onTitleChange}
-              placeholder="Page name"
+              placeholder="Card name"
               className="min-w-0 flex-1 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 outline-none focus:border-black"
             />
             {selectedPage.kind !== "home" ? (
               <button
                 type="button"
                 onClick={onDeleteRequest}
-                aria-label="Delete page"
+                aria-label="Delete card"
                 className="shrink-0 flex items-center justify-center rounded-xl border border-red-200 p-2 text-red-400 transition hover:border-red-300 hover:bg-red-50 hover:text-red-600"
               >
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -251,7 +251,7 @@ export function PageEditorModal({
                   key={tab}
                   type="button"
                   disabled
-                  title="The landing page doesn't use content blocks — use hotspots or page buttons to link players to other pages instead."
+                  title="The main page doesn't use content blocks — use hotspots or card buttons to link players to other cards instead."
                   className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium text-neutral-300 cursor-not-allowed select-none"
                 >
                   {TAB_LABELS[tab]}

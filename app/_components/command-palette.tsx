@@ -100,7 +100,7 @@ export function CommandPalette({
       kind: "page" as const,
       id: `page-${p.id}`,
       label: p.kind === "home" ? "Home" : p.title || "Untitled",
-      group: p.kind === "hotspot" ? "Hotspots" : "Pages",
+      group: p.kind === "hotspot" ? "Hotspots" : "Cards",
       pageId: p.id,
     }));
     const blockEntries: PaletteEntry[] = BLOCK_ACTIONS.map((a) => ({
@@ -114,7 +114,7 @@ export function CommandPalette({
       kind: "feature" as const,
       id: `feature-${a.type}`,
       label: a.label,
-      group: "Add to canvas",
+      group: "Add to board",
       featureType: a.type,
     }));
     const layoutEntries: PaletteEntry[] = [
@@ -123,7 +123,7 @@ export function CommandPalette({
       { kind: "layout", id: "layout-portrait", label: "Portrait view", group: "Layout", mode: "mobile-portrait" as LayoutMode, hint: "3" },
     ];
     const actionEntries: PaletteEntry[] = [
-      { kind: "action", id: "new-page", label: "New page", group: "Actions", action: "new-page" },
+      { kind: "action", id: "new-page", label: "New card", group: "Actions", action: "new-page" },
       { kind: "action", id: "toggle-preview", label: "Toggle preview", group: "Actions", action: "toggle-preview", hint: "P" },
       { kind: "action", id: "toggle-focus", label: "Toggle focus mode", group: "Actions", action: "toggle-focus", hint: "F" },
     ];
@@ -209,7 +209,7 @@ export function CommandPalette({
           <input
             ref={inputRef}
             type="text"
-            placeholder="Search pages and actions..."
+            placeholder="Search cards and actions..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}

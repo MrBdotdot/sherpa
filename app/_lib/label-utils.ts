@@ -15,22 +15,22 @@ export function getQrImageUrl(value: string) {
 export function getPageKindLabel(kind: PageItem["kind"]) {
   switch (kind) {
     case "home":
-      return "Landing page";
+      return "Main page";
     case "page":
-      return "Page button";
+      return "Card";
     case "hotspot":
       return "Image hotspot";
     default:
-      return "Page";
+      return "Card";
   }
 }
 
 export function getPageRoleDescription(kind: PageItem["kind"]) {
   switch (kind) {
     case "home":
-      return "The starting surface players see first.";
+      return "The main page players see first.";
     case "page":
-      return "A container that sits on top of the home page.";
+      return "A card that opens on top of the main page.";
     case "hotspot":
       return "Contextual callouts attached to a point on the hero image.";
     default:
@@ -49,7 +49,7 @@ export function getInteractionTypeLabel(interactionType: InteractionType) {
     case "tooltip":
       return "Tooltip";
     case "full-page":
-      return "Full page";
+      return "Full card";
     case "external-link":
       return "External link";
     default:
@@ -121,7 +121,7 @@ export function getFeatureTypeLabel(type: CanvasFeatureType) {
     case "dropdown":
       return "Dropdown";
     case "page-button":
-      return "Page button";
+      return "Card button";
     case "locale":
       return "Language";
     case "search":

@@ -6,6 +6,13 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.13.7",
+    date: "2026-04-01",
+    changes: [
+      "Terminology: 'Canvas' renamed to 'Board', 'Pages'/'Screens' renamed to 'Cards', 'Landing page' renamed to 'Main page' throughout the UI",
+    ],
+  },
+  {
     version: "v0.13.6",
     date: "2026-04-01",
     changes: [

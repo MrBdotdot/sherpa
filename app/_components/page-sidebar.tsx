@@ -346,7 +346,7 @@ export function PageSidebar({
               return (
                 <div key={homePage.id} className="space-y-3">
                   <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400 px-0.5">
-                    Landing page
+                    Main page
                   </div>
 
                   <SidebarPageButton
@@ -498,23 +498,23 @@ export function PageSidebar({
         {/* Pages */}
         <div className="mt-4">
           <CollapsibleSection
-            title="Screens"
+            title="Cards"
             open={openSections.has("pages")}
             onToggle={() => toggleSection("pages")}
             isEmpty={navPages.length === 0}
-            emptyText="No screens yet — click + New screen to add one."
+            emptyText="No cards yet — click + New card to add one."
             count={navPages.length}
             action={
               <button
                 type="button"
                 onClick={onAddPage}
-                title="Add a new screen"
+                title="Add a new card"
                 className="flex items-center gap-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1 text-[11px] font-semibold text-neutral-500 hover:bg-white hover:text-neutral-700 transition"
               >
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
                   <path d="M5 1v8M1 5h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
-                New screen
+                New card
               </button>
             }
           >
@@ -540,7 +540,7 @@ export function PageSidebar({
                         onClick={() => toggleExpanded(page.id)}
                         aria-expanded={isExpanded}
                         aria-controls={expandId}
-                        aria-label={`${isExpanded ? "Collapse" : "Expand"} contents of ${page.title || "this screen"}`}
+                        aria-label={`${isExpanded ? "Collapse" : "Expand"} contents of ${page.title || "this card"}`}
                         className="flex shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-2 text-neutral-400 transition hover:bg-white hover:text-neutral-700"
                       >
                         <ChevronIcon expanded={isExpanded} />
