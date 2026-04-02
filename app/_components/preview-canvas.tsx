@@ -21,6 +21,7 @@ import {
   EmptySurfaceGuidance,
   FeatureDragState,
   FeaturePlacer,
+  SNAP_LINES,
   SnapGuides,
 } from "@/app/_components/canvas/preview-canvas-helpers";
 

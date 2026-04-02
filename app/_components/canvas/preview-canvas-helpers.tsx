@@ -14,7 +14,7 @@ export type ContentDragState = {
   pointerOffsetY: number;
 };
 
-const SNAP_LINES = [33.333, 50, 66.666];
+export const SNAP_LINES = [33.333, 50, 66.666];
 
 export const EmptySurfaceGuidance = memo(function EmptySurfaceGuidance({
   featureCount,
