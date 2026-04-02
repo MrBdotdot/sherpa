@@ -19,7 +19,7 @@ import {
   SystemSettings,
   TemplateId,
 } from "@/app/_lib/authoring-types";
-import { getPageRoleDescription } from "@/app/_lib/authoring-utils";
+import { getPageRoleDescription } from "@/app/_lib/label-utils";
 import { useFocusTrap } from "@/app/_hooks/useFocusTrap";
 
 type InspectorTab = "surface" | "content" | "setup";
