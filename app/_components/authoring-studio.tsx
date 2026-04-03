@@ -12,12 +12,14 @@ import { ChangelogModal } from "@/app/_components/changelog-modal";
 import { AccountPanel } from "@/app/_components/account-panel";
 import { GameSwitcherModal } from "@/app/_components/game-switcher-modal";
 import { CommandPalette } from "@/app/_components/command-palette";
-import { createId, createSamplePages, HOME_PAGE_ID } from "@/app/_lib/authoring-utils";
+import { createId, createSamplePages, getHomePageId } from "@/app/_lib/authoring-utils";
 import { ExperienceStatus, LayoutMode, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 import {
   loadPersistedState,
   migrateLocaleFeature,
   migratePageButtons,
+  sanitizePagesForPersistence,
+  sanitizeSystemSettingsForPersistence,
 } from "@/app/_lib/authoring-studio-utils";
 import { loadGame, saveGame } from "@/app/_lib/supabase-game";
 import { supabase } from "@/app/_lib/supabase";
@@ -31,6 +33,13 @@ import { A11yNotificationStack } from "@/app/_components/a11y-notification";
 import { usePaletteEntries } from "@/app/_hooks/usePaletteEntries";
 
 const STORAGE_KEY = "sherpa-v2";
+const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
+  fontTheme: "modern",
+  surfaceStyle: "glass",
+  accentColor: "",
+  hotspotSize: "medium",
+  modelEnvironment: "studio",
+};
 
 type InspectorTab = "surface" | "content" | "setup";
 
@@ -38,15 +47,8 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
   const [pages, setPages] = useState<PageItem[]>(createSamplePages);
   const pagesRef = useRef(pages);
   useEffect(() => { pagesRef.current = pages; }, [pages]);
-  const [selectedPageId, setSelectedPageId] = useState<string>(HOME_PAGE_ID);
-  const [systemSettings, setSystemSettings] = useState<SystemSettings>({
-    fontTheme: "modern",
-    surfaceStyle: "glass",
-    accentColor: "",
-    hotspotSize: "medium",
-    modelEnvironment: "studio",
-  });
-  const [experienceStatus, setExperienceStatus] = useState<ExperienceStatus>("draft");
+  const [selectedPageId, setSelectedPageId] = useState<string>("");
+  const [systemSettings, setSystemSettings] = useState<SystemSettings>(DEFAULT_SYSTEM_SETTINGS);
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("desktop");
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [showLayoutHelp, setShowLayoutHelp] = useState(true);
@@ -66,6 +68,7 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
   const [currentGameName, setCurrentGameName] = useState("Ugly Pickle");
   const [currentStudioName, setCurrentStudioName] = useState("Bee Studio");
   const [hydrated, setHydrated] = useState(false);
+  const [hasLoadedInitialState, setHasLoadedInitialState] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   // Refs for the keyboard handler — avoid stale closures without re-registering the listener
@@ -87,14 +90,23 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
   useEffect(() => {
     if (hydrated) return;
     setHydrated(true);
+    let cancelled = false;
     async function load() {
       try {
         const remote = await loadGame(currentGameId);
+        if (cancelled) return;
         if (remote) {
           const loaded = migrateLocaleFeature(migratePageButtons(remote.pages));
           setPages(loaded.length > 0 ? loaded : createSamplePages());
           if (remote.systemSettings) setSystemSettings(remote.systemSettings);
           if (remote.gameTitle) setCurrentGameName(remote.gameTitle);
+          return;
+        } else {
+          const persisted = loadPersistedState();
+          if (persisted) {
+            if (persisted.pages) setPages(migrateLocaleFeature(migratePageButtons(persisted.pages)));
+            if (persisted.systemSettings) setSystemSettings(persisted.systemSettings);
+          }
           return;
         }
       } catch { /* network unavailable — fall through */ }
@@ -104,21 +116,43 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
         if (persisted.systemSettings) setSystemSettings(persisted.systemSettings);
       }
     }
-    load();
+    load().finally(() => {
+      if (!cancelled) setHasLoadedInitialState(true);
+    });
     if (shouldShowOnboarding()) setShowOnboarding(true);
+    return () => {
+      cancelled = true;
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persist: localStorage immediately + Supabase debounced
   useEffect(() => {
+    if (!hasLoadedInitialState) return;
+
+    const persistablePages = sanitizePagesForPersistence(pages);
+    const persistableSystemSettings = sanitizeSystemSettingsForPersistence(systemSettings);
+
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ pages, systemSettings }));
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          pages: persistablePages,
+          systemSettings: persistableSystemSettings,
+        })
+      );
     } catch { /* quota exceeded — fail silently */ }
 
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       setSaveState("saving");
-      saveGame(currentGameId, userId, currentGameName, pages, systemSettings)
+      saveGame(
+        currentGameId,
+        userId,
+        currentGameName,
+        persistablePages,
+        persistableSystemSettings
+      )
         .then(() => {
           setSaveState("saved");
           if (savedResetRef.current) clearTimeout(savedResetRef.current);
@@ -128,7 +162,7 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
     }, 2000);
 
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
-  }, [pages, systemSettings, currentGameId, currentGameName]);
+  }, [pages, systemSettings, currentGameId, currentGameName, hasLoadedInitialState, userId]);
 
   const selectedPage = useMemo(
     () => pages.find((page) => page.id === selectedPageId) ?? null,
@@ -148,6 +182,17 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
     () => pages.find((page) => page.kind === "home") ?? pages[0],
     [pages]
   );
+  const homePageId = useMemo(
+    () => getHomePageId(pages, selectedPageId || userId),
+    [pages, selectedPageId, userId]
+  );
+
+  useEffect(() => {
+    if (pages.length === 0) return;
+    if (!selectedPageId || !pages.some((page) => page.id === selectedPageId)) {
+      setSelectedPageId(homePageId);
+    }
+  }, [homePageId, pages, selectedPageId]);
 
   const activePreviewPage = selectedPage ?? homePage ?? pages[0];
   // All containers (hotspots and nav pages) appear on top of the home surface —
@@ -163,12 +208,24 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
   }, [selectedPageId]);
 
   const { pagesHistoryRef, pagesRedoRef, pushPagesHistory, HISTORY_LIMIT } = useStudioHistory(pages, setPages);
+  const experienceStatus: ExperienceStatus = homePage?.publishStatus === "published" ? "published" : "draft";
+  const liveViewHref = currentGameId ? `/play/${currentGameId}` : null;
+
+  const handleExperienceStatusChange = useCallback((status: ExperienceStatus) => {
+    pushPagesHistory();
+    setPages((prev) =>
+      prev.map((page) =>
+        page.kind === "home"
+          ? { ...page, publishStatus: status }
+          : page
+      )
+    );
+  }, [pushPagesHistory]);
 
   const {
     canvasRef,
     imageStripRef,
     contentZoneRef,
-    dragState: _dragState,
     dragThresholdRef,
     featureDragState,
     contentDragState,
@@ -197,7 +254,6 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
   const {
     openPageEditor,
     handleSidebarFeatureClick,
-    handleCreateTemplatePage: _handleCreateTemplatePage,
     handleCreatePageWithConfig,
     handleCreatePageForButton,
     handleDeleteSelectedPage,
@@ -206,7 +262,6 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
     handlePageHeroUrlChange,
     handlePageHeroUpload,
     handleTitleChange,
-    handleInteractionTypeChange: _handleInteractionTypeChange,
     handleDisplayStyleChange,
     handlePageButtonPlacementChange,
     handlePublishStatusChange,
@@ -435,7 +490,7 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
           event.preventDefault();
           pushHistory();
           setPages((prev) => prev.filter((p) => p.id !== pageId));
-          setSelectedPageId(HOME_PAGE_ID);
+          setSelectedPageId(getHomePageId(pagesRef.current, pageId));
         }
         return;
       }
@@ -578,7 +633,7 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
     activePage: activePreviewPage,
     surfacePage: previewSurfacePage,
     experienceStatus,
-    onExperienceStatusChange: setExperienceStatus,
+    onExperienceStatusChange: handleExperienceStatusChange,
     canvasRef,
     imageStripRef,
     contentZoneRef,
@@ -607,6 +662,7 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
     selectedPageId,
     saveState,
     gameName: currentGameName,
+    liveViewHref,
     onRenameGame: (name: string) => {
       setCurrentGameName(name);
       setPages((prev) => prev.map((p) => p.kind === "home" ? { ...p, title: name } : p));
@@ -650,6 +706,7 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
             currentGameName={currentGameName}
             currentStudioName={currentStudioName}
             currentGameId={currentGameId}
+            userEmail={userEmail}
             onRenameGame={(name) => {
               setCurrentGameName(name);
               setPages((prev) => prev.map((p) => p.kind === "home" ? { ...p, title: name } : p));
@@ -805,12 +862,19 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
             // consistent (gameId, pages) pair — never the old pages under the new ID.
             if (remote) {
               const loaded = migrateLocaleFeature(migratePageButtons(remote.pages));
-              setPages(loaded.length > 0 ? loaded : createSamplePages());
-              setSystemSettings(remote.systemSettings);
+              const nextPages = loaded.length > 0 ? loaded : createSamplePages();
+              setPages(nextPages);
+              setSystemSettings(remote.systemSettings ?? DEFAULT_SYSTEM_SETTINGS);
+              setSelectedPageId(getHomePageId(nextPages, id));
             } else {
-              setPages(createSamplePages());
-              setSystemSettings({ fontTheme: "modern", surfaceStyle: "glass", accentColor: "", hotspotSize: "medium", modelEnvironment: "studio" });
+              const nextPages = createSamplePages();
+              setPages(nextPages);
+              setSystemSettings(DEFAULT_SYSTEM_SETTINGS);
+              setSelectedPageId(getHomePageId(nextPages, id));
             }
+            setSelectedFeatureId(null);
+            setInspectorTab("surface");
+            setIsContentModalOpen(false);
             setCurrentGameId(id);
             setCurrentGameName(name);
           }).catch(() => {/* stay on current state */});

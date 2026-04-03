@@ -1,5 +1,5 @@
 import { createCanvasFeature } from "@/app/_lib/authoring-utils";
-import { CanvasFeature, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
+import { CanvasFeature, ContentBlock, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 
 const STORAGE_KEY = "sherpa-v2";
 
@@ -11,6 +11,36 @@ export function loadPersistedState(): { pages: PageItem[]; systemSettings: Syste
   } catch {
     return null;
   }
+}
+
+function isEphemeralUrl(value: string | undefined) {
+  return typeof value === "string" && value.startsWith("blob:");
+}
+
+function sanitizeBlockForPersistence(block: ContentBlock): ContentBlock {
+  if ((block.type === "image" || block.type === "video") && isEphemeralUrl(block.value)) {
+    return { ...block, value: "" };
+  }
+  return block;
+}
+
+export function sanitizePagesForPersistence(pages: PageItem[]): PageItem[] {
+  return pages.map((page) => ({
+    ...page,
+    heroImage: isEphemeralUrl(page.heroImage) ? "" : page.heroImage,
+    blocks: page.blocks.map(sanitizeBlockForPersistence),
+    canvasFeatures: page.canvasFeatures.map((feature) => ({
+      ...feature,
+      imageUrl: isEphemeralUrl(feature.imageUrl) ? "" : feature.imageUrl,
+    })),
+  }));
+}
+
+export function sanitizeSystemSettingsForPersistence(systemSettings: SystemSettings): SystemSettings {
+  return {
+    ...systemSettings,
+    modelUrl: isEphemeralUrl(systemSettings.modelUrl) ? undefined : systemSettings.modelUrl,
+  };
 }
 
 export function migrateLocaleFeature(pages: PageItem[]): PageItem[] {

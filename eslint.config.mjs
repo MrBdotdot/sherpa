@@ -9,7 +9,6 @@ const eslintConfig = defineConfig([
   // Accessibility rules — enforced for all JSX/TSX files
   {
     files: ["**/*.{jsx,tsx}"],
-    plugins: { "jsx-a11y": jsxA11y },
     rules: {
       ...jsxA11y.flatConfigs.recommended.rules,
       // Images authored by users may intentionally have empty alt — keep warning not error
@@ -23,6 +22,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local agent worktrees are generated mirrors of the repo, not source files.
+    ".claude/**",
   ]),
 ]);
 

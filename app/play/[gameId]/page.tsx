@@ -14,7 +14,7 @@ export default function PlayPage() {
 
   useEffect(() => {
     if (!gameId) return;
-    loadGame(gameId)
+    loadGame(gameId, { publishedOnly: true })
       .then((data) => {
         if (data) {
           setPages(data.pages);

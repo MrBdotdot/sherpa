@@ -13,6 +13,7 @@ import {
   TermsSection,
   PrivacySection,
 } from "@/app/_components/account/account-sections";
+import { getUserNameParts } from "@/app/_lib/user-display";
 
 type AccountSection =
   | "profile"
@@ -165,47 +166,72 @@ const NAV_GROUPS: {
   },
 ];
 
-const SECTION_COMPONENTS: Record<AccountSection, React.ComponentType> = {
-  profile: ProfileSection,
-  business: BusinessSection,
-  security: SecuritySection,
-  notifications: NotificationsSection,
-  sessions: SessionsSection,
-  team: TeamSection,
-  language: LanguageSection,
-  billing: BillingSection,
-  terms: TermsSection,
-  privacy: PrivacySection,
-};
-
 // ── Main panel ──────────────────────────────────────────────────────
 
 export function AccountPanel({ isOpen, onClose, userEmail, onSignOut }: AccountPanelProps) {
+  const { displayName, initial } = getUserNameParts(userEmail);
   const [activeSection, setActiveSection] = useState<AccountSection>("profile");
 
   if (!isOpen) return null;
 
-  const SectionContent = SECTION_COMPONENTS[activeSection];
+  let sectionContent: React.ReactNode;
+  switch (activeSection) {
+    case "profile":
+      sectionContent = <ProfileSection userEmail={userEmail} />;
+      break;
+    case "business":
+      sectionContent = <BusinessSection />;
+      break;
+    case "security":
+      sectionContent = <SecuritySection />;
+      break;
+    case "notifications":
+      sectionContent = <NotificationsSection />;
+      break;
+    case "sessions":
+      sectionContent = <SessionsSection userDisplayName={displayName} />;
+      break;
+    case "team":
+      sectionContent = <TeamSection userDisplayName={displayName} userEmail={userEmail} />;
+      break;
+    case "language":
+      sectionContent = <LanguageSection />;
+      break;
+    case "billing":
+      sectionContent = <BillingSection />;
+      break;
+    case "terms":
+      sectionContent = <TermsSection />;
+      break;
+    case "privacy":
+      sectionContent = <PrivacySection />;
+      break;
+  }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+      <button
+        type="button"
+        aria-label="Close account settings"
+        onClick={onClose}
+        className="absolute inset-0"
+      />
       <div
-        className="flex w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="relative flex w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl"
         style={{ height: "min(82vh, 680px)" }}
-        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Account settings"
       >
         {/* Left nav */}
         <div className="flex w-52 shrink-0 flex-col border-r border-neutral-100 bg-neutral-50">
           <div className="border-b border-neutral-100 px-4 py-4">
             <div className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900 text-sm font-semibold text-white">
-                {userEmail[0]?.toUpperCase() ?? "?"}
+                {initial}
               </div>
               <div className="min-w-0">
-                <div className="truncate text-sm font-semibold text-neutral-900">{userEmail.split("@")[0]}</div>
+                <div className="truncate text-sm font-semibold text-neutral-900">{displayName}</div>
                 <div className="truncate text-[11px] text-neutral-400">{userEmail}</div>
               </div>
             </div>
@@ -271,7 +297,7 @@ export function AccountPanel({ isOpen, onClose, userEmail, onSignOut }: AccountP
           </div>
 
           <div className="flex-1 overflow-y-auto px-6 py-6">
-            <SectionContent />
+            {sectionContent}
           </div>
         </div>
       </div>

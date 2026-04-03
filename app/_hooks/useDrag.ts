@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef } from "react";
-import { createHotspotPage, DEFAULT_HERO, HOME_PAGE_ID } from "@/app/_lib/authoring-utils";
+import { createHotspotPage, DEFAULT_HERO, getHomePageId } from "@/app/_lib/authoring-utils";
 import { LayoutMode, PageItem } from "@/app/_lib/authoring-types";
 import { useHotspotDrag } from "@/app/_hooks/useHotspotDrag";
 import { useFeatureDrag } from "@/app/_hooks/useFeatureDrag";
@@ -44,6 +44,7 @@ export function useDrag({
   const dragThresholdRef = useRef(false);
 
   const selectedPage = pages.find((page) => page.id === selectedPageId) ?? null;
+  const homePageId = getHomePageId(pages, selectedPageId);
   const hotspotPages = pages.filter(
     (page) =>
       page.kind === "hotspot" &&
@@ -89,7 +90,7 @@ export function useDrag({
     }
 
     if (isPreviewMode) {
-      setSelectedPageId(HOME_PAGE_ID);
+      setSelectedPageId(homePageId);
       return;
     }
 
@@ -99,7 +100,7 @@ export function useDrag({
     }
 
     if (selectedPage?.kind === "page" || selectedPage?.kind === "hotspot") {
-      setSelectedPageId(HOME_PAGE_ID);
+      setSelectedPageId(homePageId);
       return;
     }
 
@@ -132,7 +133,7 @@ export function useDrag({
   ) => {
     if (isPreviewMode) return;
     if (selectedPage?.kind === "page" || selectedPage?.kind === "hotspot") {
-      setSelectedPageId(HOME_PAGE_ID);
+      setSelectedPageId(homePageId);
       return;
     }
 
@@ -151,7 +152,7 @@ export function useDrag({
   };
 
   const handleDismissContent = () => {
-    setSelectedPageId(HOME_PAGE_ID);
+    setSelectedPageId(homePageId);
   };
 
   const handleTogglePreviewMode = () => {

@@ -67,7 +67,8 @@ export async function saveGame(
 // ---------- load ----------
 
 export async function loadGame(
-  gameId: string
+  gameId: string,
+  options?: { publishedOnly?: boolean }
 ): Promise<{ pages: PageItem[]; systemSettings: SystemSettings; gameTitle: string } | null> {
   const { data: game, error: gameError } = await supabase
     .from("games")
@@ -77,10 +78,16 @@ export async function loadGame(
 
   if (gameError || !game) return null;
 
-  const { data: cards, error: cardsError } = await supabase
+  let cardsQuery = supabase
     .from("cards")
     .select("*")
     .eq("game_id", gameId);
+
+  if (options?.publishedOnly) {
+    cardsQuery = cardsQuery.eq("publish_status", "published");
+  }
+
+  const { data: cards, error: cardsError } = await cardsQuery;
 
   if (cardsError || !cards) return null;
 
@@ -120,6 +127,10 @@ export async function loadGame(
     worldPosition: card!.world_position,
     worldNormal: card!.world_normal,
   }));
+
+  if (options?.publishedOnly && !pages.some((page) => page.kind === "home")) {
+    return null;
+  }
 
   return { pages, systemSettings: game.system_settings, gameTitle: game.title ?? "" };
 }

@@ -65,6 +65,7 @@ type PreviewCanvasProps = {
   saveState?: "idle" | "saving" | "saved" | "error";
   gameName?: string;
   onRenameGame?: (name: string) => void;
+  liveViewHref?: string | null;
   /** When true the canvas stretches to fill its parent height instead of using a fixed min-height.
    *  Use in the main studio layout; leave false (default) for modal/sidebar previews. */
   fillHeight?: boolean;
@@ -110,10 +111,12 @@ export function PreviewCanvas({
   saveState = "idle",
   gameName,
   onRenameGame,
+  liveViewHref,
   fillHeight = false,
 }: PreviewCanvasProps) {
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState("");
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
 
   function startEditName() {
     setNameInput(gameName ?? activePage.title ?? "");
@@ -125,6 +128,13 @@ export function PreviewCanvas({
     if (trimmed && trimmed !== (gameName ?? activePage.title)) onRenameGame?.(trimmed);
     setEditingName(false);
   }
+
+  useEffect(() => {
+    if (editingName) {
+      nameInputRef.current?.focus();
+      nameInputRef.current?.select();
+    }
+  }, [editingName]);
   const surfaceStyleClass =
     systemSettings.surfaceStyle === "solid"
       ? "border-neutral-300 bg-white shadow-xl"
@@ -297,7 +307,6 @@ export function PreviewCanvas({
       isModuleExitingRef.current = true;
       setIsModuleExiting(true);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePage]);
 
   function handleModuleExitEnd() {
@@ -367,7 +376,9 @@ export function PreviewCanvas({
   return (
     <div
       className={isPreviewMode ? "fixed inset-0 z-50 flex flex-col bg-black" : `relative overflow-hidden rounded-3xl border border-neutral-200 bg-[#f4f5f7]${fillHeight ? " flex flex-col flex-1 min-h-0" : ""}`}
-      onClick={() => { if (statusMenuOpen) setStatusMenuOpen(false); }}
+      onPointerDownCapture={() => {
+        if (statusMenuOpen) setStatusMenuOpen(false);
+      }}
     >
       <div className={`shrink-0 border-b border-neutral-200 bg-white px-4 py-3 ${isPreviewMode ? "flex items-center justify-end" : ""}`}>
         {isPreviewMode ? (
@@ -386,6 +397,7 @@ export function PreviewCanvas({
                 {activePage.kind === "home" ? (
                   editingName ? (
                     <input
+                      ref={nameInputRef}
                       value={nameInput}
                       onChange={(e) => setNameInput(e.target.value)}
                       onBlur={commitName}
@@ -394,7 +406,6 @@ export function PreviewCanvas({
                         if (e.key === "Escape") setEditingName(false);
                       }}
                       className="rounded-lg border border-neutral-300 px-2 py-0.5 text-sm font-semibold text-neutral-900 outline-none focus:border-black"
-                      autoFocus
                     />
                   ) : (
                     <div className="flex items-center gap-1.5">
@@ -431,7 +442,7 @@ export function PreviewCanvas({
                   {statusMenuOpen && (
                     <div
                       className="absolute left-0 top-full z-30 mt-1.5 w-44 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl"
-                      onClick={(e) => e.stopPropagation()}
+                      onPointerDown={(e) => e.stopPropagation()}
                     >
                       <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
                         Experience status
@@ -511,6 +522,16 @@ export function PreviewCanvas({
                   </svg>
                 </button>
               )}
+              {experienceStatus === "published" && liveViewHref ? (
+                <a
+                  href={liveViewHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 shadow-sm hover:bg-emerald-100"
+                >
+                  Open live view
+                </a>
+              ) : null}
               <button
                 type="button"
                 onClick={onTogglePreviewMode}
@@ -552,10 +573,6 @@ export function PreviewCanvas({
               : (!isPreviewMode ? undefined : undefined),
             touchAction: "none",
           }}
-          onClick={isPortraitSplit ? undefined : (e) => {
-            if (layoutMode === "mobile-landscape" && landscapePanRef.current?.moved) return;
-            onCanvasClick(e);
-          }}
           onPointerDown={layoutMode === "mobile-landscape" ? (e) => {
             if ((e.target as HTMLElement).closest("[data-hotspot],[data-a11y-type]")) return;
             landscapePanRef.current = { startX: e.clientX, startY: e.clientY, startPanX: landscapePanX, startPanY: landscapePanY, pointerId: e.pointerId, moved: false };
@@ -572,9 +589,27 @@ export function PreviewCanvas({
             setLandscapePanX(Math.max(0, Math.min(100, pan.startPanX + (-(dx / containerWidth) * 100))));
             setLandscapePanY(Math.max(0, Math.min(100, pan.startPanY + (-(dy / containerHeight) * 100))));
           } : undefined}
-          onPointerUp={layoutMode === "mobile-landscape" ? (e) => {
-            if (landscapePanRef.current?.pointerId === e.pointerId) landscapePanRef.current = null;
-          } : undefined}
+          onPointerUp={(e) => {
+            const landscapePan =
+              layoutMode === "mobile-landscape" ? landscapePanRef.current : null;
+            const clickedInteractive = (e.target as HTMLElement).closest(
+              "[data-hotspot],[data-a11y-type]"
+            );
+
+            if (landscapePan?.pointerId === e.pointerId) {
+              landscapePanRef.current = null;
+            }
+
+            if (
+              isPortraitSplit ||
+              clickedInteractive ||
+              (layoutMode === "mobile-landscape" && landscapePan?.moved)
+            ) {
+              return;
+            }
+
+            onCanvasClick(e as unknown as React.MouseEvent<HTMLDivElement>);
+          }}
           onPointerCancel={layoutMode === "mobile-landscape" ? (e) => {
             if (landscapePanRef.current?.pointerId === e.pointerId) landscapePanRef.current = null;
           } : undefined}
@@ -586,7 +621,7 @@ export function PreviewCanvas({
                 ref={contentZoneRef}
                 className="relative flex-none overflow-hidden"
                 style={{ flex: 100 - portraitSplitRatio, background: portraitBackground }}
-                onClick={onDismissContent}
+                onPointerUp={onDismissContent}
               >
                 <FeaturePlacer features={contentZoneFeatures} {...sharedFeaturePlacerProps} />
                 {modulePage ? (
@@ -604,7 +639,6 @@ export function PreviewCanvas({
                 ref={imageStripRef}
                 className="relative overflow-hidden"
                 style={{ flex: portraitSplitRatio }}
-                onClick={(e) => { if (!stripPanRef.current?.moved) onCanvasClick(e); }}
                 onPointerDown={(e) => {
                   if ((e.target as HTMLElement).closest("[data-hotspot],[data-a11y-type]")) return;
                   stripPanRef.current = { startX: e.clientX, startPan: portraitPanX, pointerId: e.pointerId, moved: false };
@@ -619,7 +653,19 @@ export function PreviewCanvas({
                   const deltaPan = -(dx / containerWidth) * 100;
                   setPortraitPanX(Math.max(0, Math.min(100, pan.startPan + deltaPan)));
                 }}
-                onPointerUp={(e) => { if (stripPanRef.current?.pointerId === e.pointerId) stripPanRef.current = null; }}
+                onPointerUp={(e) => {
+                  const stripPan = stripPanRef.current;
+                  const clickedInteractive = (e.target as HTMLElement).closest(
+                    "[data-hotspot],[data-a11y-type]"
+                  );
+
+                  if (stripPan?.pointerId === e.pointerId) {
+                    stripPanRef.current = null;
+                  }
+
+                  if (stripPan?.moved || clickedInteractive) return;
+                  onCanvasClick(e as unknown as React.MouseEvent<HTMLDivElement>);
+                }}
                 onPointerCancel={(e) => { if (stripPanRef.current?.pointerId === e.pointerId) stripPanRef.current = null; }}
               >
                 {isModel3d ? (

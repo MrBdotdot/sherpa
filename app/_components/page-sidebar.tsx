@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { APP_VERSION } from "@/app/_lib/authoring-utils";
 import { getFeatureTypeLabel } from "@/app/_lib/label-utils";
 import { CanvasFeature, ContentBlock, PageItem, PublishStatus } from "@/app/_lib/authoring-types";
+import { getUserNameParts } from "@/app/_lib/user-display";
 
 type PageSidebarProps = {
   onAddPage: () => void;
@@ -17,6 +18,7 @@ type PageSidebarProps = {
   currentGameName?: string;
   currentStudioName?: string;
   currentGameId?: string;
+  userEmail?: string;
   onRenameGame?: (name: string) => void;
   onOpenChangelog?: () => void;
   onOpenAccount?: () => void;
@@ -141,7 +143,6 @@ function getBlockPreview(block: ContentBlock): string {
 function SidebarBlockItem({
   block,
   index,
-  pageId,
   onOpen,
   dragIndex,
   dropIndex,
@@ -152,7 +153,6 @@ function SidebarBlockItem({
 }: {
   block: ContentBlock;
   index: number;
-  pageId: string;
   onOpen: () => void;
   dragIndex: number | null;
   dropIndex: number | null;
@@ -255,7 +255,7 @@ function CollapsibleSection({
             {emptyText}
           </div>
         ) : (
-          <ul role="list" className="space-y-1.5">{children}</ul>
+          <ul className="space-y-1.5">{children}</ul>
         )
       ) : null}
     </div>
@@ -274,11 +274,13 @@ export function PageSidebar({
   currentGameName = "Ugly Pickle",
   currentStudioName = "Bee Studio",
   currentGameId,
+  userEmail = "",
   onRenameGame,
   onOpenChangelog,
   onOpenAccount,
   onOpenGameSwitcher,
 }: PageSidebarProps) {
+  const { displayName, initial } = getUserNameParts(userEmail);
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -296,7 +298,7 @@ export function PageSidebar({
   }
   const [blockDrag, setBlockDrag] = useState<{ pageId: string; dragIndex: number; dropIndex: number } | null>(null);
 
-  function makeBlockDragHandlers(pageId: string, blockCount: number) {
+  function makeBlockDragHandlers(pageId: string) {
     return {
       dragIndex: blockDrag?.pageId === pageId ? blockDrag.dragIndex : null,
       dropIndex: blockDrag?.pageId === pageId ? blockDrag.dropIndex : null,
@@ -377,7 +379,6 @@ export function PageSidebar({
                           if (e.key === "Escape") setEditingName(false);
                         }}
                         className="min-w-0 flex-1 rounded-lg border border-neutral-300 bg-white px-2 py-0.5 text-sm font-semibold text-neutral-900 outline-none focus:border-black"
-                        autoFocus
                       />
                     ) : (
                       <button
@@ -457,7 +458,7 @@ export function PageSidebar({
                             ) : null}
                           </div>
                           {isExpanded && hasExpandable ? (
-                            <ul id={expandId} role="list" className="space-y-1 border-l-2 border-neutral-100 pl-3 ml-2">
+                            <ul id={expandId} className="space-y-1 border-l-2 border-neutral-100 pl-3 ml-2">
                               {tabSections.map((tab) => (
                                 <li key={tab.tabId}>
                                   <SidebarTabItem
@@ -474,7 +475,7 @@ export function PageSidebar({
                                     </li>
                                   ) : null}
                                   {(() => {
-                                    const dh = makeBlockDragHandlers(hotspot.id, hotspot.blocks.length);
+                                    const dh = makeBlockDragHandlers(hotspot.id);
                                     return (
                                       <>
                                         {hotspot.blocks.map((block, bi) => (
@@ -482,7 +483,6 @@ export function PageSidebar({
                                             <SidebarBlockItem
                                               block={block}
                                               index={bi}
-                                              pageId={hotspot.id}
                                               onOpen={() => onOpenPage(hotspot.id, block.id)}
                                               dragIndex={dh.dragIndex}
                                               dropIndex={dh.dropIndex}
@@ -594,7 +594,7 @@ export function PageSidebar({
                   </div>
 
                   {isExpanded && hasExpandable ? (
-                    <ul id={expandId} role="list" className="space-y-1 border-l-2 border-neutral-100 pl-3 ml-2">
+                    <ul id={expandId} className="space-y-1 border-l-2 border-neutral-100 pl-3 ml-2">
                       {page.canvasFeatures.map((feature) => (
                         <li key={feature.id}>
                           <SidebarFeatureItem
@@ -631,7 +631,7 @@ export function PageSidebar({
                             </li>
                           ) : null}
                           {(() => {
-                            const dh = makeBlockDragHandlers(page.id, page.blocks.length);
+                            const dh = makeBlockDragHandlers(page.id);
                             return (
                               <>
                                 {page.blocks.map((block, bi) => (
@@ -639,7 +639,6 @@ export function PageSidebar({
                                     <SidebarBlockItem
                                       block={block}
                                       index={bi}
-                                      pageId={page.id}
                                       onOpen={() => onOpenPage(page.id, block.id)}
                                       dragIndex={dh.dragIndex}
                                       dropIndex={dh.dropIndex}
@@ -684,7 +683,7 @@ export function PageSidebar({
           className="mb-2 flex w-full items-center gap-2.5 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-left hover:bg-white transition"
         >
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-xs font-bold text-white">
-            {currentGameName[0]}
+            {currentGameName[0]?.toUpperCase() ?? "?"}
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-xs font-semibold text-neutral-800">{currentStudioName} / {currentGameName}</div>
@@ -702,11 +701,13 @@ export function PageSidebar({
           className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 hover:bg-neutral-100 transition"
         >
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-600">
-            A
+            {initial}
           </div>
           <div className="min-w-0">
-            <div className="truncate text-xs font-medium text-neutral-700">Admin User</div>
-            <div className="truncate text-[10px] text-neutral-400">admin@studio.com</div>
+            <div className="truncate text-xs font-medium text-neutral-700">{displayName}</div>
+            <div className="truncate text-[10px] text-neutral-400">
+              {userEmail || "Signed-in account"}
+            </div>
           </div>
         </button>
       </div>

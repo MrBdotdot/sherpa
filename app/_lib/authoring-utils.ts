@@ -22,6 +22,14 @@ export const HOME_PAGE_ID = "home-page";
 export const DEFAULT_HERO =
   "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1600&auto=format&fit=crop";
 
+export function getHomePage(pages: PageItem[]): PageItem | null {
+  return pages.find((page) => page.kind === "home") ?? pages[0] ?? null;
+}
+
+export function getHomePageId(pages: PageItem[], fallback = HOME_PAGE_ID): string {
+  return getHomePage(pages)?.id ?? fallback;
+}
+
 export const PAGE_TEMPLATES: PageTemplate[] = [
   {
     id: "how-to-play",
@@ -370,21 +378,11 @@ export function createInitialPages(): PageItem[] {
         interactionType: "full-page",
         publishStatus: "draft",
       }),
-      id: HOME_PAGE_ID,
+      id: createId("home"),
       canvasFeatures: [createCanvasFeature("locale")],
     },
   ];
 }
-
-// Stable IDs used across the sample so card-button linkUrls resolve correctly
-const SAMPLE_HTP_ID = "sample-how-to-play";
-const SAMPLE_QR_ID = "sample-quick-ref";
-const SAMPLE_FAQ_ID = "sample-faq";
-const SAMPLE_TRAILER_ID = "sample-trailer";
-const SAMPLE_GALLERY_ID = "sample-gallery";
-const SAMPLE_BUY_ID = "sample-buy";
-const SAMPLE_HS_FIELD_ID = "sample-hs-field";
-const SAMPLE_HS_CARDS_ID = "sample-hs-cards";
 
 function samplePage(overrides: Partial<PageItem> & Pick<PageItem, "id" | "kind" | "title" | "interactionType" | "blocks">): PageItem {
   return {
@@ -409,6 +407,18 @@ function samplePage(overrides: Partial<PageItem> & Pick<PageItem, "id" | "kind" 
 }
 
 export function createSamplePages(): PageItem[] {
+  const sampleIds = {
+    home: createId("home"),
+    howToPlay: createId("sample-page"),
+    quickReference: createId("sample-page"),
+    faq: createId("sample-page"),
+    trailer: createId("sample-page"),
+    gallery: createId("sample-page"),
+    buy: createId("sample-page"),
+    kitchenHotspot: createId("sample-hotspot"),
+    cardsHotspot: createId("sample-hotspot"),
+  };
+
   const faqTabsValue = JSON.stringify({
     sections: [
       {
@@ -447,7 +457,7 @@ export function createSamplePages(): PageItem[] {
     // ── Board ──────────────────────────────────────────────────────────────
     // Covers: all 9 canvas feature types
     samplePage({
-      id: HOME_PAGE_ID,
+      id: sampleIds.home,
       kind: "home",
       title: "Home",
       summary: "Tap a zone on the board or use the buttons to explore the rules.",
@@ -460,10 +470,10 @@ export function createSamplePages(): PageItem[] {
         { id: "sample-feat-search",     type: "search",      label: "Search rules…", description: "",                                              linkUrl: "",                           imageUrl: "", optionsText: "",                                                        x: 50, y:  6 },
         { id: "sample-feat-heading",    type: "heading",     label: "Ugly Pickle",  description: "A pickleball board game",                        linkUrl: "",                           imageUrl: "", optionsText: "",                                                        x: 20, y: 10 },
         { id: "sample-feat-qr",         type: "qr",          label: "Scan to play", description: "Scan to open the live rules experience.",        linkUrl: "https://example.com/rules",  imageUrl: "", optionsText: "",                                                        x: 86, y: 14 },
-        { id: "sample-feat-btn-htp",    type: "page-button", label: "How to Play",  description: "",                                              linkUrl: SAMPLE_HTP_ID,                imageUrl: "", optionsText: "",                                                        x: 22, y: 74 },
-        { id: "sample-feat-btn-qr",     type: "page-button", label: "Quick Ref",    description: "",                                              linkUrl: SAMPLE_QR_ID,                 imageUrl: "", optionsText: "",                                                        x: 42, y: 82 },
-        { id: "sample-feat-btn-faq",    type: "page-button", label: "FAQ",          description: "",                                              linkUrl: SAMPLE_FAQ_ID,                imageUrl: "", optionsText: "",                                                        x: 60, y: 82 },
-        { id: "sample-feat-btn-trailer",type: "page-button", label: "Trailer",      description: "",                                              linkUrl: SAMPLE_TRAILER_ID,            imageUrl: "", optionsText: "",                                                        x: 78, y: 74 },
+        { id: "sample-feat-btn-htp",    type: "page-button", label: "How to Play",  description: "",                                              linkUrl: sampleIds.howToPlay,          imageUrl: "", optionsText: "",                                                        x: 22, y: 74 },
+        { id: "sample-feat-btn-qr",     type: "page-button", label: "Quick Ref",    description: "",                                              linkUrl: sampleIds.quickReference,     imageUrl: "", optionsText: "",                                                        x: 42, y: 82 },
+        { id: "sample-feat-btn-faq",    type: "page-button", label: "FAQ",          description: "",                                              linkUrl: sampleIds.faq,                imageUrl: "", optionsText: "",                                                        x: 60, y: 82 },
+        { id: "sample-feat-btn-trailer",type: "page-button", label: "Trailer",      description: "",                                              linkUrl: sampleIds.trailer,            imageUrl: "", optionsText: "",                                                        x: 78, y: 74 },
         { id: "sample-feat-dropdown",   type: "dropdown",    label: "Quick Links",  description: "",                                              linkUrl: "",                           imageUrl: "", optionsText: "Rules PDF|https://example.com/rules.pdf\nGame Trailer|https://example.com/trailer\nBuy the Game|https://example.com/buy", x: 86, y: 82 },
         { id: "sample-feat-disclaimer", type: "disclaimer",  label: "2–4 players · Ages 12+ · 30–60 min", description: "© Bee Studio. Not affiliated with USA Pickleball.", linkUrl: "", imageUrl: "", optionsText: "",                                                        x: 20, y: 90 },
       ],
@@ -472,7 +482,7 @@ export function createSamplePages(): PageItem[] {
     // ── How to Play — full-page ────────────────────────────────────────────
     // Covers: section, text (bold/links), steps (numbered list), step-rail, callout (tip)
     samplePage({
-      id: SAMPLE_HTP_ID,
+      id: sampleIds.howToPlay,
       kind: "page",
       title: "How to Play",
       summary: "Learn Ugly Pickle in under 5 minutes.",
@@ -504,7 +514,7 @@ export function createSamplePages(): PageItem[] {
     // ── Quick Reference — side-sheet ──────────────────────────────────────
     // Covers: section, text (bold), callout (info + warning), side-sheet interaction
     samplePage({
-      id: SAMPLE_QR_ID,
+      id: sampleIds.quickReference,
       kind: "page",
       title: "Quick Reference",
       summary: "The fast-lookup card for experienced players.",
@@ -525,7 +535,7 @@ export function createSamplePages(): PageItem[] {
     // ── FAQ — modal ───────────────────────────────────────────────────────
     // Covers: tabs block (each tab has steps or text), modal interaction
     samplePage({
-      id: SAMPLE_FAQ_ID,
+      id: sampleIds.faq,
       kind: "page",
       title: "FAQ",
       summary: "Common questions about Ugly Pickle.",
@@ -541,7 +551,7 @@ export function createSamplePages(): PageItem[] {
     // ── Game Trailer — bottom-sheet ───────────────────────────────────────
     // Covers: video block, bottom-sheet interaction
     samplePage({
-      id: SAMPLE_TRAILER_ID,
+      id: sampleIds.trailer,
       kind: "page",
       title: "Game Trailer",
       summary: "Watch the Ugly Pickle launch trailer.",
@@ -558,7 +568,7 @@ export function createSamplePages(): PageItem[] {
     // ── Zone Guide — modal ────────────────────────────────────────────────
     // Covers: carousel block (image blocks inside slides), modal interaction variant
     samplePage({
-      id: SAMPLE_GALLERY_ID,
+      id: sampleIds.gallery,
       kind: "page",
       title: "Zone Guide",
       summary: "A tour of each zone on the Ugly Pickle board.",
@@ -575,7 +585,7 @@ export function createSamplePages(): PageItem[] {
     // ── Buy the Game — external-link ──────────────────────────────────────
     // Covers: external-link interaction type
     samplePage({
-      id: SAMPLE_BUY_ID,
+      id: sampleIds.buy,
       kind: "page",
       title: "Buy the Game",
       summary: "Get Ugly Pickle at your local game store or online.",
@@ -590,7 +600,7 @@ export function createSamplePages(): PageItem[] {
     // ── Hotspot: The Kitchen — tooltip ────────────────────────────────────
     // Covers: tooltip interaction, hotspot kind
     samplePage({
-      id: SAMPLE_HS_FIELD_ID,
+      id: sampleIds.kitchenHotspot,
       kind: "hotspot",
       title: "The Kitchen",
       summary: "",
@@ -605,7 +615,7 @@ export function createSamplePages(): PageItem[] {
     // ── Hotspot: Action Cards — side-sheet ────────────────────────────────
     // Covers: side-sheet interaction on a hotspot, callout (info)
     samplePage({
-      id: SAMPLE_HS_CARDS_ID,
+      id: sampleIds.cardsHotspot,
       kind: "hotspot",
       title: "Action Cards",
       summary: "",
@@ -619,4 +629,3 @@ export function createSamplePages(): PageItem[] {
     }),
   ];
 }
-

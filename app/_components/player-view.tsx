@@ -2,7 +2,6 @@
 
 import { useMemo, useRef, useState } from "react";
 import { PageItem, SystemSettings } from "@/app/_lib/authoring-types";
-import { HOME_PAGE_ID } from "@/app/_lib/authoring-utils";
 import { CanvasBackground } from "@/app/_components/canvas/canvas-background";
 import { HotspotPin } from "@/app/_components/canvas/hotspot-pin";
 import { ContentModule } from "@/app/_components/canvas/content-module";
@@ -23,18 +22,40 @@ export function PlayerView({
     systemSettings.introScreen?.enabled && systemSettings.introScreen?.youtubeUrl
   );
   const [introVisible, setIntroVisible] = useState(introEnabled);
-  const [selectedPageId, setSelectedPageId] = useState(HOME_PAGE_ID);
+  const [selectedPageId, setSelectedPageId] = useState("");
   const [modulePage, setModulePage] = useState<PageItem | null>(null);
   const [isModuleExiting, setIsModuleExiting] = useState(false);
   const modulePageRef = useRef<PageItem | null>(null);
   const isModuleExitingRef = useRef(false);
 
   const homePage = useMemo(
-    () => pages.find((p) => p.kind === "home" || p.id === HOME_PAGE_ID) ?? pages[0] ?? null,
+    () =>
+      pages.find((p) => p.kind === "home" && p.publishStatus === "published") ?? null,
     [pages]
   );
 
-  const hotspotPages = useMemo(() => pages.filter((p) => p.kind !== "home"), [pages]);
+  const hotspotPages = useMemo(
+    () => pages.filter((p) => p.kind !== "home" && p.publishStatus === "published"),
+    [pages]
+  );
+  const features = useMemo(() => homePage?.canvasFeatures ?? [], [homePage]);
+  const resolvedSelectedPageId =
+    selectedPageId && pages.some((page) => page.id === selectedPageId)
+      ? selectedPageId
+      : (homePage?.id ?? "");
+
+  if (!homePage) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-neutral-950">
+        <div className="text-center">
+          <div className="text-xl font-semibold text-white">Experience not found</div>
+          <div className="mt-2 text-sm text-neutral-400">
+            This link may be invalid or the experience is not published.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   function handleSelectPage(id: string) {
     const page = pages.find((p) => p.id === id);
@@ -60,7 +81,7 @@ export function PlayerView({
     isModuleExitingRef.current = false;
     setModulePage(null);
     setIsModuleExiting(false);
-    setSelectedPageId(HOME_PAGE_ID);
+    setSelectedPageId(homePage?.id ?? "");
   }
 
   const accentColor = systemSettings.accentColor || "";
@@ -85,11 +106,6 @@ export function PlayerView({
     ? { boxShadow: `0 0 0 4px ${accentColor}25` }
     : {};
 
-  const features = useMemo(
-    () => homePage?.canvasFeatures ?? [],
-    [homePage]
-  );
-
   if (introVisible && systemSettings.introScreen?.youtubeUrl) {
     return (
       <IntroScreen
@@ -101,10 +117,22 @@ export function PlayerView({
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-black" onClick={handleDismissContent}>
+    <div
+      className="fixed inset-0 overflow-hidden bg-black"
+      onClick={handleDismissContent}
+      onKeyDown={(event) => {
+        if (event.key === "Escape" || event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleDismissContent();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={modulePage ? "Dismiss open rules content" : "Published rules experience"}
+    >
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
-        <CanvasBackground heroImage={homePage?.heroImage ?? ""} isPreviewMode={true} />
+        <CanvasBackground heroImage={homePage.heroImage ?? ""} isPreviewMode={true} />
       </div>
 
       {/* Board features */}
@@ -126,7 +154,7 @@ export function PlayerView({
           key={page.id}
           page={page}
           index={i}
-          isSelected={page.id === selectedPageId}
+          isSelected={page.id === resolvedSelectedPageId}
           isLayoutEditMode={false}
           isPreviewMode={true}
           accentColor={accentColor}

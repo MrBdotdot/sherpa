@@ -2,17 +2,33 @@
 
 import { useState } from "react";
 import { FieldRow, TextInput, Toggle, SectionHeader, Divider } from "@/app/_components/account/account-form-ui";
+import { getUserNameParts } from "@/app/_lib/user-display";
 
 // ── Profile ────────────────────────────────────────────────────
 
-export function ProfileSection() {
+type IdentitySectionProps = {
+  userEmail: string;
+};
+
+type HistorySectionProps = {
+  userDisplayName: string;
+};
+
+type TeamSectionProps = {
+  userDisplayName: string;
+  userEmail: string;
+};
+
+export function ProfileSection({ userEmail }: IdentitySectionProps) {
+  const { firstName, lastName, displayName, initial } = getUserNameParts(userEmail);
+
   return (
     <div>
       <SectionHeader title="Profile" description="Your personal information and display name." />
 
       <div className="mb-6 flex items-center gap-4">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-900 text-xl font-semibold text-white">
-          A
+          {initial}
         </div>
         <button
           type="button"
@@ -25,17 +41,17 @@ export function ProfileSection() {
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <FieldRow label="First name">
-            <TextInput placeholder="First name" defaultValue="Admin" />
+            <TextInput placeholder="First name" defaultValue={firstName} />
           </FieldRow>
           <FieldRow label="Last name">
-            <TextInput placeholder="Last name" defaultValue="User" />
+            <TextInput placeholder="Last name" defaultValue={lastName} />
           </FieldRow>
         </div>
         <FieldRow label="Email address">
-          <TextInput type="email" placeholder="you@example.com" defaultValue="admin@studio.com" />
+          <TextInput type="email" placeholder="you@example.com" defaultValue={userEmail} />
         </FieldRow>
         <FieldRow label="Display name">
-          <TextInput placeholder="How you appear to collaborators" defaultValue="Admin User" />
+          <TextInput placeholder="How you appear to collaborators" defaultValue={displayName} />
         </FieldRow>
       </div>
 
@@ -198,7 +214,13 @@ const MOCK_HISTORY: HistoryEntry[] = [
   { id: "h5", action: "Invited jane@studio.com as Editor", user: "Admin User", date: "Mar 23, 9:18 AM" },
 ];
 
-export function SessionsSection() {
+export function SessionsSection({ userDisplayName }: HistorySectionProps) {
+  const displayHistory = MOCK_HISTORY.map((entry, index) =>
+    index === 0 || index === 1 || index === 3 || index === 4
+      ? { ...entry, user: userDisplayName }
+      : entry
+  );
+
   return (
     <div>
       <SectionHeader title="Session history" description="Active sessions and a log of recent changes to this experience." />
@@ -229,7 +251,7 @@ export function SessionsSection() {
 
       <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Change log</div>
       <div className="space-y-1">
-        {MOCK_HISTORY.map((entry) => (
+        {displayHistory.map((entry) => (
           <div key={entry.id} className="flex items-start gap-3 rounded-xl px-4 py-3 hover:bg-neutral-50">
             <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-neutral-300 mt-1.5" />
             <div className="min-w-0 flex-1">
@@ -262,8 +284,12 @@ const ROLE_OPTIONS: { value: TeamMember["role"]; label: string }[] = [
   { value: "viewer", label: "Viewer" },
 ];
 
-export function TeamSection() {
-  const [members, setMembers] = useState<TeamMember[]>(MOCK_TEAM);
+export function TeamSection({ userDisplayName, userEmail }: TeamSectionProps) {
+  const [members, setMembers] = useState<TeamMember[]>(() =>
+    MOCK_TEAM.map((member, index) =>
+      index === 0 ? { ...member, name: userDisplayName, email: userEmail } : member
+    )
+  );
 
   function changeRole(id: string, role: TeamMember["role"]) {
     setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, role } : m)));

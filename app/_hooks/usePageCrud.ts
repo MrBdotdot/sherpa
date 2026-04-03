@@ -5,7 +5,7 @@ import {
   createCanvasFeature,
   createStandardPage,
   createTemplatePage,
-  HOME_PAGE_ID,
+  getHomePageId,
 } from "@/app/_lib/authoring-utils";
 import { applyDisplayStyle } from "@/app/_lib/display-style";
 import {
@@ -38,6 +38,7 @@ export function usePageCrud({
   setShowDeleteModal,
 }: UsePageCrudProps) {
   const selectedPage = pages.find((page) => page.id === selectedPageId) ?? null;
+  const homePageId = getHomePageId(pages, selectedPageId);
   const standardPages = pages.filter((page) => page.kind === "page");
 
   const handleCreatePage = () => {
@@ -144,7 +145,7 @@ export function usePageCrud({
             : page
         )
     );
-    setSelectedPageId(HOME_PAGE_ID);
+    setSelectedPageId(homePageId);
     setIsContentModalOpen(false);
     setShowDeleteModal(false);
   };
@@ -153,7 +154,7 @@ export function usePageCrud({
     pushPagesHistory();
     setPages((prev) => prev.filter((p) => p.id !== pageId));
     if (selectedPageId === pageId) {
-      setSelectedPageId(HOME_PAGE_ID);
+      setSelectedPageId(homePageId);
       setIsContentModalOpen(false);
     }
   };
