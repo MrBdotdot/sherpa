@@ -1,26 +1,113 @@
 "use client";
 
-import { useState } from "react";
-import { FieldRow, TextInput, Toggle, SectionHeader, Divider } from "@/app/_components/account/account-form-ui";
+import { useState, useEffect } from "react";
+import {
+  FieldRow,
+  TextInput,
+  Toggle,
+  SectionHeader,
+  Divider,
+  SaveButton,
+  type SaveState,
+} from "@/app/_components/account/account-form-ui";
 import { getUserNameParts } from "@/app/_lib/user-display";
+import { supabase } from "@/app/_lib/supabase";
+
+// ── Shared types ───────────────────────────────────────────────
+
+export type UserMetadata = {
+  first_name?: string;
+  last_name?: string;
+  display_name?: string;
+  studio_name?: string;
+  website?: string;
+  business_email?: string;
+  country?: string;
+  language?: string;
+  notifications?: {
+    rulesChanges?: boolean;
+    publishingChanges?: boolean;
+    comments?: boolean;
+    teamInvitations?: boolean;
+    roleChanges?: boolean;
+    billing?: boolean;
+    planChanges?: boolean;
+  };
+  security?: {
+    loginNotifications?: boolean;
+    sessionTimeout?: boolean;
+  };
+};
+
+function useSave(): [SaveState, (fn: () => Promise<void>) => void] {
+  const [saveState, setSaveState] = useState<SaveState>("idle");
+  function save(fn: () => Promise<void>) {
+    setSaveState("saving");
+    fn()
+      .then(() => {
+        setSaveState("saved");
+        setTimeout(() => setSaveState("idle"), 2500);
+      })
+      .catch(() => setSaveState("error"));
+  }
+  return [saveState, save];
+}
 
 // ── Profile ────────────────────────────────────────────────────
 
-type IdentitySectionProps = {
+type ProfileSectionProps = {
   userEmail: string;
+  metadata: UserMetadata;
 };
 
-type HistorySectionProps = {
-  userDisplayName: string;
-};
+export function ProfileSection({ userEmail, metadata }: ProfileSectionProps) {
+  const derived = getUserNameParts(userEmail);
+  const [firstName, setFirstName] = useState(metadata.first_name ?? derived.firstName);
+  const [lastName, setLastName] = useState(metadata.last_name ?? derived.lastName);
+  const [displayName, setDisplayName] = useState(metadata.display_name ?? derived.displayName);
+  const [email, setEmail] = useState(userEmail);
 
-type TeamSectionProps = {
-  userDisplayName: string;
-  userEmail: string;
-};
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
-export function ProfileSection({ userEmail }: IdentitySectionProps) {
-  const { firstName, lastName, displayName, initial } = getUserNameParts(userEmail);
+  const [profileSaveState, profileSave] = useSave();
+  const [passwordSaveState, passwordSave] = useSave();
+
+  // Sync when metadata arrives after initial render
+  useEffect(() => {
+    if (metadata.first_name !== undefined) setFirstName(metadata.first_name);
+    if (metadata.last_name !== undefined) setLastName(metadata.last_name);
+    if (metadata.display_name !== undefined) setDisplayName(metadata.display_name);
+  }, [metadata.first_name, metadata.last_name, metadata.display_name]);
+
+  function handleSaveProfile() {
+    profileSave(async () => {
+      const updates: Parameters<typeof supabase.auth.updateUser>[0] = {
+        data: { first_name: firstName, last_name: lastName, display_name: displayName },
+      };
+      if (email !== userEmail) updates.email = email;
+      const { error } = await supabase.auth.updateUser(updates);
+      if (error) throw error;
+    });
+  }
+
+  function handleSavePassword() {
+    setPasswordError(null);
+    if (!currentPassword) { setPasswordError("Enter your current password."); return; }
+    if (newPassword.length < 8) { setPasswordError("New password must be at least 8 characters."); return; }
+    if (newPassword !== confirmPassword) { setPasswordError("Passwords don't match."); return; }
+    passwordSave(async () => {
+      const { error: verifyError } = await supabase.auth.signInWithPassword({ email: userEmail, password: currentPassword });
+      if (verifyError) throw new Error("Current password is incorrect.");
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    });
+  }
 
   return (
     <div>
@@ -28,54 +115,51 @@ export function ProfileSection({ userEmail }: IdentitySectionProps) {
 
       <div className="mb-6 flex items-center gap-4">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-900 text-xl font-semibold text-white">
-          {initial}
+          {(firstName.charAt(0) || userEmail.charAt(0) || "?").toUpperCase()}
         </div>
-        <button
-          type="button"
-          className="rounded-xl border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
-        >
-          Change photo
-        </button>
+        <span className="text-xs text-neutral-400">Profile photo upload coming soon.</span>
       </div>
 
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <FieldRow label="First name">
-            <TextInput placeholder="First name" defaultValue={firstName} />
+            <TextInput placeholder="First name" value={firstName} onChange={setFirstName} />
           </FieldRow>
           <FieldRow label="Last name">
-            <TextInput placeholder="Last name" defaultValue={lastName} />
+            <TextInput placeholder="Last name" value={lastName} onChange={setLastName} />
           </FieldRow>
         </div>
-        <FieldRow label="Email address">
-          <TextInput type="email" placeholder="you@example.com" defaultValue={userEmail} />
-        </FieldRow>
         <FieldRow label="Display name">
-          <TextInput placeholder="How you appear to collaborators" defaultValue={displayName} />
+          <TextInput placeholder="How you appear to collaborators" value={displayName} onChange={setDisplayName} />
         </FieldRow>
+        <FieldRow label="Email address">
+          <TextInput type="email" placeholder="you@example.com" value={email} onChange={setEmail} />
+          {email !== userEmail && (
+            <p className="text-xs text-amber-600">A verification email will be sent to confirm the new address.</p>
+          )}
+        </FieldRow>
+      </div>
+
+      <div className="mt-6">
+        <SaveButton onSave={handleSaveProfile} saveState={profileSaveState} />
       </div>
 
       <Divider />
       <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Change password</div>
       <div className="space-y-4">
         <FieldRow label="Current password">
-          <TextInput type="password" placeholder="••••••••" />
+          <TextInput type="password" placeholder="••••••••" value={currentPassword} onChange={setCurrentPassword} />
         </FieldRow>
         <FieldRow label="New password">
-          <TextInput type="password" placeholder="Min 12 characters" />
+          <TextInput type="password" placeholder="Min 8 characters" value={newPassword} onChange={setNewPassword} />
         </FieldRow>
         <FieldRow label="Confirm new password">
-          <TextInput type="password" placeholder="Re-enter new password" />
+          <TextInput type="password" placeholder="Re-enter new password" value={confirmPassword} onChange={setConfirmPassword} />
         </FieldRow>
+        {passwordError && <p className="text-xs text-red-500">{passwordError}</p>}
       </div>
-
       <div className="mt-6">
-        <button
-          type="button"
-          className="rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-700"
-        >
-          Save changes
-        </button>
+        <SaveButton onSave={handleSavePassword} saveState={passwordSaveState} label="Update password" />
       </div>
     </div>
   );
@@ -83,35 +167,66 @@ export function ProfileSection({ userEmail }: IdentitySectionProps) {
 
 // ── Business ───────────────────────────────────────────────────
 
-export function BusinessSection() {
+type BusinessSectionProps = {
+  metadata: UserMetadata;
+  onStudioNameChange?: (name: string) => void;
+};
+
+const COUNTRIES = [
+  "United States", "Canada", "United Kingdom", "Australia", "Germany",
+  "France", "Japan", "South Korea", "Netherlands", "Sweden", "Other",
+];
+
+export function BusinessSection({ metadata, onStudioNameChange }: BusinessSectionProps) {
+  const [studioName, setStudioName] = useState(metadata.studio_name ?? "");
+  const [website, setWebsite] = useState(metadata.website ?? "");
+  const [businessEmail, setBusinessEmail] = useState(metadata.business_email ?? "");
+  const [country, setCountry] = useState(metadata.country ?? "");
+  const [saveState, save] = useSave();
+
+  useEffect(() => {
+    if (metadata.studio_name !== undefined) setStudioName(metadata.studio_name);
+    if (metadata.website !== undefined) setWebsite(metadata.website);
+    if (metadata.business_email !== undefined) setBusinessEmail(metadata.business_email);
+    if (metadata.country !== undefined) setCountry(metadata.country);
+  }, [metadata.studio_name, metadata.website, metadata.business_email, metadata.country]);
+
+  function handleSave() {
+    save(async () => {
+      const { error } = await supabase.auth.updateUser({
+        data: { studio_name: studioName, website, business_email: businessEmail, country },
+      });
+      if (error) throw error;
+      if (studioName) onStudioNameChange?.(studioName);
+    });
+  }
+
   return (
     <div>
       <SectionHeader title="Business info" description="Organization details shown on your published experiences." />
       <div className="space-y-4">
         <FieldRow label="Company / studio name">
-          <TextInput placeholder="Your studio name" />
+          <TextInput placeholder="Your studio name" value={studioName} onChange={setStudioName} />
         </FieldRow>
         <FieldRow label="Website">
-          <TextInput type="url" placeholder="https://yourstudio.com" />
+          <TextInput type="url" placeholder="https://yourstudio.com" value={website} onChange={setWebsite} />
         </FieldRow>
         <FieldRow label="Business email">
-          <TextInput type="email" placeholder="hello@yourstudio.com" />
+          <TextInput type="email" placeholder="hello@yourstudio.com" value={businessEmail} onChange={setBusinessEmail} />
         </FieldRow>
         <FieldRow label="Country / region">
-          <select className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none focus:border-neutral-400">
+          <select
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none focus:border-neutral-400"
+          >
             <option value="">Select a country</option>
-            <option>United States</option>
-            <option>Canada</option>
-            <option>United Kingdom</option>
-            <option>Germany</option>
-            <option>Japan</option>
+            {COUNTRIES.map((c) => <option key={c}>{c}</option>)}
           </select>
         </FieldRow>
       </div>
       <div className="mt-6">
-        <button type="button" className="rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-700">
-          Save changes
-        </button>
+        <SaveButton onSave={handleSave} saveState={saveState} />
       </div>
     </div>
   );
@@ -119,39 +234,66 @@ export function BusinessSection() {
 
 // ── Security ───────────────────────────────────────────────────
 
-export function SecuritySection() {
+type SecuritySectionProps = {
+  metadata: UserMetadata;
+};
+
+export function SecuritySection({ metadata }: SecuritySectionProps) {
+  const [loginNotifications, setLoginNotifications] = useState(metadata.security?.loginNotifications ?? true);
+  const [sessionTimeout, setSessionTimeout] = useState(metadata.security?.sessionTimeout ?? false);
+  const [saveState, save] = useSave();
+
+  useEffect(() => {
+    if (metadata.security?.loginNotifications !== undefined) setLoginNotifications(metadata.security.loginNotifications);
+    if (metadata.security?.sessionTimeout !== undefined) setSessionTimeout(metadata.security.sessionTimeout);
+  }, [metadata.security?.loginNotifications, metadata.security?.sessionTimeout]);
+
+  function handleSave() {
+    save(async () => {
+      const { error } = await supabase.auth.updateUser({
+        data: { security: { loginNotifications, sessionTimeout } },
+      });
+      if (error) throw error;
+    });
+  }
+
   return (
     <div>
-      <SectionHeader title="Security & privacy" description="Manage password, two-factor authentication, and data preferences." />
-
+      <SectionHeader title="Security & privacy" description="Manage two-factor authentication and session preferences." />
       <div className="space-y-4">
-        <Toggle
-          label="Two-factor authentication"
-          description="Require a one-time code in addition to your password when signing in."
-          defaultChecked={false}
-        />
+        <div className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3">
+          <div>
+            <div className="text-sm font-medium text-neutral-900">Two-factor authentication</div>
+            <div className="mt-0.5 text-xs text-neutral-500">Require a one-time code in addition to your password.</div>
+          </div>
+          <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-[10px] font-semibold text-neutral-500">Coming soon</span>
+        </div>
         <Divider />
         <Toggle
           label="Login notifications"
-          description="Send an email whenever a new device or location signs into your account."
-          defaultChecked={true}
+          description="Email whenever a new device or location signs into your account."
+          checked={loginNotifications}
+          onChange={setLoginNotifications}
         />
         <Toggle
           label="Session timeout"
           description="Automatically sign out after 30 minutes of inactivity."
-          defaultChecked={false}
+          checked={sessionTimeout}
+          onChange={setSessionTimeout}
         />
       </div>
-
+      <div className="mt-6">
+        <SaveButton onSave={handleSave} saveState={saveState} />
+      </div>
       <Divider />
       <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Data & privacy</div>
       <div className="space-y-3">
-        <button type="button" className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-left text-sm font-medium text-neutral-700 hover:bg-neutral-50">
-          Download my data
-        </button>
-        <button type="button" className="w-full rounded-xl border border-red-100 px-4 py-3 text-left text-sm font-medium text-red-600 hover:bg-red-50">
-          Delete account
-        </button>
+        <div className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm text-neutral-400">
+          Download my data <span className="text-xs">(coming soon)</span>
+        </div>
+        <div className="w-full rounded-xl border border-red-100 px-4 py-3 text-sm text-red-400">
+          Delete account — contact <span className="font-medium">support@sherpa.app</span>
+        </div>
       </div>
     </div>
   );
@@ -159,36 +301,84 @@ export function SecuritySection() {
 
 // ── Notifications ──────────────────────────────────────────────
 
-export function NotificationsSection() {
+type NotifState = {
+  rulesChanges: boolean;
+  publishingChanges: boolean;
+  comments: boolean;
+  teamInvitations: boolean;
+  roleChanges: boolean;
+  billing: boolean;
+  planChanges: boolean;
+};
+
+type NotificationsSectionProps = {
+  metadata: UserMetadata;
+};
+
+export function NotificationsSection({ metadata }: NotificationsSectionProps) {
+  const [notifs, setNotifs] = useState<NotifState>({
+    rulesChanges: metadata.notifications?.rulesChanges ?? true,
+    publishingChanges: metadata.notifications?.publishingChanges ?? true,
+    comments: metadata.notifications?.comments ?? false,
+    teamInvitations: metadata.notifications?.teamInvitations ?? true,
+    roleChanges: metadata.notifications?.roleChanges ?? true,
+    billing: metadata.notifications?.billing ?? true,
+    planChanges: metadata.notifications?.planChanges ?? true,
+  });
+  const [saveState, save] = useSave();
+
+  useEffect(() => {
+    const n = metadata.notifications;
+    if (!n) return;
+    setNotifs({
+      rulesChanges: n.rulesChanges ?? true,
+      publishingChanges: n.publishingChanges ?? true,
+      comments: n.comments ?? false,
+      teamInvitations: n.teamInvitations ?? true,
+      roleChanges: n.roleChanges ?? true,
+      billing: n.billing ?? true,
+      planChanges: n.planChanges ?? true,
+    });
+  }, [metadata.notifications]);
+
+  function set(key: keyof NotifState) {
+    return (v: boolean) => setNotifs((prev) => ({ ...prev, [key]: v }));
+  }
+
+  function handleSave() {
+    save(async () => {
+      const { error } = await supabase.auth.updateUser({ data: { notifications: notifs } });
+      if (error) throw error;
+    });
+  }
+
   return (
     <div>
-      <SectionHeader title="Notifications" description="Choose which emails you receive. You can turn off any category." />
+      <SectionHeader title="Notifications" description="Choose which emails you receive." />
 
       <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Rules & content</div>
       <div className="space-y-4">
-        <Toggle label="Rules changes" description="Email when a collaborator edits or adds content to any experience." defaultChecked={true} />
-        <Toggle label="Publishing changes" description="Email when an experience is published, unpublished, or archived." defaultChecked={true} />
-        <Toggle label="Comments & feedback" description="Email when someone leaves a comment on your content." defaultChecked={false} />
+        <Toggle label="Rules changes" description="Email when a collaborator edits or adds content to any experience." checked={notifs.rulesChanges} onChange={set("rulesChanges")} />
+        <Toggle label="Publishing changes" description="Email when an experience is published, unpublished, or archived." checked={notifs.publishingChanges} onChange={set("publishingChanges")} />
+        <Toggle label="Comments & feedback" description="Email when someone leaves a comment on your content." checked={notifs.comments} onChange={set("comments")} />
       </div>
 
       <Divider />
       <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Team</div>
       <div className="space-y-4">
-        <Toggle label="Team invitations" description="Email when someone is invited to or removed from a workspace." defaultChecked={true} />
-        <Toggle label="Role changes" description="Email when a team member's access level changes." defaultChecked={true} />
+        <Toggle label="Team invitations" description="Email when someone is invited to or removed from a workspace." checked={notifs.teamInvitations} onChange={set("teamInvitations")} />
+        <Toggle label="Role changes" description="Email when a team member's access level changes." checked={notifs.roleChanges} onChange={set("roleChanges")} />
       </div>
 
       <Divider />
       <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Billing</div>
       <div className="space-y-4">
-        <Toggle label="Billing & subscription" description="Receipts, renewal reminders, and payment failure alerts." defaultChecked={true} />
-        <Toggle label="Plan changes" description="Email when your subscription is upgraded, downgraded, or cancelled." defaultChecked={true} />
+        <Toggle label="Billing & subscription" description="Receipts, renewal reminders, and payment failure alerts." checked={notifs.billing} onChange={set("billing")} />
+        <Toggle label="Plan changes" description="Email when your subscription is upgraded, downgraded, or cancelled." checked={notifs.planChanges} onChange={set("planChanges")} />
       </div>
 
       <div className="mt-6">
-        <button type="button" className="rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-700">
-          Save preferences
-        </button>
+        <SaveButton onSave={handleSave} saveState={saveState} />
       </div>
     </div>
   );
@@ -196,73 +386,32 @@ export function NotificationsSection() {
 
 // ── Sessions ───────────────────────────────────────────────────
 
-type Session = { id: string; device: string; location: string; date: string; current: boolean };
-type HistoryEntry = { id: string; action: string; user: string; date: string };
+type SessionsSectionProps = {
+  userDisplayName: string;
+};
 
-const MOCK_SESSIONS: Session[] = [
-  { id: "s1", device: "Chrome on macOS", location: "New York, US", date: "Now", current: true },
-  { id: "s2", device: "Safari on iPhone", location: "New York, US", date: "2 hours ago", current: false },
-  { id: "s3", device: "Chrome on Windows", location: "Los Angeles, US", date: "Yesterday", current: false },
-  { id: "s4", device: "Firefox on macOS", location: "Chicago, US", date: "3 days ago", current: false },
-];
-
-const MOCK_HISTORY: HistoryEntry[] = [
-  { id: "h1", action: "Published \"Bloodborne: The Card Game\" rules", user: "Admin User", date: "Today, 2:14 PM" },
-  { id: "h2", action: "Edited hotspot: \"Phase 2 — Combat\"", user: "Admin User", date: "Today, 1:52 PM" },
-  { id: "h3", action: "Added canvas feature: QR code", user: "Jane Editor", date: "Yesterday, 4:33 PM" },
-  { id: "h4", action: "Created container: \"Full Rules\"", user: "Admin User", date: "Mar 24, 11:05 AM" },
-  { id: "h5", action: "Invited jane@studio.com as Editor", user: "Admin User", date: "Mar 23, 9:18 AM" },
-];
-
-export function SessionsSection({ userDisplayName }: HistorySectionProps) {
-  const displayHistory = MOCK_HISTORY.map((entry, index) =>
-    index === 0 || index === 1 || index === 3 || index === 4
-      ? { ...entry, user: userDisplayName }
-      : entry
-  );
-
+export function SessionsSection({ userDisplayName }: SessionsSectionProps) {
   return (
     <div>
-      <SectionHeader title="Session history" description="Active sessions and a log of recent changes to this experience." />
+      <SectionHeader title="Session history" description="Your active sessions and recent account activity." />
 
       <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Active sessions</div>
-      <div className="space-y-2 mb-6">
-        {MOCK_SESSIONS.map((session) => (
-          <div key={session.id} className="flex items-center gap-3 rounded-xl border border-neutral-200 px-4 py-3">
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-neutral-900">{session.device}</span>
-                {session.current && (
-                  <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-emerald-700">
-                    This session
-                  </span>
-                )}
-              </div>
-              <div className="mt-0.5 text-xs text-neutral-400">{session.location} · {session.date}</div>
+      <div className="mb-6 rounded-xl border border-neutral-200 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-neutral-900">Current browser session</span>
+              <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-emerald-700">
+                Active now
+              </span>
             </div>
-            {!session.current && (
-              <button type="button" className="shrink-0 text-xs text-red-500 hover:text-red-700">
-                Revoke
-              </button>
-            )}
+            <div className="mt-0.5 text-xs text-neutral-400">{userDisplayName}</div>
           </div>
-        ))}
+        </div>
       </div>
 
-      <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Change log</div>
-      <div className="space-y-1">
-        {displayHistory.map((entry) => (
-          <div key={entry.id} className="flex items-start gap-3 rounded-xl px-4 py-3 hover:bg-neutral-50">
-            <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-neutral-300 mt-1.5" />
-            <div className="min-w-0 flex-1">
-              <div className="text-sm text-neutral-800">{entry.action}</div>
-              <div className="mt-0.5 text-xs text-neutral-400">{entry.user} · {entry.date}</div>
-            </div>
-            <button type="button" className="shrink-0 text-xs text-neutral-400 hover:text-neutral-700">
-              Restore
-            </button>
-          </div>
-        ))}
+      <div className="rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-3 text-xs text-neutral-400 leading-5">
+        Full session history and remote session revocation are coming in a future update.
       </div>
     </div>
   );
@@ -270,98 +419,31 @@ export function SessionsSection({ userDisplayName }: HistorySectionProps) {
 
 // ── Team ───────────────────────────────────────────────────────
 
-type TeamMember = { id: string; name: string; email: string; role: "admin" | "editor" | "viewer"; status: "active" | "invited" };
-
-const MOCK_TEAM: TeamMember[] = [
-  { id: "m1", name: "Admin User", email: "admin@studio.com", role: "admin", status: "active" },
-  { id: "m2", name: "Jane Editor", email: "jane@studio.com", role: "editor", status: "active" },
-  { id: "m3", name: "Sam Viewer", email: "sam@client.com", role: "viewer", status: "invited" },
-];
-
-const ROLE_OPTIONS: { value: TeamMember["role"]; label: string }[] = [
-  { value: "admin", label: "Admin" },
-  { value: "editor", label: "Editor" },
-  { value: "viewer", label: "Viewer" },
-];
+type TeamSectionProps = {
+  userDisplayName: string;
+  userEmail: string;
+};
 
 export function TeamSection({ userDisplayName, userEmail }: TeamSectionProps) {
-  const [members, setMembers] = useState<TeamMember[]>(() =>
-    MOCK_TEAM.map((member, index) =>
-      index === 0 ? { ...member, name: userDisplayName, email: userEmail } : member
-    )
-  );
-
-  function changeRole(id: string, role: TeamMember["role"]) {
-    setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, role } : m)));
-  }
-
-  function removeMember(id: string) {
-    setMembers((prev) => prev.filter((m) => m.id !== id));
-  }
-
   return (
     <div>
-      <SectionHeader title="Team & access" description="Invite collaborators and manage their permissions for this game." />
+      <SectionHeader title="Team & access" description="Invite collaborators and manage their permissions." />
 
-      <div className="mb-4 flex gap-2">
-        <input
-          type="email"
-          placeholder="Invite by email address"
-          className="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400"
-        />
-        <select className="rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-700 outline-none focus:border-neutral-400">
-          {ROLE_OPTIONS.map((r) => (
-            <option key={r.value} value={r.value}>{r.label}</option>
-          ))}
-        </select>
-        <button type="button" className="shrink-0 rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-700">
-          Invite
-        </button>
-      </div>
-
-      <div className="rounded-2xl border border-neutral-200 divide-y divide-neutral-100 overflow-hidden">
-        {members.map((member) => (
-          <div key={member.id} className="flex items-center gap-3 px-4 py-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-semibold text-neutral-600">
-              {member.name[0]}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-neutral-900">{member.name}</span>
-                {member.status === "invited" && (
-                  <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-700">
-                    Pending
-                  </span>
-                )}
-              </div>
-              <div className="text-xs text-neutral-400">{member.email}</div>
-            </div>
-            <select
-              value={member.role}
-              onChange={(e) => changeRole(member.id, e.target.value as TeamMember["role"])}
-              className="rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-xs font-medium text-neutral-700 outline-none focus:border-neutral-400"
-            >
-              {ROLE_OPTIONS.map((r) => (
-                <option key={r.value} value={r.value}>{r.label}</option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={() => removeMember(member.id)}
-              className="shrink-0 rounded-lg p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-500"
-              aria-label={`Remove ${member.name}`}
-            >
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                <path d="M1 1l11 11M12 1L1 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-              </svg>
-            </button>
+      <div className="mb-4 rounded-2xl border border-neutral-200 overflow-hidden">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
+            {(userDisplayName.charAt(0) || "?").toUpperCase()}
           </div>
-        ))}
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-medium text-neutral-900">{userDisplayName}</div>
+            <div className="text-xs text-neutral-400">{userEmail}</div>
+          </div>
+          <span className="rounded-full bg-neutral-900 px-2.5 py-1 text-[10px] font-semibold text-white">Admin</span>
+        </div>
       </div>
 
-      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs text-neutral-500 leading-5">
-        <strong className="text-neutral-700">Roles:</strong> Admins can invite, manage, and publish. Editors can create and edit content. Viewers can review content but cannot make changes.
-        Multiple admins are supported so access is never tied to a single person.
+      <div className="rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-3 text-xs text-neutral-400 leading-5">
+        Multi-user collaboration and team invitations are coming in a future update.
       </div>
     </div>
   );
@@ -369,29 +451,62 @@ export function TeamSection({ userDisplayName, userEmail }: TeamSectionProps) {
 
 // ── Language ───────────────────────────────────────────────────
 
-export function LanguageSection() {
+const LANGUAGE_OPTIONS = [
+  { value: "en", label: "English (US)" },
+  { value: "en-gb", label: "English (UK)" },
+  { value: "fr", label: "Français" },
+  { value: "de", label: "Deutsch" },
+  { value: "es", label: "Español" },
+  { value: "ja", label: "日本語" },
+  { value: "zh", label: "中文（简体）" },
+  { value: "ko", label: "한국어" },
+];
+
+const LANGUAGE_STORAGE_KEY = "sherpa-interface-language";
+
+type LanguageSectionProps = {
+  metadata: UserMetadata;
+};
+
+export function LanguageSection({ metadata }: LanguageSectionProps) {
+  const [language, setLanguage] = useState(() => {
+    if (metadata.language) return metadata.language;
+    if (typeof window !== "undefined") return localStorage.getItem(LANGUAGE_STORAGE_KEY) ?? "en";
+    return "en";
+  });
+  const [saveState, save] = useSave();
+
+  useEffect(() => {
+    if (metadata.language) setLanguage(metadata.language);
+  }, [metadata.language]);
+
+  function handleSave() {
+    save(async () => {
+      if (typeof window !== "undefined") localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+      const { error } = await supabase.auth.updateUser({ data: { language } });
+      if (error) throw error;
+    });
+  }
+
   return (
     <div>
-      <SectionHeader title="Language" description="Set the language used throughout the Sherpa interface." />
+      <SectionHeader title="Language" description="Set the language used throughout the Sherpa authoring interface." />
       <FieldRow label="Interface language">
-        <select className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none focus:border-neutral-400">
-          <option value="en">English (US)</option>
-          <option value="en-gb">English (UK)</option>
-          <option value="fr">Français</option>
-          <option value="de">Deutsch</option>
-          <option value="es">Español</option>
-          <option value="ja">日本語</option>
-          <option value="zh">中文（简体）</option>
-          <option value="ko">한국어</option>
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none focus:border-neutral-400"
+        >
+          {LANGUAGE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
         </select>
       </FieldRow>
       <p className="mt-3 text-xs text-neutral-400">
-        Changing the interface language affects only the authoring tool, not your published experiences.
+        This setting affects the authoring tool only — not the language options in your published experiences.
       </p>
       <div className="mt-6">
-        <button type="button" className="rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-700">
-          Save
-        </button>
+        <SaveButton onSave={handleSave} saveState={saveState} label="Save" />
       </div>
     </div>
   );
@@ -403,52 +518,11 @@ export function BillingSection() {
   return (
     <div>
       <SectionHeader title="Billing" description="Manage your subscription and payment details." />
-
-      <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-5 py-4 mb-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 mb-1">Current plan</div>
-            <div className="text-lg font-semibold text-neutral-900">Pro Studio</div>
-            <div className="mt-1 text-sm text-neutral-500">Renews on April 27, 2026</div>
-          </div>
-          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Active</span>
-        </div>
-        <div className="mt-4 flex gap-2">
-          <button type="button" className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
-            Change plan
-          </button>
-          <button type="button" className="rounded-xl border border-red-100 bg-white px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-50">
-            Cancel subscription
-          </button>
-        </div>
-      </div>
-
-      <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Payment method</div>
-      <div className="rounded-2xl border border-neutral-200 px-4 py-3 flex items-center gap-3 mb-6">
-        <div className="h-7 w-10 rounded bg-neutral-200 flex items-center justify-center text-[10px] font-bold text-neutral-500">VISA</div>
-        <div className="min-w-0 flex-1">
-          <div className="text-sm font-medium text-neutral-900">Visa ending in 4242</div>
-          <div className="text-xs text-neutral-400">Expires 08 / 2027</div>
-        </div>
-        <button type="button" className="text-xs text-neutral-500 hover:text-neutral-700">Update</button>
-      </div>
-
-      <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Recent invoices</div>
-      <div className="rounded-2xl border border-neutral-200 divide-y divide-neutral-100 overflow-hidden">
-        {[
-          { label: "Pro Studio — March 2026", amount: "$49.00", date: "Mar 1, 2026" },
-          { label: "Pro Studio — February 2026", amount: "$49.00", date: "Feb 1, 2026" },
-          { label: "Pro Studio — January 2026", amount: "$49.00", date: "Jan 1, 2026" },
-        ].map((inv) => (
-          <div key={inv.label} className="flex items-center gap-3 px-4 py-3">
-            <div className="min-w-0 flex-1">
-              <div className="text-sm text-neutral-800">{inv.label}</div>
-              <div className="text-xs text-neutral-400">{inv.date}</div>
-            </div>
-            <div className="text-sm font-medium text-neutral-900">{inv.amount}</div>
-            <button type="button" className="text-xs text-neutral-400 hover:text-neutral-700">PDF</button>
-          </div>
-        ))}
+      <div className="rounded-xl border border-neutral-100 bg-neutral-50 px-5 py-10 text-center">
+        <div className="text-sm font-medium text-neutral-600">Billing management is coming soon.</div>
+        <p className="mt-1.5 text-xs text-neutral-400">
+          Subscription plans, invoices, and payment methods will appear here.
+        </p>
       </div>
     </div>
   );
@@ -472,7 +546,7 @@ export function TermsSection() {
         <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">4. Termination</div>
         <p>Either party may terminate the service relationship at any time. Upon termination, you may export your content. Sherpa will retain data for 30 days following termination before deletion.</p>
         <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">5. Disclaimer</div>
-        <p className="text-neutral-500 italic">This is a draft terms summary for internal review. Consult qualified legal counsel before using in a paid production context.</p>
+        <p className="italic text-neutral-500">This is a draft terms summary for internal review. Consult qualified legal counsel before using in a paid production context.</p>
       </div>
     </div>
   );
@@ -491,12 +565,12 @@ export function PrivacySection() {
         <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">How we use it</div>
         <p>Data is used to operate the Service, send transactional emails you&apos;ve opted into, and improve the product. We do not sell your personal data or use your uploaded content for advertising.</p>
         <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">Your rights</div>
-        <p>Depending on your jurisdiction, you may have rights to access, correct, or delete your data. To exercise these rights, contact support. GDPR users may also request data portability. CCPA users may opt out of the sale of personal information (we do not sell it).</p>
+        <p>Depending on your jurisdiction, you may have rights to access, correct, or delete your data. To exercise these rights, contact support. GDPR users may also request data portability.</p>
         <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">Data retention</div>
         <p>We retain account data while your account is active and for 30 days after deletion, unless a longer period is required by law.</p>
         <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">Contact</div>
-        <p>Questions about this policy? Email <span className="text-neutral-900 font-medium">privacy@sherpa.app</span>.</p>
-        <p className="text-neutral-500 italic">This is a draft privacy policy for internal review. Consult qualified legal counsel before using in a paid production context.</p>
+        <p>Questions? Email <span className="font-medium text-neutral-900">privacy@sherpa.app</span>.</p>
+        <p className="italic text-neutral-500">This is a draft privacy policy for internal review. Consult qualified legal counsel before using in a paid production context.</p>
       </div>
     </div>
   );

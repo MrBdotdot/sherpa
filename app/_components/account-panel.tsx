@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import React from "react";
 import {
   ProfileSection,
   BusinessSection,
@@ -12,8 +13,10 @@ import {
   BillingSection,
   TermsSection,
   PrivacySection,
+  type UserMetadata,
 } from "@/app/_components/account/account-sections";
 import { getUserNameParts } from "@/app/_lib/user-display";
+import { supabase } from "@/app/_lib/supabase";
 
 type AccountSection =
   | "profile"
@@ -32,6 +35,7 @@ type AccountPanelProps = {
   onClose: () => void;
   userEmail: string;
   onSignOut: () => void;
+  onStudioNameChange?: (name: string) => void;
 };
 
 const NAV_GROUPS: {
@@ -166,46 +170,63 @@ const NAV_GROUPS: {
   },
 ];
 
-// ── Main panel ──────────────────────────────────────────────────────
-
-export function AccountPanel({ isOpen, onClose, userEmail, onSignOut }: AccountPanelProps) {
+export function AccountPanel({ isOpen, onClose, userEmail, onSignOut, onStudioNameChange }: AccountPanelProps) {
   const { displayName, initial } = getUserNameParts(userEmail);
   const [activeSection, setActiveSection] = useState<AccountSection>("profile");
+  const [metadata, setMetadata] = useState<UserMetadata>({});
+  const [metadataLoading, setMetadataLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setMetadataLoading(true);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setMetadata((user?.user_metadata as UserMetadata) ?? {});
+      setMetadataLoading(false);
+    }).catch(() => setMetadataLoading(false));
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   let sectionContent: React.ReactNode;
-  switch (activeSection) {
-    case "profile":
-      sectionContent = <ProfileSection userEmail={userEmail} />;
-      break;
-    case "business":
-      sectionContent = <BusinessSection />;
-      break;
-    case "security":
-      sectionContent = <SecuritySection />;
-      break;
-    case "notifications":
-      sectionContent = <NotificationsSection />;
-      break;
-    case "sessions":
-      sectionContent = <SessionsSection userDisplayName={displayName} />;
-      break;
-    case "team":
-      sectionContent = <TeamSection userDisplayName={displayName} userEmail={userEmail} />;
-      break;
-    case "language":
-      sectionContent = <LanguageSection />;
-      break;
-    case "billing":
-      sectionContent = <BillingSection />;
-      break;
-    case "terms":
-      sectionContent = <TermsSection />;
-      break;
-    case "privacy":
-      sectionContent = <PrivacySection />;
-      break;
+  if (metadataLoading) {
+    sectionContent = (
+      <div className="flex h-full items-center justify-center">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-600" />
+      </div>
+    );
+  } else {
+    switch (activeSection) {
+      case "profile":
+        sectionContent = <ProfileSection userEmail={userEmail} metadata={metadata} />;
+        break;
+      case "business":
+        sectionContent = <BusinessSection metadata={metadata} onStudioNameChange={onStudioNameChange} />;
+        break;
+      case "security":
+        sectionContent = <SecuritySection metadata={metadata} />;
+        break;
+      case "notifications":
+        sectionContent = <NotificationsSection metadata={metadata} />;
+        break;
+      case "sessions":
+        sectionContent = <SessionsSection userDisplayName={displayName} />;
+        break;
+      case "team":
+        sectionContent = <TeamSection userDisplayName={displayName} userEmail={userEmail} />;
+        break;
+      case "language":
+        sectionContent = <LanguageSection metadata={metadata} />;
+        break;
+      case "billing":
+        sectionContent = <BillingSection />;
+        break;
+      case "terms":
+        sectionContent = <TermsSection />;
+        break;
+      case "privacy":
+        sectionContent = <PrivacySection />;
+        break;
+    }
   }
 
   return (

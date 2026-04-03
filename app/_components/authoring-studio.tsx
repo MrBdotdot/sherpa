@@ -849,6 +849,7 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
         onClose={() => setIsAccountOpen(false)}
         userEmail={userEmail}
         onSignOut={() => supabase.auth.signOut()}
+        onStudioNameChange={setCurrentStudioName}
       />
       <GameSwitcherModal
         isOpen={isGameSwitcherOpen}

@@ -22,5 +22,9 @@ CREATE POLICY "public_read_cards" ON cards
   FOR SELECT
   USING (
     publish_status = 'published'
-    AND game_id IN (SELECT id FROM games)
+    AND game_id IN (
+      SELECT game_id FROM cards
+      WHERE kind = 'home'
+        AND publish_status = 'published'
+    )
   );

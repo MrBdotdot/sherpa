@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React from "react";
 
 export function FieldRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -11,19 +11,42 @@ export function FieldRow({ label, children }: { label: string; children: React.R
   );
 }
 
-export function TextInput({ placeholder, defaultValue, type = "text" }: { placeholder?: string; defaultValue?: string; type?: string }) {
+export function TextInput({
+  placeholder,
+  value,
+  onChange,
+  type = "text",
+  disabled = false,
+}: {
+  placeholder?: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  disabled?: boolean;
+}) {
   return (
     <input
       type={type}
       placeholder={placeholder}
-      defaultValue={defaultValue}
-      className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-400 focus:ring-2 focus:ring-neutral-100"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+      className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-400 focus:ring-2 focus:ring-neutral-100 disabled:bg-neutral-50 disabled:text-neutral-400"
     />
   );
 }
 
-export function Toggle({ label, description, defaultChecked = false }: { label: string; description?: string; defaultChecked?: boolean }) {
-  const [checked, setChecked] = useState(defaultChecked);
+export function Toggle({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="min-w-0">
@@ -34,7 +57,7 @@ export function Toggle({ label, description, defaultChecked = false }: { label: 
         type="button"
         role="switch"
         aria-checked={checked}
-        onClick={() => setChecked((v) => !v)}
+        onClick={() => onChange(!checked)}
         className={`relative mt-0.5 h-5 w-9 shrink-0 rounded-full transition-colors ${checked ? "bg-neutral-900" : "bg-neutral-200"}`}
       >
         <span
@@ -56,4 +79,35 @@ export function SectionHeader({ title, description }: { title: string; descripti
 
 export function Divider() {
   return <div className="my-5 border-t border-neutral-100" />;
+}
+
+export type SaveState = "idle" | "saving" | "saved" | "error";
+
+export function SaveButton({
+  onSave,
+  saveState,
+  label = "Save changes",
+}: {
+  onSave: () => void;
+  saveState: SaveState;
+  label?: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={onSave}
+        disabled={saveState === "saving"}
+        className="rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+      >
+        {saveState === "saving" ? "Saving…" : label}
+      </button>
+      {saveState === "saved" && (
+        <span className="text-xs font-medium text-emerald-600">Saved</span>
+      )}
+      {saveState === "error" && (
+        <span className="text-xs font-medium text-red-500">Failed to save — try again</span>
+      )}
+    </div>
+  );
 }
