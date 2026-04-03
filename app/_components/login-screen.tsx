@@ -69,25 +69,37 @@ export function LoginScreen() {
             </div>
 
             <div className="space-y-3">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                required
-                autoComplete="email"
-                className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
-              />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                required
-                autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                minLength={8}
-                className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
-              />
+              <div>
+                <label htmlFor="email" className="mb-1.5 block text-xs font-medium text-neutral-700">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                  autoComplete="email"
+                  className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none focus:border-black"
+                />
+              </div>
+              <div>
+                <label htmlFor="password" className="mb-1.5 block text-xs font-medium text-neutral-700">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="8+ characters"
+                  required
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                  minLength={8}
+                  className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none focus:border-black"
+                />
+              </div>
             </div>
 
             {error && (
