@@ -189,6 +189,7 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
     setIsContentModalOpen,
     setInspectorTab,
     pushPagesHistory,
+    selectedFeatureId,
     setSelectedFeatureId,
     layoutMode,
   });
@@ -586,7 +587,6 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
     featureDragState,
     hotspotPages,
     pages,
-    isLayoutEditMode: false,
     layoutMode,
     systemSettings,
     showLayoutHelp,
@@ -599,7 +599,6 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
     onDismissLayoutHelp: () => setShowLayoutHelp(false),
     onHotspotPointerDown: handleHotspotPointerDown,
     onSelectPage: handleSelectPage,
-    onToggleLayoutEditMode: () => {},
     onSetLayoutMode: setLayoutMode,
     onTogglePreviewMode: handleTogglePreviewMode,
     onHeroUpload: handlePageHeroUpload,
@@ -800,10 +799,10 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
         userId={userId}
         onClose={() => setIsGameSwitcherOpen(false)}
         onSelectGame={(id, name, studio) => {
-          setCurrentGameId(id);
-          setCurrentGameName(name);
-          setCurrentStudioName(studio);
+          if (studio) setCurrentStudioName(studio);
           loadGame(id).then((remote) => {
+            // Batch ALL state updates together so the persist effect always sees a
+            // consistent (gameId, pages) pair — never the old pages under the new ID.
             if (remote) {
               const loaded = migrateLocaleFeature(migratePageButtons(remote.pages));
               setPages(loaded.length > 0 ? loaded : createSamplePages());
@@ -812,6 +811,8 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
               setPages(createSamplePages());
               setSystemSettings({ fontTheme: "modern", surfaceStyle: "glass", accentColor: "", hotspotSize: "medium", modelEnvironment: "studio" });
             }
+            setCurrentGameId(id);
+            setCurrentGameName(name);
           }).catch(() => {/* stay on current state */});
         }}
       />

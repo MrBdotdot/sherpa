@@ -36,7 +36,6 @@ type PreviewCanvasProps = {
   featureDragState: FeatureDragState | null;
   hotspotPages: PageItem[];
   pages?: PageItem[];
-  isLayoutEditMode: boolean;
   layoutMode: LayoutMode;
   systemSettings: SystemSettings;
   showLayoutHelp: boolean;
@@ -57,7 +56,6 @@ type PreviewCanvasProps = {
   ) => void;
   onDismissContent: () => void;
   onSelectPage: (id: string) => void;
-  onToggleLayoutEditMode: () => void;
   onSetLayoutMode: (mode: LayoutMode) => void;
   onTogglePreviewMode: () => void;
   onOpenCommandPalette?: () => void;
@@ -89,7 +87,6 @@ export function PreviewCanvas({
   featureDragState,
   hotspotPages,
   pages,
-  isLayoutEditMode,
   layoutMode,
   isPreviewMode,
   systemSettings,
@@ -105,7 +102,6 @@ export function PreviewCanvas({
   onDismissLayoutHelp,
   onHotspotPointerDown,
   onSelectPage,
-  onToggleLayoutEditMode,
   onSetLayoutMode,
   onTogglePreviewMode,
   onOpenCommandPalette,

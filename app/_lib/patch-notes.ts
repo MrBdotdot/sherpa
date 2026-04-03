@@ -6,6 +6,21 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.16.2",
+    date: "2026-04-03",
+    changes: [
+      "Board: clicking any canvas element (QR, image, button, etc.) now selects it in the left nav and switches the Editing Panel to the Board tab — works even when a hotspot card is open",
+    ],
+  },
+  {
+    version: "v0.16.1",
+    date: "2026-04-03",
+    changes: [
+      "Hotspot cards (tooltip/modal) can now be repositioned by dragging — drag the card itself in authoring mode",
+      "Step Rail: fixed loop bug where steps linking back to an earlier section cut off the rail span prematurely",
+    ],
+  },
+  {
     version: "v0.16.0",
     date: "2026-04-02",
     changes: [

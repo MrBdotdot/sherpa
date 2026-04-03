@@ -369,7 +369,6 @@ export function PageEditorModal({
                 contentDragState={null}
                 featureDragState={null}
                 hotspotPages={hotspotPages}
-                isLayoutEditMode={false}
                 layoutMode="desktop"
                 systemSettings={systemSettings}
                 showLayoutHelp={false}
@@ -384,7 +383,6 @@ export function PageEditorModal({
                 onDismissLayoutHelp={() => {}}
                 onHotspotPointerDown={onHotspotPointerDown}
                 onSelectPage={onSelectPage}
-                onToggleLayoutEditMode={() => {}}
                 onSetLayoutMode={() => {}}
                 onTogglePreviewMode={() => {}}
                 selectedPageId={selectedPageId}

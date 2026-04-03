@@ -70,7 +70,7 @@ export function ContentModule({
   const cardSize = page.cardSize ?? "medium";
   const isHotspotSelection = page.kind === "hotspot" && !isPreviewMode;
   const isContentDraggable =
-    !isExiting && isLayoutEditMode && page.kind !== "hotspot" && (ctype === "modal" || ctype === "tooltip");
+    !isExiting && isLayoutEditMode && (ctype === "modal" || ctype === "tooltip");
 
   const contentCardWidth =
     cardSize === "compact" ? "w-[360px]"
@@ -187,9 +187,16 @@ export function ContentModule({
   const srLinkedSectionIds = stepRailBlock
     ? parseSRPreview(stepRailBlock.value).steps.filter((s) => s.sectionBlockId).map((s) => s.sectionBlockId)
     : [];
-  const srLastLinkedId = srLinkedSectionIds.at(-1);
+  // Use the section that appears LATEST in the blocks array (highest index), not the last in step order.
+  // When steps loop back to an earlier section, the step-order last entry would be earlier in the
+  // document, wrongly truncating the rail span before later sections.
+  const srLastLinkedId = srLinkedSectionIds.reduce<string | undefined>((best, id) => {
+    const idx = srBlocks.findIndex((b) => b.id === id);
+    const bestIdx = best !== undefined ? srBlocks.findIndex((b) => b.id === best) : -1;
+    return idx > bestIdx ? id : best;
+  }, undefined);
   const srFirstLinkedIdx = srLinkedSectionIds[0] ? srBlocks.findIndex((b) => b.id === srLinkedSectionIds[0]) : -1;
-  const srLastLinkedIdx = srLastLinkedId ? srBlocks.findIndex((b) => b.id === srLastLinkedId) : -1;
+  const srLastLinkedIdx = srLastLinkedId !== undefined ? srBlocks.findIndex((b) => b.id === srLastLinkedId) : -1;
   // First section block after the last linked section is the trailing cutoff
   const srFirstBeyondIdx = srLastLinkedIdx >= 0
     ? (() => { const idx = srBlocks.findIndex((b, i) => i > srLastLinkedIdx && b.type === "section"); return idx; })()

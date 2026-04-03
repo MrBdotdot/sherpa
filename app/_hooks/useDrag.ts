@@ -17,9 +17,11 @@ interface UseDragProps {
   setIsContentModalOpen: (v: boolean) => void;
   setInspectorTab: (tab: "surface" | "content" | "setup") => void;
   pushPagesHistory: () => void;
+  selectedFeatureId: string | null;
   setSelectedFeatureId: (id: string | null) => void;
   layoutMode: LayoutMode;
 }
+
 
 export function useDrag({
   pages,
@@ -31,6 +33,8 @@ export function useDrag({
   setIsContentModalOpen,
   setInspectorTab,
   pushPagesHistory,
+  selectedFeatureId,
+  setSelectedFeatureId,
   layoutMode,
 }: UseDragProps) {
   const isPortraitMode = layoutMode === "mobile-portrait";
@@ -64,7 +68,9 @@ export function useDrag({
     isPreviewMode,
     pages,
     setPages,
-    selectedPageId,
+    setSelectedPageId,
+    setSelectedFeatureId,
+    setInspectorTab,
   });
 
   const { contentDragState, handleContentCardPointerDown } = useContentDrag({
@@ -84,6 +90,11 @@ export function useDrag({
 
     if (isPreviewMode) {
       setSelectedPageId(HOME_PAGE_ID);
+      return;
+    }
+
+    if (selectedFeatureId) {
+      setSelectedFeatureId(null);
       return;
     }
 
