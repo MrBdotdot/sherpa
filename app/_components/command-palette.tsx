@@ -41,7 +41,7 @@ const FEATURE_ACTIONS: { type: CanvasFeatureType; label: string }[] = [
   { type: "disclaimer", label: "Add Disclaimer" },
   { type: "dropdown", label: "Add Dropdown" },
   { type: "search", label: "Add Search" },
-  { type: "page-button", label: "Add Card Button" },
+  { type: "page-button", label: "Add Board Button" },
   { type: "locale", label: "Add Locale Switcher" },
 ];
 

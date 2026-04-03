@@ -65,10 +65,11 @@ export function HotspotPin({
           type="button"
           onClick={(e) => { e.stopPropagation(); onDeleteHotspot(page.id); }}
           aria-label="Delete hotspot"
-          className="absolute -right-2 -top-2 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-red-200 bg-white text-[10px] font-bold text-red-500 shadow-sm transition hover:border-red-400 hover:bg-red-50 hover:text-red-600"
-          style={{ lineHeight: 1 }}
+          className="absolute -right-2 -top-2 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-red-200 bg-white text-red-500 shadow-sm transition hover:border-red-400 hover:bg-red-50 hover:text-red-600"
         >
-          <span aria-hidden="true">×</span>
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path d="M1.5 2.5h7M4 2.5V2a1 1 0 0 1 2 0v.5M3.5 2.5l.5 5.5h3l.5-5.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
       ) : null}
 

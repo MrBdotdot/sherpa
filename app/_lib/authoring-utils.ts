@@ -13,7 +13,7 @@ import {
   TemplateId,
 } from "@/app/_lib/authoring-types";
 
-export const APP_VERSION = "v0.13.9";
+export const APP_VERSION = "v0.16.0";
 
 export type { PatchNote } from "@/app/_lib/patch-notes";
 export { PATCH_NOTES } from "@/app/_lib/patch-notes";
@@ -158,7 +158,7 @@ export function createCanvasFeature(
       return {
         id: createId("feature"),
         type,
-        label: "Section Heading",
+        label: "Ugly Pickle",
         description: "",
         linkUrl: "",
         imageUrl: "",
@@ -206,7 +206,7 @@ export function createCanvasFeature(
       return {
         id: createId("feature"),
         type,
-        label: "Card Button",
+        label: "Board Button",
         description: "",
         linkUrl: "",
         imageUrl: "",
@@ -317,7 +317,7 @@ export function createStandardPage(count: number): PageItem {
     title: `Page ${count}`,
     summary: "",
     blocks: [createBlock("text", "Add content for this page.")],
-    interactionType: "modal",
+    interactionType: "full-page",
   });
 }
 
@@ -380,6 +380,9 @@ export function createInitialPages(): PageItem[] {
 const SAMPLE_HTP_ID = "sample-how-to-play";
 const SAMPLE_QR_ID = "sample-quick-ref";
 const SAMPLE_FAQ_ID = "sample-faq";
+const SAMPLE_TRAILER_ID = "sample-trailer";
+const SAMPLE_GALLERY_ID = "sample-gallery";
+const SAMPLE_BUY_ID = "sample-buy";
 const SAMPLE_HS_FIELD_ID = "sample-hs-field";
 const SAMPLE_HS_CARDS_ID = "sample-hs-cards";
 
@@ -406,133 +409,212 @@ function samplePage(overrides: Partial<PageItem> & Pick<PageItem, "id" | "kind" 
 }
 
 export function createSamplePages(): PageItem[] {
-  const tabsValue = JSON.stringify({
+  const faqTabsValue = JSON.stringify({
     sections: [
       {
-        id: "sample-tab-rules",
+        id: "sample-tab-turns",
         label: "Turn Order",
         blocks: [
-          { id: "sample-tb-1", type: "steps", value: "Draw 2 cards from the action deck\nPlay up to 2 cards from your hand\nResolve card effects, then discard played cards\nDraw back up to 5 cards" },
+          { id: "sample-tb-1", type: "steps", value: "Draw 2 cards from the action deck\nPlay up to 2 cards from your hand\nResolve card effects in order\nDiscard played cards, draw back to 5" },
         ],
       },
       {
         id: "sample-tab-setup",
         label: "Setup",
         blocks: [
-          { id: "sample-tb-2", type: "steps", value: "Place the board in the center of the table\nEach player picks a color and takes 8 tokens\nShuffle the action deck and deal 5 cards to each player\nThe youngest player goes first" },
+          { id: "sample-tb-2", type: "steps", value: "Place the Ugly Pickle board in the center\nEach player picks a color and takes their meeples\nShuffle the action deck and deal 5 cards each\nYoungest player goes first" },
         ],
       },
       {
         id: "sample-tab-faq",
-        label: "Common Questions",
+        label: "FAQs",
         blocks: [
-          { id: "sample-tb-3", type: "text", value: "**Can I play cards on another player's turn?** No — action cards can only be played on your own turn.\n\n**What if the draw pile runs out?** Shuffle the discard pile to form a new draw pile and continue." },
+          { id: "sample-tb-3", type: "text", value: "**Can I play cards on another player's turn?** No — action cards can only be played on your own turn.\n\n**What if the draw pile runs out?** Shuffle the discard pile to form a new draw pile.\n\n**Can I win mid-turn?** Yes — check victory conditions the moment they're met." },
         ],
       },
     ],
   });
 
+  const carouselValue = JSON.stringify({
+    slides: [
+      { id: "slide-net", label: "The Net Zone", blocks: [{ id: "sl-b-1", type: "text", value: "The center net zone is contested — the first to occupy it gains the Pressure Meter advantage." }] },
+      { id: "slide-kitchen", label: "The Kitchen", blocks: [{ id: "sl-b-2", type: "text", value: "You can't volley from the kitchen. Step out before striking!" }] },
+      { id: "slide-erne", label: "The ERNE", blocks: [{ id: "sl-b-3", type: "text", value: "Jump around the post and land outside the kitchen for a legal surprise shot." }] },
+    ],
+  });
+
   return [
-    // ── Main Page ──────────────────────────────────────────────────────────
+    // ── Board ──────────────────────────────────────────────────────────────
+    // Covers: all 9 canvas feature types
     samplePage({
       id: HOME_PAGE_ID,
       kind: "home",
       title: "Home",
-      summary: "Tap a hotspot on the board or use the buttons to explore the rules.",
+      summary: "Tap a zone on the board or use the buttons to explore the rules.",
       publicUrl: "https://example.com/rules",
       showQrCode: true,
       interactionType: "full-page",
-      blocks: [createBlock("text", "Welcome to Realm Quest! Tap any hotspot on the board image or use the buttons below to dive into the rules.")],
+      blocks: [createBlock("text", "Welcome to Ugly Pickle! Tap any hotspot on the board or use the buttons to dive in.")],
       canvasFeatures: [
-        { id: "sample-feat-locale",     type: "locale",      label: "EN",              description: "",                                              linkUrl: "",                    imageUrl: "", optionsText: "English|EN\nEspañol|ES\nFrançais|FR\nDeutsch|DE", x: 94, y:  6 },
-        { id: "sample-feat-qr",         type: "qr",          label: "Scan to play",    description: "Scan this QR code to open the live rules.",      linkUrl: "https://example.com/rules", imageUrl: "", optionsText: "", x: 87, y: 14 },
-        { id: "sample-feat-heading",    type: "heading",     label: "Realm Quest",     description: "",                                              linkUrl: "",                    imageUrl: "", optionsText: "", x: 22, y: 10 },
-        { id: "sample-feat-disclaimer", type: "disclaimer",  label: "2–4 players · Ages 12+ · 45–90 min", description: "Tabletop game by Bee Studio", linkUrl: "",                    imageUrl: "", optionsText: "", x: 22, y: 88 },
-        { id: "sample-feat-btn-htp",    type: "page-button", label: "How to Play",     description: "",                                              linkUrl: SAMPLE_HTP_ID,         imageUrl: "", optionsText: "", x: 28, y: 72 },
-        { id: "sample-feat-btn-qr",     type: "page-button", label: "Quick Reference", description: "",                                              linkUrl: SAMPLE_QR_ID,          imageUrl: "", optionsText: "", x: 50, y: 82 },
-        { id: "sample-feat-btn-faq",    type: "page-button", label: "FAQ",             description: "",                                              linkUrl: SAMPLE_FAQ_ID,         imageUrl: "", optionsText: "", x: 72, y: 72 },
-        { id: "sample-feat-dropdown",   type: "dropdown",    label: "Quick Links",     description: "Jump to a specific resource.",                  linkUrl: "",                    imageUrl: "", optionsText: "Rules PDF\nVideo Tutorial\nOfficial Website", x: 80, y: 88 },
-        { id: "sample-feat-search",     type: "search",      label: "Search rules…",   description: "",                                              linkUrl: "",                    imageUrl: "", optionsText: "", x: 50, y:  6 },
+        { id: "sample-feat-locale",     type: "locale",      label: "EN",           description: "",                                               linkUrl: "",                           imageUrl: "", optionsText: "English|EN\nEspañol|ES\nFrançais|FR\nDeutsch|DE",            x: 94, y:  5 },
+        { id: "sample-feat-search",     type: "search",      label: "Search rules…", description: "",                                              linkUrl: "",                           imageUrl: "", optionsText: "",                                                        x: 50, y:  6 },
+        { id: "sample-feat-heading",    type: "heading",     label: "Ugly Pickle",  description: "A pickleball board game",                        linkUrl: "",                           imageUrl: "", optionsText: "",                                                        x: 20, y: 10 },
+        { id: "sample-feat-qr",         type: "qr",          label: "Scan to play", description: "Scan to open the live rules experience.",        linkUrl: "https://example.com/rules",  imageUrl: "", optionsText: "",                                                        x: 86, y: 14 },
+        { id: "sample-feat-btn-htp",    type: "page-button", label: "How to Play",  description: "",                                              linkUrl: SAMPLE_HTP_ID,                imageUrl: "", optionsText: "",                                                        x: 22, y: 74 },
+        { id: "sample-feat-btn-qr",     type: "page-button", label: "Quick Ref",    description: "",                                              linkUrl: SAMPLE_QR_ID,                 imageUrl: "", optionsText: "",                                                        x: 42, y: 82 },
+        { id: "sample-feat-btn-faq",    type: "page-button", label: "FAQ",          description: "",                                              linkUrl: SAMPLE_FAQ_ID,                imageUrl: "", optionsText: "",                                                        x: 60, y: 82 },
+        { id: "sample-feat-btn-trailer",type: "page-button", label: "Trailer",      description: "",                                              linkUrl: SAMPLE_TRAILER_ID,            imageUrl: "", optionsText: "",                                                        x: 78, y: 74 },
+        { id: "sample-feat-dropdown",   type: "dropdown",    label: "Quick Links",  description: "",                                              linkUrl: "",                           imageUrl: "", optionsText: "Rules PDF|https://example.com/rules.pdf\nGame Trailer|https://example.com/trailer\nBuy the Game|https://example.com/buy", x: 86, y: 82 },
+        { id: "sample-feat-disclaimer", type: "disclaimer",  label: "2–4 players · Ages 12+ · 30–60 min", description: "© Bee Studio. Not affiliated with USA Pickleball.", linkUrl: "", imageUrl: "", optionsText: "",                                                        x: 20, y: 90 },
       ],
     }),
 
     // ── How to Play — full-page ────────────────────────────────────────────
+    // Covers: section, text (bold/links), steps (numbered list), step-rail, callout (tip)
     samplePage({
       id: SAMPLE_HTP_ID,
       kind: "page",
       title: "How to Play",
-      summary: "Learn the rules in a few easy steps.",
+      summary: "Learn Ugly Pickle in under 5 minutes.",
       interactionType: "full-page",
       pageButtonPlacement: "bottom",
-      x: 28,
-      y: 72,
+      x: 22,
+      y: 74,
       blocks: [
+        createBlock("section", "The Goal"),
+        createBlock("text", "Ugly Pickle is a 2–4 player pickleball board game. Win by scoring 11 points before your opponents. Points are earned by out-maneuvering opponents with action cards.\n\nCheck the [Quick Ref](#) for card types or the [FAQ](#) for common questions."),
         createBlock("section", "Setup"),
-        createBlock("text", "Place the board in the center of the table. Give each player 8 tokens in their chosen color, then shuffle the action deck and deal 5 cards to each player."),
+        createBlock("steps", "Place the Ugly Pickle board in the center of the table\nEach player picks a color and takes their meeples\nShuffle the action deck and deal 5 cards to each player\nThe youngest player serves first"),
         createBlock("section", "Taking a Turn"),
-        createBlock("steps", "Draw 2 cards from the action deck\nPlay up to 2 cards from your hand\nResolve card effects, then discard played cards\nDraw back up to 5 cards"),
-        { ...createBlock("callout", "The first player to capture 5 zones on the board wins! Points are earned by playing zone control cards."), variant: "tip" as const },
+        createBlock("step-rail", JSON.stringify({
+          orientation: "vertical",
+          iconShape: "circle",
+          showPing: false,
+          steps: [
+            { id: "sr-1", label: "Draw 2 cards from the action deck", color: "#3b82f6", iconImageUrl: "", sectionBlockId: "" },
+            { id: "sr-2", label: "Play up to 2 cards from your hand", color: "#8b5cf6", iconImageUrl: "", sectionBlockId: "" },
+            { id: "sr-3", label: "Resolve card effects in order played", color: "#f59e0b", iconImageUrl: "", sectionBlockId: "" },
+            { id: "sr-4", label: "Discard played cards, draw back to 5", color: "#10b981", iconImageUrl: "", sectionBlockId: "" },
+          ],
+        })),
+        { ...createBlock("callout", "First to 11 points wins — but you must win by 2. Use the Pressure Meter on the board to track momentum shifts!"), variant: "tip" as const },
       ],
     }),
 
-    // ── Quick Reference — side-sheet ───────────────────────────────────────
+    // ── Quick Reference — side-sheet ──────────────────────────────────────
+    // Covers: section, text (bold), callout (info + warning), side-sheet interaction
     samplePage({
       id: SAMPLE_QR_ID,
       kind: "page",
       title: "Quick Reference",
-      summary: "A handy summary of key rules for experienced players.",
+      summary: "The fast-lookup card for experienced players.",
       interactionType: "side-sheet",
       pageButtonPlacement: "right",
-      x: 50,
+      x: 42,
       y: 82,
       blocks: [
         createBlock("section", "Card Types"),
-        createBlock("text", "**Attack** — Deal damage to an opponent's token in an adjacent zone.\n\n**Move** — Relocate one of your tokens up to 2 zones.\n\n**Fortify** — Place a shield marker on a zone you control.\n\n**Event** — Trigger a board-wide effect described on the card."),
-        { ...createBlock("callout", "Hand limit is 5 cards. Discard down to 5 at the end of your turn if you're over the limit."), variant: "info" as const },
+        createBlock("text", "**Serve** — Start a rally. Must land in the opposite service box.\n\n**Dink** — Soft shot into the kitchen. Forces opponent forward.\n\n**Drive** — Aggressive groundstroke. High risk, high reward.\n\n**ERNE** — Leap around the post for a surprise volley.\n\n**Lob** — Send the ball deep to push opponents back."),
+        { ...createBlock("callout", "Hand limit is 5 cards. Discard down to 5 at the end of your turn. See [How to Play](#) for the full turn sequence."), variant: "info" as const },
+        createBlock("section", "Kitchen Rules"),
+        createBlock("text", "You cannot volley (hit out of the air) while standing in the kitchen zone. You **must** let the ball bounce first."),
+        { ...createBlock("callout", "Stepping into the kitchen during a volley is an automatic fault — your opponent scores the point."), variant: "warning" as const },
       ],
     }),
 
-    // ── FAQ — modal ────────────────────────────────────────────────────────
+    // ── FAQ — modal ───────────────────────────────────────────────────────
+    // Covers: tabs block (each tab has steps or text), modal interaction
     samplePage({
       id: SAMPLE_FAQ_ID,
       kind: "page",
       title: "FAQ",
-      summary: "Common questions answered.",
+      summary: "Common questions about Ugly Pickle.",
       interactionType: "modal",
       pageButtonPlacement: "top",
-      x: 72,
-      y: 72,
+      x: 60,
+      y: 82,
       blocks: [
-        createBlock("tabs", tabsValue),
+        createBlock("tabs", faqTabsValue),
       ],
     }),
 
-    // ── Hotspot: The Playing Field — tooltip ───────────────────────────────
+    // ── Game Trailer — bottom-sheet ───────────────────────────────────────
+    // Covers: video block, bottom-sheet interaction
+    samplePage({
+      id: SAMPLE_TRAILER_ID,
+      kind: "page",
+      title: "Game Trailer",
+      summary: "Watch the Ugly Pickle launch trailer.",
+      interactionType: "bottom-sheet",
+      pageButtonPlacement: "stack",
+      x: 78,
+      y: 74,
+      blocks: [
+        createBlock("video", ""),
+        createBlock("text", "Ugly Pickle — the pickleball board game that brings the fastest-growing sport to your table. 2–4 players, ages 12+."),
+      ],
+    }),
+
+    // ── Zone Guide — modal ────────────────────────────────────────────────
+    // Covers: carousel block (image blocks inside slides), modal interaction variant
+    samplePage({
+      id: SAMPLE_GALLERY_ID,
+      kind: "page",
+      title: "Zone Guide",
+      summary: "A tour of each zone on the Ugly Pickle board.",
+      interactionType: "modal",
+      pageButtonPlacement: "left",
+      x: 50,
+      y: 60,
+      blocks: [
+        createBlock("carousel", carouselValue),
+        { ...createBlock("callout", "Tap each zone on the board image to get a hotspot tooltip for that specific area."), variant: "info" as const },
+      ],
+    }),
+
+    // ── Buy the Game — external-link ──────────────────────────────────────
+    // Covers: external-link interaction type
+    samplePage({
+      id: SAMPLE_BUY_ID,
+      kind: "page",
+      title: "Buy the Game",
+      summary: "Get Ugly Pickle at your local game store or online.",
+      interactionType: "external-link",
+      publicUrl: "https://example.com/buy",
+      pageButtonPlacement: "right",
+      x: 90,
+      y: 50,
+      blocks: [],
+    }),
+
+    // ── Hotspot: The Kitchen — tooltip ────────────────────────────────────
+    // Covers: tooltip interaction, hotspot kind
     samplePage({
       id: SAMPLE_HS_FIELD_ID,
       kind: "hotspot",
-      title: "The Playing Field",
+      title: "The Kitchen",
       summary: "",
       interactionType: "tooltip",
-      x: 35,
-      y: 45,
+      x: 38,
+      y: 52,
       blocks: [
-        createBlock("text", "The board is divided into 9 zones arranged in a 3×3 grid. Control a zone by having more tokens there than any opponent."),
+        createBlock("text", "The non-volley zone (NVZ). You cannot hit the ball out of the air while standing here — let it bounce first."),
       ],
     }),
 
     // ── Hotspot: Action Cards — side-sheet ────────────────────────────────
+    // Covers: side-sheet interaction on a hotspot, callout (info)
     samplePage({
       id: SAMPLE_HS_CARDS_ID,
       kind: "hotspot",
       title: "Action Cards",
       summary: "",
       interactionType: "side-sheet",
-      x: 62,
-      y: 28,
+      x: 64,
+      y: 30,
       blocks: [
-        createBlock("text", "Action cards are the core of Realm Quest. Each card has a type (Attack, Move, Fortify, or Event) and a strength value shown in the top corner."),
-        { ...createBlock("callout", "You may play a maximum of 2 action cards per turn. Unused cards stay in your hand."), variant: "info" as const },
+        createBlock("text", "Action cards are the heart of Ugly Pickle. Each card has a type (Serve, Dink, Drive, ERNE, or Lob) and a point value shown in the corner."),
+        { ...createBlock("callout", "You may play up to 2 action cards per turn. Unplayed cards stay in your hand until your next turn."), variant: "info" as const },
       ],
     }),
   ];

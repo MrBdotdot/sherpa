@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { CardPairingModal } from "@/app/_components/card-pairing-modal";
+import { OnboardingModal, shouldShowOnboarding, dismissOnboarding } from "@/app/_components/onboarding-modal";
 import { ConfirmDeleteModal } from "@/app/_components/confirm-delete-modal";
 import { PageEditorModal } from "@/app/_components/page-editor-modal";
 import { PageSidebar } from "@/app/_components/page-sidebar";
@@ -17,6 +19,8 @@ import {
   migrateLocaleFeature,
   migratePageButtons,
 } from "@/app/_lib/authoring-studio-utils";
+import { loadGame, saveGame } from "@/app/_lib/supabase-game";
+import { supabase } from "@/app/_lib/supabase";
 import { useStudioHistory } from "@/app/_hooks/useStudioHistory";
 import { useDrag } from "@/app/_hooks/useDrag";
 import { usePageHandlers } from "@/app/_hooks/usePageHandlers";
@@ -26,11 +30,11 @@ import { useA11yMonitor } from "@/app/_hooks/useA11yMonitor";
 import { A11yNotificationStack } from "@/app/_components/a11y-notification";
 import { usePaletteEntries } from "@/app/_hooks/usePaletteEntries";
 
-const STORAGE_KEY = "sherpa-v1";
+const STORAGE_KEY = "sherpa-v2";
 
 type InspectorTab = "surface" | "content" | "setup";
 
-export function AuthoringStudio() {
+export function AuthoringStudio({ userId, userEmail }: { userId: string; userEmail: string }) {
   const [pages, setPages] = useState<PageItem[]>(createSamplePages);
   const pagesRef = useRef(pages);
   useEffect(() => { pagesRef.current = pages; }, [pages]);
@@ -43,7 +47,6 @@ export function AuthoringStudio() {
     modelEnvironment: "studio",
   });
   const [experienceStatus, setExperienceStatus] = useState<ExperienceStatus>("draft");
-  const [isLayoutEditMode, setIsLayoutEditMode] = useState(false);
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("desktop");
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [showLayoutHelp, setShowLayoutHelp] = useState(true);
@@ -57,10 +60,13 @@ export function AuthoringStudio() {
   const [isGameSwitcherOpen, setIsGameSwitcherOpen] = useState(false);
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
-  const [currentGameId, setCurrentGameId] = useState("game-1");
+  const [cardPairingPageId, setCardPairingPageId] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [currentGameId, setCurrentGameId] = useState(userId);
   const [currentGameName, setCurrentGameName] = useState("Ugly Pickle");
   const [currentStudioName, setCurrentStudioName] = useState("Bee Studio");
   const [hydrated, setHydrated] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   // Refs for the keyboard handler — avoid stale closures without re-registering the listener
   const selectedFeatureIdRef = useRef(selectedFeatureId);
@@ -74,27 +80,55 @@ export function AuthoringStudio() {
   const isFocusModeRef = useRef(isFocusMode);
   useEffect(() => { isFocusModeRef.current = isFocusMode; }, [isFocusMode]);
   const lastNudgeTimeRef = useRef(0);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load persisted state after first mount to avoid SSR/client hydration mismatch
+  // Load: try Supabase first, fall back to localStorage
   useEffect(() => {
     if (hydrated) return;
     setHydrated(true);
-    const persisted = loadPersistedState();
-    if (persisted) {
-      if (persisted.pages) setPages(migrateLocaleFeature(migratePageButtons(persisted.pages)));
-      if (persisted.systemSettings) setSystemSettings(persisted.systemSettings);
+    async function load() {
+      try {
+        const remote = await loadGame(currentGameId);
+        if (remote) {
+          const loaded = migrateLocaleFeature(migratePageButtons(remote.pages));
+          setPages(loaded.length > 0 ? loaded : createSamplePages());
+          if (remote.systemSettings) setSystemSettings(remote.systemSettings);
+          if (remote.gameTitle) setCurrentGameName(remote.gameTitle);
+          return;
+        }
+      } catch { /* network unavailable — fall through */ }
+      const persisted = loadPersistedState();
+      if (persisted) {
+        if (persisted.pages) setPages(migrateLocaleFeature(migratePageButtons(persisted.pages)));
+        if (persisted.systemSettings) setSystemSettings(persisted.systemSettings);
+      }
     }
+    load();
+    if (shouldShowOnboarding()) setShowOnboarding(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Persist state on every change
+  // Persist: localStorage immediately + Supabase debounced
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ pages, systemSettings }));
-    } catch {
-      // storage unavailable or quota exceeded — fail silently
-    }
-  }, [pages, systemSettings]);
+    } catch { /* quota exceeded — fail silently */ }
+
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      setSaveState("saving");
+      saveGame(currentGameId, userId, currentGameName, pages, systemSettings)
+        .then(() => {
+          setSaveState("saved");
+          if (savedResetRef.current) clearTimeout(savedResetRef.current);
+          savedResetRef.current = setTimeout(() => setSaveState("idle"), 2000);
+        })
+        .catch((err) => { console.error("[saveGame]", err); setSaveState("error"); });
+    }, 2000);
+
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
+  }, [pages, systemSettings, currentGameId, currentGameName]);
 
   const selectedPage = useMemo(
     () => pages.find((page) => page.id === selectedPageId) ?? null,
@@ -115,11 +149,12 @@ export function AuthoringStudio() {
     [pages]
   );
 
-  const activePreviewPage = selectedPage ?? pages[0];
+  const activePreviewPage = selectedPage ?? homePage ?? pages[0];
   // All containers (hotspots and nav pages) appear on top of the home surface —
   // always render the home canvas as the background so the context is correct.
-  const previewSurfacePage =
-    activePreviewPage.kind === "home" ? activePreviewPage : homePage;
+  const previewSurfacePage = activePreviewPage
+    ? activePreviewPage.kind === "home" ? activePreviewPage : homePage
+    : undefined;
 
   const updateSelectedPage = useCallback((updater: (page: PageItem) => PageItem) => {
     setPages((prev) =>
@@ -149,8 +184,6 @@ export function AuthoringStudio() {
     setPages,
     selectedPageId,
     setSelectedPageId,
-    isLayoutEditMode,
-    setIsLayoutEditMode,
     isPreviewMode,
     setIsPreviewMode,
     setIsContentModalOpen,
@@ -163,7 +196,6 @@ export function AuthoringStudio() {
   const {
     openPageEditor,
     handleSidebarFeatureClick,
-    handleCreatePage,
     handleCreateTemplatePage: _handleCreateTemplatePage,
     handleCreatePageWithConfig,
     handleCreatePageForButton,
@@ -191,6 +223,8 @@ export function AuthoringStudio() {
     setInspectorTab,
     setSelectedFeatureId,
     setShowDeleteModal,
+    userId,
+    gameId: currentGameId,
   });
 
   const {
@@ -213,13 +247,14 @@ export function AuthoringStudio() {
     handleBlockFormatChange,
     handleBlockImagePositionChange,
     handleBlockPropsChange,
-  } = useContentHandlers({ pushPagesHistory, updateSelectedPage });
+  } = useContentHandlers({ pushPagesHistory, updateSelectedPage, userId, gameId: currentGameId });
 
   const {
     handleAddCanvasFeature,
     handleCanvasFeatureChange,
     handleCanvasFeatureImageUpload,
     handleRemoveCanvasFeature,
+    handleAddPageButton,
     handleSystemSettingChange,
   } = useCanvasFeatureHandlers({
     pages,
@@ -228,6 +263,8 @@ export function AuthoringStudio() {
     updateSelectedPage,
     setSystemSettings,
     setShowLayoutHelp,
+    userId,
+    gameId: currentGameId,
   });
 
   const handleSelectPage = useCallback((id: string) => {
@@ -239,13 +276,11 @@ export function AuthoringStudio() {
   const extraPaletteEntries = usePaletteEntries({
     selectedFeatureId,
     selectedPage,
-    isLayoutEditMode,
     handleSystemSettingChange,
     handlePublishStatusChange,
     pushPagesHistory,
     setPages,
     setSelectedFeatureId,
-    setIsLayoutEditMode,
     setInspectorTab,
     setShowDeleteModal,
     setIsGameSwitcherOpen,
@@ -473,6 +508,8 @@ export function AuthoringStudio() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  if (!activePreviewPage || !previewSurfacePage) return null;
+
   const sharedEditorProps = {
     activePreviewPage,
     hotspotPages,
@@ -512,6 +549,11 @@ export function AuthoringStudio() {
     onSelectPage: handleSelectPage,
     onSocialLinkChange: handleSocialLinkChange,
     onSystemSettingChange: handleSystemSettingChange,
+    onBggImport: (data: { name: string; complexity: number; bggId: string }) => {
+      setCurrentGameName(data.name);
+      setPages((prev) => prev.map((p) => p.kind === "home" ? { ...p, title: data.name } : p));
+      setSystemSettings((prev) => ({ ...prev, bggId: data.bggId, bggComplexity: data.complexity }));
+    },
     onTitleChange: handleTitleChange,
     onContentTintChange: handleContentTintChange,
     onBlockWidthChange: handleBlockWidthChange,
@@ -544,7 +586,7 @@ export function AuthoringStudio() {
     featureDragState,
     hotspotPages,
     pages,
-    isLayoutEditMode,
+    isLayoutEditMode: false,
     layoutMode,
     systemSettings,
     showLayoutHelp,
@@ -557,13 +599,19 @@ export function AuthoringStudio() {
     onDismissLayoutHelp: () => setShowLayoutHelp(false),
     onHotspotPointerDown: handleHotspotPointerDown,
     onSelectPage: handleSelectPage,
-    onToggleLayoutEditMode: () => setIsLayoutEditMode((prev) => !prev),
+    onToggleLayoutEditMode: () => {},
     onSetLayoutMode: setLayoutMode,
     onTogglePreviewMode: handleTogglePreviewMode,
     onHeroUpload: handlePageHeroUpload,
     onOpenCommandPalette: () => setIsCommandPaletteOpen(true),
     isPreviewMode,
     selectedPageId,
+    saveState,
+    gameName: currentGameName,
+    onRenameGame: (name: string) => {
+      setCurrentGameName(name);
+      setPages((prev) => prev.map((p) => p.kind === "home" ? { ...p, title: name } : p));
+    },
   } as const;
 
   return (
@@ -571,7 +619,11 @@ export function AuthoringStudio() {
       <div className="flex min-h-screen">
         <div className={`${isFocusMode ? "hidden" : "hidden lg:block"} h-screen w-[300px] shrink-0 overflow-hidden border-r border-neutral-200 bg-white`}>
           <PageSidebar
-            onAddPage={handleCreatePage}
+            onAddPage={() => {
+              const id = handleCreatePageForButton();
+              openPageEditor(id);
+              setCardPairingPageId(id);
+            }}
             onReorderBlocks={(pageId, fromIndex, toIndex) => {
               pushPagesHistory();
               setPages((prev) => prev.map((p) => {
@@ -598,6 +650,11 @@ export function AuthoringStudio() {
             selectedPageId={selectedPageId}
             currentGameName={currentGameName}
             currentStudioName={currentStudioName}
+            currentGameId={currentGameId}
+            onRenameGame={(name) => {
+              setCurrentGameName(name);
+              setPages((prev) => prev.map((p) => p.kind === "home" ? { ...p, title: name } : p));
+            }}
             onOpenChangelog={() => setIsChangelogOpen(true)}
             onOpenAccount={() => setIsAccountOpen(true)}
             onOpenGameSwitcher={() => setIsGameSwitcherOpen(true)}
@@ -687,7 +744,11 @@ export function AuthoringStudio() {
           onSelectPage={(id) => openPageEditor(id)}
           onAddCanvasFeature={handleAddCanvasFeature}
           onAddBlock={handleAddBlock}
-          onCreatePage={handleCreatePage}
+          onCreatePage={() => {
+              const id = handleCreatePageForButton();
+              openPageEditor(id);
+              setCardPairingPageId(id);
+            }}
           onSetLayoutMode={setLayoutMode}
           onTogglePreview={() => setIsPreviewMode((prev) => !prev)}
           onToggleFocus={() => setIsFocusMode((prev) => !prev)}
@@ -708,16 +769,50 @@ export function AuthoringStudio() {
         onNavigate={handleA11yNavigate}
       />
 
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onClose={() => { dismissOnboarding(); setShowOnboarding(false); }}
+      />
+
+      <CardPairingModal
+        isOpen={!!cardPairingPageId}
+        cardTitle={pages.find((p) => p.id === cardPairingPageId)?.title || ""}
+        onAddButton={() => {
+          if (cardPairingPageId) {
+            const title = pages.find((p) => p.id === cardPairingPageId)?.title || "Card";
+            handleAddPageButton(cardPairingPageId, title);
+          }
+          setCardPairingPageId(null);
+        }}
+        onSkip={() => setCardPairingPageId(null)}
+      />
+
       <ChangelogModal isOpen={isChangelogOpen} onClose={() => setIsChangelogOpen(false)} />
-      <AccountPanel isOpen={isAccountOpen} onClose={() => setIsAccountOpen(false)} />
+      <AccountPanel
+        isOpen={isAccountOpen}
+        onClose={() => setIsAccountOpen(false)}
+        userEmail={userEmail}
+        onSignOut={() => supabase.auth.signOut()}
+      />
       <GameSwitcherModal
         isOpen={isGameSwitcherOpen}
         currentGameId={currentGameId}
+        userId={userId}
         onClose={() => setIsGameSwitcherOpen(false)}
         onSelectGame={(id, name, studio) => {
           setCurrentGameId(id);
           setCurrentGameName(name);
           setCurrentStudioName(studio);
+          loadGame(id).then((remote) => {
+            if (remote) {
+              const loaded = migrateLocaleFeature(migratePageButtons(remote.pages));
+              setPages(loaded.length > 0 ? loaded : createSamplePages());
+              setSystemSettings(remote.systemSettings);
+            } else {
+              setPages(createSamplePages());
+              setSystemSettings({ fontTheme: "modern", surfaceStyle: "glass", accentColor: "", hotspotSize: "medium", modelEnvironment: "studio" });
+            }
+          }).catch(() => {/* stay on current state */});
         }}
       />
     </main>

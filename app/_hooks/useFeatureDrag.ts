@@ -26,7 +26,7 @@ type UseFeatureDragProps = {
   imageStripRef: React.RefObject<HTMLDivElement | null>;
   contentZoneRef: React.RefObject<HTMLDivElement | null>;
   isPortraitMode: boolean;
-  isLayoutEditMode: boolean;
+  isPreviewMode: boolean;
   pages: PageItem[];
   setPages: React.Dispatch<React.SetStateAction<PageItem[]>>;
   selectedPageId: string;
@@ -37,7 +37,7 @@ export function useFeatureDrag({
   imageStripRef,
   contentZoneRef,
   isPortraitMode,
-  isLayoutEditMode,
+  isPreviewMode,
   pages,
   setPages,
   selectedPageId,
@@ -58,7 +58,7 @@ export function useFeatureDrag({
     featureId: string
   ) => {
     event.stopPropagation();
-    if (!isLayoutEditMode) return;
+    if (isPreviewMode) return;
 
     const feature = selectedPage?.canvasFeatures.find((item) => item.id === featureId);
     if (!feature) return;
@@ -86,7 +86,7 @@ export function useFeatureDrag({
   };
 
   useEffect(() => {
-    if (!featureDragState || !isLayoutEditMode) return;
+    if (!featureDragState || isPreviewMode) return;
 
     const handlePointerMove = (event: PointerEvent) => {
       const el = getFeatureCoordEl(featureDragState.isContentZone);
@@ -127,7 +127,7 @@ export function useFeatureDrag({
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [featureDragState, isLayoutEditMode, selectedPageId]);
+  }, [featureDragState, isPreviewMode, selectedPageId]);
 
   return { featureDragState, handleCanvasFeaturePointerDown };
 }

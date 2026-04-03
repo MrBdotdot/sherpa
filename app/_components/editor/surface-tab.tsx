@@ -55,7 +55,7 @@ export function SurfaceTab({
         onClick={() => setPickerOpen(true)}
         className="w-full rounded-2xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
       >
-        + Add canvas element
+        + Add board element
       </button>
 
       {selectedPage.canvasFeatures.length > 0 ? (
@@ -71,7 +71,7 @@ export function SurfaceTab({
           {pageButtons.length > 0 ? (
             <div className="space-y-4">
               {elements.length > 0 ? (
-                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Card buttons</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Board buttons</div>
               ) : null}
               {pageButtons.map(renderFeature)}
             </div>
@@ -79,7 +79,7 @@ export function SurfaceTab({
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-8 text-center text-sm text-neutral-500">
-          Nothing on the canvas yet — add an image, QR code, or button.
+          Nothing on the board yet — add an image, QR code, or button.
         </div>
       )}
 
@@ -87,7 +87,7 @@ export function SurfaceTab({
         <div className="fixed inset-0 z-[300] flex items-end justify-center bg-black/40 p-4 sm:items-center">
           <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <div className="text-base font-semibold text-neutral-900">Add canvas element</div>
+              <div className="text-base font-semibold text-neutral-900">Add board element</div>
               <button
                 type="button"
                 onClick={() => setPickerOpen(false)}
@@ -97,22 +97,34 @@ export function SurfaceTab({
               </button>
             </div>
             <div className="space-y-2">
-              {CANVAS_ELEMENT_TYPES.map((item) => (
-                <button
-                  key={item.type}
-                  type="button"
-                  onClick={() => {
-                    onAddCanvasFeature(item.type);
-                    setPickerOpen(false);
-                  }}
-                  className="flex w-full items-start gap-3 rounded-2xl border border-neutral-200 px-4 py-3 text-left hover:border-neutral-300 hover:bg-neutral-50"
-                >
-                  <div>
-                    <div className="text-sm font-medium text-neutral-900">{item.label}</div>
-                    <div className="mt-0.5 text-xs leading-4 text-neutral-400">{item.description}</div>
-                  </div>
-                </button>
-              ))}
+              {CANVAS_ELEMENT_TYPES.map((item) => {
+                const isSingleton = item.type === "search" || item.type === "locale";
+                const alreadyExists = isSingleton && selectedPage.canvasFeatures.some((f) => f.type === item.type);
+                return (
+                  <button
+                    key={item.type}
+                    type="button"
+                    disabled={alreadyExists}
+                    onClick={() => {
+                      if (alreadyExists) return;
+                      onAddCanvasFeature(item.type);
+                      setPickerOpen(false);
+                    }}
+                    className={`flex w-full items-start gap-3 rounded-2xl border px-4 py-3 text-left transition ${
+                      alreadyExists
+                        ? "cursor-not-allowed border-neutral-100 bg-neutral-50 opacity-50"
+                        : "border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50"
+                    }`}
+                  >
+                    <div>
+                      <div className="text-sm font-medium text-neutral-900">{item.label}</div>
+                      <div className="mt-0.5 text-xs leading-4 text-neutral-400">
+                        {alreadyExists ? "Already on the board" : item.description}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>,

@@ -68,9 +68,9 @@ export function ContentModule({
 }) {
   const ctype = page.interactionType;
   const cardSize = page.cardSize ?? "medium";
-  const isHotspotSelection = page.kind === "hotspot" && !isLayoutEditMode;
+  const isHotspotSelection = page.kind === "hotspot" && !isPreviewMode;
   const isContentDraggable =
-    !isExiting && isLayoutEditMode && (ctype === "modal" || ctype === "tooltip");
+    !isExiting && isLayoutEditMode && page.kind !== "hotspot" && (ctype === "modal" || ctype === "tooltip");
 
   const contentCardWidth =
     cardSize === "compact" ? "w-[360px]"
@@ -148,7 +148,7 @@ export function ContentModule({
       >
         {isLayoutEditMode && !isExiting ? (
           <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-            <span>Content module</span>
+            <span>Card</span>
           </div>
         ) : null}
         <div className={`w-[260px] max-w-[calc(100%-2rem)] rounded-2xl border px-4 py-4 text-center shadow-xl ${surfaceStyleClass} ${fontThemeClass}`}>
@@ -332,21 +332,36 @@ export function ContentModule({
                 Follow
               </div>
               <div className="flex flex-wrap gap-2">
-                {page.socialLinks.map((item) => (
-                  <a
-                    key={item.id}
-                    href={item.url || "#"}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`rounded-full border px-2.5 py-1.5 text-xs ${
-                      systemSettings.surfaceStyle === "contrast"
-                        ? "border-white/20 text-white hover:bg-white/10"
-                        : "border-neutral-300 text-neutral-700 hover:bg-neutral-50"
-                    }`}
-                  >
-                    {item.label || "Social"}
-                  </a>
-                ))}
+                {page.socialLinks.map((item) => {
+                  const btnClass = `rounded-full border px-2.5 py-1.5 text-xs ${
+                    systemSettings.surfaceStyle === "contrast"
+                      ? "border-white/20 text-white hover:bg-white/10"
+                      : "border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+                  }`;
+                  if ((item.linkMode ?? "external") === "page" && item.linkPageId) {
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onNavigate?.(item.linkPageId!); }}
+                        className={btnClass}
+                      >
+                        {item.label || "Go to card"}
+                      </button>
+                    );
+                  }
+                  return (
+                    <a
+                      key={item.id}
+                      href={item.url || "#"}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={btnClass}
+                    >
+                      {item.label || "Social"}
+                    </a>
+                  );
+                })}
               </div>
             </div>
           ) : null}
@@ -404,7 +419,7 @@ export function ContentModule({
         </div>
         {isLayoutEditMode && !isExiting ? (
           <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-            <span>Content module</span>
+            <span>Card</span>
           </div>
         ) : null}
         {renderContent(true)}
@@ -443,7 +458,7 @@ export function ContentModule({
             <div className="mx-auto w-full max-w-md py-4">
               {isLayoutEditMode && !isExiting ? (
                 <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-                  <span>Content module</span>
+                  <span>Card</span>
                 </div>
               ) : null}
               {renderContent(false)}
@@ -462,7 +477,7 @@ export function ContentModule({
       >
         {isLayoutEditMode && !isExiting ? (
           <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-            <span>Content module</span>
+            <span>Card</span>
           </div>
         ) : null}
         {renderContent(true)}
@@ -503,7 +518,7 @@ export function ContentModule({
             aria-hidden="true"
             className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white pointer-events-none"
           >
-            <span>Content module</span>
+            <span>Card</span>
             {isContentDraggable ? <span className="opacity-60">Move</span> : null}
           </div>
         ) : null}

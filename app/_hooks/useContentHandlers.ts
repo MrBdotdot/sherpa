@@ -3,15 +3,20 @@
 import { ChangeEvent } from "react";
 import { createBlock, createSocialLink } from "@/app/_lib/authoring-utils";
 import { ContentBlock, ContentBlockType, ImageFit, PageItem } from "@/app/_lib/authoring-types";
+import { uploadImage } from "@/app/_lib/supabase-storage";
 
 interface UseContentHandlersProps {
   pushPagesHistory: () => void;
   updateSelectedPage: (updater: (page: PageItem) => PageItem) => void;
+  userId: string;
+  gameId: string;
 }
 
 export function useContentHandlers({
   pushPagesHistory,
   updateSelectedPage,
+  userId,
+  gameId,
 }: UseContentHandlersProps) {
   const handleAddBlock = (type: ContentBlockType) => {
     pushPagesHistory();
@@ -93,13 +98,20 @@ export function useContentHandlers({
     });
   };
 
-  const handleBlockImageUpload = (
+  const handleBlockImageUpload = async (
     blockId: string,
     event: ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    handleBlockChange(blockId, URL.createObjectURL(file));
+    const localUrl = URL.createObjectURL(file);
+    handleBlockChange(blockId, localUrl);
+    try {
+      const remoteUrl = await uploadImage(file, userId, gameId);
+      handleBlockChange(blockId, remoteUrl);
+    } catch {
+      // local blob URL stays in place — acceptable fallback
+    }
   };
 
   const handleBlockImageFitChange = (blockId: string, imageFit: ImageFit) => {
@@ -138,7 +150,7 @@ export function useContentHandlers({
 
   const handleSocialLinkChange = (
     socialId: string,
-    field: "label" | "url",
+    field: "label" | "url" | "linkMode" | "linkPageId",
     value: string
   ) => {
     updateSelectedPage((page) => ({

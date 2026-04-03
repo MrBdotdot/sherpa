@@ -10,6 +10,7 @@ import {
   PublishStatus,
 } from "@/app/_lib/authoring-types";
 import { usePageCrud } from "@/app/_hooks/usePageCrud";
+import { uploadImage } from "@/app/_lib/supabase-storage";
 
 interface UsePageHandlersProps {
   pages: PageItem[];
@@ -22,6 +23,8 @@ interface UsePageHandlersProps {
   setInspectorTab: (tab: "surface" | "content" | "setup") => void;
   setSelectedFeatureId: (id: string | null) => void;
   setShowDeleteModal: (v: boolean) => void;
+  userId: string;
+  gameId: string;
 }
 
 export function usePageHandlers({
@@ -35,6 +38,8 @@ export function usePageHandlers({
   setInspectorTab,
   setSelectedFeatureId,
   setShowDeleteModal,
+  userId,
+  gameId,
 }: UsePageHandlersProps) {
   const crud = usePageCrud({
     pages,
@@ -55,14 +60,8 @@ export function usePageHandlers({
     setSelectedFeatureId(null);
     setIsContentModalOpen(true);
     const page = pages.find((p) => p.id === id);
-    if (!page) return;
-    if (page.kind === "hotspot") {
-      setInspectorTab("content");
-    } else if (page.canvasFeatures.length === 0 && (page.blocks.length > 0 || page.socialLinks.length > 0)) {
-      setInspectorTab("content");
-    } else {
-      setInspectorTab("surface");
-    }
+    if (!page || page.kind === "home") return;
+    setInspectorTab("content");
   };
 
   const handleSidebarFeatureClick = (pageId: string, featureId: string) => {
@@ -82,11 +81,17 @@ export function usePageHandlers({
     updateSelectedPage((page) => ({ ...page, heroImage: event.target.value }));
   };
 
-  const handlePageHeroUpload = (event: ChangeEvent<HTMLInputElement>) => {
+  const handlePageHeroUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const objectUrl = URL.createObjectURL(file);
-    updateSelectedPage((page) => ({ ...page, heroImage: objectUrl }));
+    const localUrl = URL.createObjectURL(file);
+    updateSelectedPage((page) => ({ ...page, heroImage: localUrl }));
+    try {
+      const remoteUrl = await uploadImage(file, userId, gameId);
+      updateSelectedPage((page) => ({ ...page, heroImage: remoteUrl }));
+    } catch {
+      // local blob URL stays in place until next save — acceptable fallback
+    }
   };
 
   const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {

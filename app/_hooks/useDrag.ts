@@ -12,8 +12,6 @@ interface UseDragProps {
   setPages: React.Dispatch<React.SetStateAction<PageItem[]>>;
   selectedPageId: string;
   setSelectedPageId: (id: string) => void;
-  isLayoutEditMode: boolean;
-  setIsLayoutEditMode: React.Dispatch<React.SetStateAction<boolean>>;
   isPreviewMode: boolean;
   setIsPreviewMode: React.Dispatch<React.SetStateAction<boolean>>;
   setIsContentModalOpen: (v: boolean) => void;
@@ -28,8 +26,6 @@ export function useDrag({
   setPages,
   selectedPageId,
   setSelectedPageId,
-  isLayoutEditMode,
-  setIsLayoutEditMode,
   isPreviewMode,
   setIsPreviewMode,
   setIsContentModalOpen,
@@ -65,7 +61,7 @@ export function useDrag({
     imageStripRef,
     contentZoneRef,
     isPortraitMode,
-    isLayoutEditMode,
+    isPreviewMode,
     pages,
     setPages,
     selectedPageId,
@@ -74,7 +70,7 @@ export function useDrag({
   const { contentDragState, handleContentCardPointerDown } = useContentDrag({
     canvasRef,
     isPortraitMode,
-    isLayoutEditMode,
+    isPreviewMode,
     pages,
     setPages,
     selectedPageId,
@@ -148,10 +144,7 @@ export function useDrag({
   };
 
   const handleTogglePreviewMode = () => {
-    setIsPreviewMode((prev) => {
-      if (!prev) setIsLayoutEditMode(false);
-      return !prev;
-    });
+    setIsPreviewMode((prev) => !prev);
   };
 
   return {

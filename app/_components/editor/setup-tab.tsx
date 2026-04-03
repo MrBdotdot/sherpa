@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent } from "react";
+import { ChangeEvent, useState } from "react";
 import { PageButtonPlacement, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 import { getPlacementLabel } from "@/app/_lib/label-utils";
 import { EditorSection, EditorSubsection, SelectField } from "@/app/_components/editor/editor-ui";
@@ -15,6 +15,7 @@ export function SetupTab({
   onPageHeroUrlChange,
   onResetPagePosition,
   onSystemSettingChange,
+  onBggImport,
   selectedPage,
   systemSettings,
 }: {
@@ -24,9 +25,13 @@ export function SetupTab({
   onPageHeroUrlChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onResetPagePosition: () => void;
   onSystemSettingChange: <K extends keyof SystemSettings>(field: K, value: SystemSettings[K]) => void;
+  onBggImport: (data: { name: string; complexity: number; bggId: string }) => void;
   selectedPage: PageItem;
   systemSettings: SystemSettings;
 }) {
+  const [bggInput, setBggInput] = useState(systemSettings.bggId ?? "");
+  const [bggLoading, setBggLoading] = useState(false);
+  const [bggError, setBggError] = useState("");
   return (
     <div className="divide-y divide-neutral-200">
       {/* New container */}
@@ -491,6 +496,70 @@ export function SetupTab({
           ) : null}
         </div>
       </EditorSection>
+
+      {/* BGG — only shown on the home page */}
+      {selectedPage.kind === "home" ? (
+        <EditorSection title="BoardGameGeek">
+          <div className="space-y-3">
+            <p className="text-xs leading-5 text-neutral-400">
+              Import your game{"'"}s title and complexity rating from BoardGameGeek. Find your game{"'"}s ID in its BGG URL (e.g. boardgamegeek.com/boardgame/<strong>266192</strong>).
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={bggInput}
+                onChange={(e) => { setBggInput(e.target.value); setBggError(""); }}
+                placeholder="BGG game ID (e.g. 266192)"
+                aria-label="BGG game ID"
+                className="min-w-0 flex-1 rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none focus:border-black"
+              />
+              <button
+                type="button"
+                disabled={!bggInput.trim() || bggLoading}
+                onClick={async () => {
+                  const id = bggInput.trim();
+                  if (!id) return;
+                  setBggLoading(true);
+                  setBggError("");
+                  try {
+                    const res = await fetch(`/api/bgg?id=${encodeURIComponent(id)}`);
+                    const data = await res.json();
+                    if (!res.ok) { setBggError(data.error ?? "Import failed"); return; }
+                    onBggImport({ name: data.name, complexity: data.complexity, bggId: id });
+                    onSystemSettingChange("bggId", id);
+                    onSystemSettingChange("bggComplexity", data.complexity);
+                  } catch {
+                    setBggError("Network error — try again");
+                  } finally {
+                    setBggLoading(false);
+                  }
+                }}
+                className="shrink-0 rounded-xl border border-neutral-300 px-3 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-40"
+              >
+                {bggLoading ? "Importing…" : "Import"}
+              </button>
+            </div>
+            {bggError ? (
+              <p className="text-xs text-red-500">{bggError}</p>
+            ) : null}
+            {systemSettings.bggId ? (
+              <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5">
+                <div className="text-sm text-neutral-700">
+                  Complexity: <span className="font-semibold">{(systemSettings.bggComplexity ?? 0).toFixed(1)}/5</span>
+                </div>
+                <a
+                  href={`https://boardgamegeek.com/boardgame/${systemSettings.bggId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs font-medium text-neutral-500 hover:text-neutral-900"
+                >
+                  View on BGG ↗
+                </a>
+              </div>
+            ) : null}
+          </div>
+        </EditorSection>
+      ) : null}
     </div>
   );
 }

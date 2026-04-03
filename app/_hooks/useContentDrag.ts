@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { clamp } from "@/app/_lib/authoring-utils";
 import { PageItem } from "@/app/_lib/authoring-types";
 
-const SAFE_MARGIN = 10;
+const SAFE_MARGIN = 0;
 const SNAP_LINES = [33.333, 50, 66.666];
 const SNAP_THRESHOLD = 2;
 
@@ -23,7 +23,7 @@ function getSnappedValue(value: number): number {
 type UseContentDragProps = {
   canvasRef: React.RefObject<HTMLDivElement | null>;
   isPortraitMode: boolean;
-  isLayoutEditMode: boolean;
+  isPreviewMode: boolean;
   pages: PageItem[];
   setPages: React.Dispatch<React.SetStateAction<PageItem[]>>;
   selectedPageId: string;
@@ -32,7 +32,7 @@ type UseContentDragProps = {
 export function useContentDrag({
   canvasRef,
   isPortraitMode,
-  isLayoutEditMode,
+  isPreviewMode,
   pages,
   setPages,
   selectedPageId,
@@ -43,7 +43,7 @@ export function useContentDrag({
 
   const handleContentCardPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     event.stopPropagation();
-    if (!isLayoutEditMode) return;
+    if (isPreviewMode) return;
     // Content fills the portrait zone — no positional drag in portrait mode
     if (isPortraitMode) return;
 
@@ -69,7 +69,7 @@ export function useContentDrag({
   };
 
   useEffect(() => {
-    if (!contentDragState || !isLayoutEditMode || !selectedPageId) return;
+    if (!contentDragState || isPreviewMode || !selectedPageId) return;
 
     const handlePointerMove = (event: PointerEvent) => {
       const canvas = canvasRef.current;
@@ -111,7 +111,7 @@ export function useContentDrag({
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [contentDragState, isLayoutEditMode, selectedPageId]);
+  }, [contentDragState, isPreviewMode, selectedPageId]);
 
   return { contentDragState, handleContentCardPointerDown };
 }

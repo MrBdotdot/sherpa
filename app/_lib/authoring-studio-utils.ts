@@ -1,7 +1,7 @@
 import { createCanvasFeature } from "@/app/_lib/authoring-utils";
 import { CanvasFeature, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 
-const STORAGE_KEY = "sherpa-v1";
+const STORAGE_KEY = "sherpa-v2";
 
 export function loadPersistedState(): { pages: PageItem[]; systemSettings: SystemSettings } | null {
   try {

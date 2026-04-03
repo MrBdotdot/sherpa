@@ -122,13 +122,9 @@ export function SearchFeatureCard({
                   {result.breadcrumb.map((crumb, ci) => (
                     <React.Fragment key={ci}>
                       {ci > 0 && <span aria-hidden="true">/</span>}
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); navigate(crumb.pageId); }}
-                        className="transition hover:underline hover:opacity-70"
-                      >
+                      <span className="transition hover:underline hover:opacity-70">
                         {crumb.label}
-                      </button>
+                      </span>
                     </React.Fragment>
                   ))}
                 </div>

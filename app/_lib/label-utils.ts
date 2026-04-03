@@ -15,7 +15,7 @@ export function getQrImageUrl(value: string) {
 export function getPageKindLabel(kind: PageItem["kind"]) {
   switch (kind) {
     case "home":
-      return "Main page";
+      return "Board";
     case "page":
       return "Card";
     case "hotspot":
@@ -121,7 +121,7 @@ export function getFeatureTypeLabel(type: CanvasFeatureType) {
     case "dropdown":
       return "Dropdown";
     case "page-button":
-      return "Card button";
+      return "Board button";
     case "locale":
       return "Language";
     case "search":

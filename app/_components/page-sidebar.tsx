@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { APP_VERSION } from "@/app/_lib/authoring-utils";
 import { getFeatureTypeLabel } from "@/app/_lib/label-utils";
 import { CanvasFeature, ContentBlock, PageItem, PublishStatus } from "@/app/_lib/authoring-types";
@@ -16,6 +16,8 @@ type PageSidebarProps = {
   selectedPageId: string;
   currentGameName?: string;
   currentStudioName?: string;
+  currentGameId?: string;
+  onRenameGame?: (name: string) => void;
   onOpenChangelog?: () => void;
   onOpenAccount?: () => void;
   onOpenGameSwitcher?: () => void;
@@ -271,10 +273,27 @@ export function PageSidebar({
   selectedPageId,
   currentGameName = "Ugly Pickle",
   currentStudioName = "Bee Studio",
+  currentGameId,
+  onRenameGame,
   onOpenChangelog,
   onOpenAccount,
   onOpenGameSwitcher,
 }: PageSidebarProps) {
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  function startEditName() {
+    setNameInput(currentGameName);
+    setEditingName(true);
+    setTimeout(() => nameInputRef.current?.select(), 0);
+  }
+
+  function commitName() {
+    const trimmed = nameInput.trim();
+    if (trimmed && trimmed !== currentGameName) onRenameGame?.(trimmed);
+    setEditingName(false);
+  }
   const [blockDrag, setBlockDrag] = useState<{ pageId: string; dragIndex: number; dropIndex: number } | null>(null);
 
   function makeBlockDragHandlers(pageId: string, blockCount: number) {
@@ -336,7 +355,7 @@ export function PageSidebar({
           </div>
         </div>
 
-        {/* Landing page */}
+        {/* Board section */}
         {homePages.length > 0 ? (
           <div className="space-y-4">
             {homePages.map((homePage) => {
@@ -344,45 +363,52 @@ export function PageSidebar({
               const pageButtons = homePage.canvasFeatures.filter((f) => f.type === "page-button");
 
               return (
-                <div key={homePage.id} className="space-y-3">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400 px-0.5">
-                    Main page
+                <div key={homePage.id} className="rounded-2xl border border-neutral-100 bg-neutral-50 p-3 space-y-3">
+                  {/* Game name — editable inline */}
+                  <div className="flex items-center gap-1.5 px-0.5">
+                    {editingName ? (
+                      <input
+                        ref={nameInputRef}
+                        value={nameInput}
+                        onChange={(e) => setNameInput(e.target.value)}
+                        onBlur={commitName}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") commitName();
+                          if (e.key === "Escape") setEditingName(false);
+                        }}
+                        className="min-w-0 flex-1 rounded-lg border border-neutral-300 bg-white px-2 py-0.5 text-sm font-semibold text-neutral-900 outline-none focus:border-black"
+                        autoFocus
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onOpenPage(homePage.id)}
+                        className={`min-w-0 flex-1 truncate text-left text-sm font-semibold ${homePage.id === selectedPageId ? "text-neutral-900" : "text-neutral-700 hover:text-neutral-900"}`}
+                      >
+                        {currentGameName}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={startEditName}
+                      title="Rename game"
+                      className="shrink-0 rounded-md p-1 text-neutral-300 hover:bg-neutral-200 hover:text-neutral-600"
+                    >
+                      <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                        <path d="M1.5 8.5V9.5h1L8 4 7 3 1.5 8.5zM9.5 2.5a.707.707 0 000-1L8.5 0.5a.707.707 0 00-1 0L6.5 1.5 8.5 3.5 9.5 2.5z" fill="currentColor" />
+                      </svg>
+                    </button>
                   </div>
 
-                  <SidebarPageButton
-                    onOpenPage={onOpenPage}
-                    isSelected={homePage.id === selectedPageId}
-                    page={homePage}
-                  />
-
                   <CollapsibleSection
-                    title="Elements"
+                    title="Board elements"
                     open={openSections.has("elements")}
                     onToggle={() => toggleSection("elements")}
                     isEmpty={elements.length === 0}
-                    emptyText="No elements added yet."
+                    emptyText="No board elements added yet."
                     count={elements.length}
                   >
                     {elements.map((feature) => (
-                      <li key={feature.id}>
-                        <SidebarFeatureItem
-                          feature={feature}
-                          isSelected={feature.id === selectedFeatureId}
-                          onSelect={() => onSelectFeature(homePage.id, feature.id)}
-                        />
-                      </li>
-                    ))}
-                  </CollapsibleSection>
-
-                  <CollapsibleSection
-                    title="Card buttons"
-                    open={openSections.has("page-buttons")}
-                    onToggle={() => toggleSection("page-buttons")}
-                    isEmpty={pageButtons.length === 0}
-                    emptyText="No card buttons yet."
-                    count={pageButtons.length}
-                  >
-                    {pageButtons.map((feature) => (
                       <li key={feature.id}>
                         <SidebarFeatureItem
                           feature={feature}
@@ -489,14 +515,33 @@ export function PageSidebar({
                       );
                     })}
                   </CollapsibleSection>
+
+                  <CollapsibleSection
+                    title="Board buttons"
+                    open={openSections.has("page-buttons")}
+                    onToggle={() => toggleSection("page-buttons")}
+                    isEmpty={pageButtons.length === 0}
+                    emptyText="No board buttons yet."
+                    count={pageButtons.length}
+                  >
+                    {pageButtons.map((feature) => (
+                      <li key={feature.id}>
+                        <SidebarFeatureItem
+                          feature={feature}
+                          isSelected={feature.id === selectedFeatureId}
+                          onSelect={() => onSelectFeature(homePage.id, feature.id)}
+                        />
+                      </li>
+                    ))}
+                  </CollapsibleSection>
                 </div>
               );
             })}
           </div>
         ) : null}
 
-        {/* Pages */}
-        <div className="mt-4">
+        {/* Cards section */}
+        <div className="mt-5">
           <CollapsibleSection
             title="Cards"
             open={openSections.has("pages")}

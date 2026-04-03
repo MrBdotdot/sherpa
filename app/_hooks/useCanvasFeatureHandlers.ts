@@ -9,6 +9,7 @@ import {
   PageItem,
   SystemSettings,
 } from "@/app/_lib/authoring-types";
+import { uploadImage } from "@/app/_lib/supabase-storage";
 
 interface UseCanvasFeatureHandlersProps {
   pages: PageItem[];
@@ -17,6 +18,8 @@ interface UseCanvasFeatureHandlersProps {
   updateSelectedPage: (updater: (page: PageItem) => PageItem) => void;
   setSystemSettings: Dispatch<SetStateAction<SystemSettings>>;
   setShowLayoutHelp: (v: boolean) => void;
+  userId: string;
+  gameId: string;
 }
 
 export function useCanvasFeatureHandlers({
@@ -26,6 +29,8 @@ export function useCanvasFeatureHandlers({
   updateSelectedPage,
   setSystemSettings,
   setShowLayoutHelp,
+  userId,
+  gameId,
 }: UseCanvasFeatureHandlersProps) {
   const handleAddCanvasFeature = (type: CanvasFeatureType) => {
     pushPagesHistory();
@@ -63,13 +68,20 @@ export function useCanvasFeatureHandlers({
     }));
   };
 
-  const handleCanvasFeatureImageUpload = (
+  const handleCanvasFeatureImageUpload = async (
     featureId: string,
     event: ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    handleCanvasFeatureChange(featureId, "imageUrl", URL.createObjectURL(file));
+    const localUrl = URL.createObjectURL(file);
+    handleCanvasFeatureChange(featureId, "imageUrl", localUrl);
+    try {
+      const remoteUrl = await uploadImage(file, userId, gameId);
+      handleCanvasFeatureChange(featureId, "imageUrl", remoteUrl);
+    } catch {
+      // local blob URL stays in place — acceptable fallback
+    }
   };
 
   const handleRemoveCanvasFeature = (featureId: string) => {
@@ -96,10 +108,7 @@ export function useCanvasFeatureHandlers({
     );
   };
 
-  const handleSystemSettingChange = <K extends keyof SystemSettings>(
-    field: K,
-    value: SystemSettings[K]
-  ) => {
+  const handleSystemSettingChange = (field: string, value: unknown) => {
     setSystemSettings((prev) => ({ ...prev, [field]: value }));
   };
 

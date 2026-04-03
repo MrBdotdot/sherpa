@@ -64,6 +64,9 @@ type PreviewCanvasProps = {
   onHeroUpload?: (event: ChangeEvent<HTMLInputElement>) => void;
   isPreviewMode: boolean;
   selectedPageId: string;
+  saveState?: "idle" | "saving" | "saved" | "error";
+  gameName?: string;
+  onRenameGame?: (name: string) => void;
   /** When true the canvas stretches to fill its parent height instead of using a fixed min-height.
    *  Use in the main studio layout; leave false (default) for modal/sidebar previews. */
   fillHeight?: boolean;
@@ -108,8 +111,24 @@ export function PreviewCanvas({
   onOpenCommandPalette,
   onHeroUpload,
   selectedPageId,
+  saveState = "idle",
+  gameName,
+  onRenameGame,
   fillHeight = false,
 }: PreviewCanvasProps) {
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+
+  function startEditName() {
+    setNameInput(gameName ?? activePage.title ?? "");
+    setEditingName(true);
+  }
+
+  function commitName() {
+    const trimmed = nameInput.trim();
+    if (trimmed && trimmed !== (gameName ?? activePage.title)) onRenameGame?.(trimmed);
+    setEditingName(false);
+  }
   const surfaceStyleClass =
     systemSettings.surfaceStyle === "solid"
       ? "border-neutral-300 bg-white shadow-xl"
@@ -313,7 +332,7 @@ export function PreviewCanvas({
   }, []);
 
   const sharedHotspotPinProps = {
-    isLayoutEditMode,
+    isLayoutEditMode: !isPreviewMode,
     isPreviewMode,
     accentColor,
     hotspotContainerSize,
@@ -328,7 +347,7 @@ export function PreviewCanvas({
   };
 
   const sharedFeaturePlacerProps = {
-    isLayoutEditMode,
+    isLayoutEditMode: !isPreviewMode,
     accentColor,
     surfaceStyleClass,
     pages,
@@ -342,7 +361,7 @@ export function PreviewCanvas({
     onExitEnd: handleModuleExitEnd,
     systemSettings,
     accentColor,
-    isLayoutEditMode,
+    isLayoutEditMode: !isPreviewMode,
     isPreviewMode,
     onDismissContent,
     onNavigate: onSelectPage,
@@ -368,7 +387,37 @@ export function PreviewCanvas({
             <div className="min-w-0 flex-1">
               <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">Currently editing</div>
               <div className="mt-1 flex flex-wrap items-center gap-2">
-                <div className="text-sm font-semibold text-neutral-900">{activePage.title || "Untitled page"}</div>
+                {activePage.kind === "home" ? (
+                  editingName ? (
+                    <input
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      onBlur={commitName}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") commitName();
+                        if (e.key === "Escape") setEditingName(false);
+                      }}
+                      className="rounded-lg border border-neutral-300 px-2 py-0.5 text-sm font-semibold text-neutral-900 outline-none focus:border-black"
+                      autoFocus
+                    />
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-semibold text-neutral-900">{gameName || activePage.title || "Untitled"}</span>
+                      <button
+                        type="button"
+                        onClick={startEditName}
+                        title="Rename game"
+                        className="rounded p-0.5 text-neutral-300 hover:bg-neutral-100 hover:text-neutral-600"
+                      >
+                        <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                          <path d="M1.5 8.5V9.5h1L8 4 7 3 1.5 8.5zM9.5 2.5a.707.707 0 000-1L8.5 0.5a.707.707 0 00-1 0L6.5 1.5 8.5 3.5 9.5 2.5z" fill="currentColor" />
+                        </svg>
+                      </button>
+                    </div>
+                  )
+                ) : (
+                  <div className="text-sm font-semibold text-neutral-900">{activePage.title || "Untitled page"}</div>
+                )}
 
                 {/* Global experience status — interactive */}
                 <div className="relative">
@@ -425,7 +474,33 @@ export function PreviewCanvas({
               ))}
             </div>
 
-            <div className="flex flex-1 justify-end gap-2">
+            <div className="flex flex-1 items-center justify-end gap-2">
+              {/* Save indicator */}
+              {saveState === "saving" && (
+                <div className="flex items-center gap-1.5 text-[11px] text-neutral-400" aria-live="polite" aria-label="Saving">
+                  <svg className="animate-spin" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="14 8" strokeLinecap="round" />
+                  </svg>
+                  Saving
+                </div>
+              )}
+              {saveState === "saved" && (
+                <div className="flex items-center gap-1.5 text-[11px] text-emerald-600" aria-live="polite" aria-label="Saved">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Saved
+                </div>
+              )}
+              {saveState === "error" && (
+                <div className="flex items-center gap-1.5 text-[11px] text-red-500" aria-live="polite" aria-label="Save failed">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5" />
+                    <path d="M6 3.5v3M6 8.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                  Save failed
+                </div>
+              )}
               {onOpenCommandPalette && (
                 <button
                   type="button"
@@ -440,15 +515,6 @@ export function PreviewCanvas({
                   </svg>
                 </button>
               )}
-              <button
-                type="button"
-                onClick={onToggleLayoutEditMode}
-                className={`rounded-xl border px-3 py-2 text-xs font-medium shadow-sm ${
-                  isLayoutEditMode ? "border-black bg-black text-white" : "border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-50"
-                }`}
-              >
-                {isLayoutEditMode ? "Done editing" : "Edit layout"}
-              </button>
               <button
                 type="button"
                 onClick={onTogglePreviewMode}
@@ -614,7 +680,7 @@ export function PreviewCanvas({
                   </div>
                 )}
 
-                {(surfacePage.canvasFeatures.length === 0 || hotspotPages.length === 0) && !isLayoutEditMode && showLayoutHelp ? (
+                {(surfacePage.canvasFeatures.length === 0 || hotspotPages.length === 0) && !isPreviewMode && showLayoutHelp ? (
                   <EmptySurfaceGuidance featureCount={surfacePage.canvasFeatures.length} hotspotCount={hotspotPages.length} onClose={onDismissLayoutHelp} />
                 ) : null}
               </div>
@@ -675,6 +741,26 @@ export function PreviewCanvas({
                 </div>
               )}
 
+              {modulePage && modulePage.kind === "hotspot" && !isModuleExiting && !isPreviewMode && (() => {
+                const hp = effectiveHotspotPages.find((p) => p.id === modulePage.id);
+                if (!hp || hp.x === null || hp.y === null) return null;
+                return (
+                  <svg
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 overflow-visible"
+                    style={{ width: "100%", height: "100%", zIndex: 25 }}
+                  >
+                    <line
+                      x1={`${hp.x}%`} y1={`${hp.y}%`}
+                      x2={`${modulePage.contentX}%`} y2={`${modulePage.contentY}%`}
+                      stroke="white" strokeWidth="1.5" strokeOpacity="0.5"
+                      strokeDasharray="4 4"
+                    />
+                    <circle cx={`${modulePage.contentX}%`} cy={`${modulePage.contentY}%`} r="3" fill="white" fillOpacity="0.5" />
+                  </svg>
+                );
+              })()}
+
               {modulePage ? (
                 <ContentModule
                   key={modulePage.id}
@@ -685,7 +771,7 @@ export function PreviewCanvas({
                 />
               ) : null}
 
-              {(surfacePage.canvasFeatures.length === 0 || hotspotPages.length === 0) && !isLayoutEditMode && showLayoutHelp ? (
+              {(surfacePage.canvasFeatures.length === 0 || hotspotPages.length === 0) && !isPreviewMode && showLayoutHelp ? (
                 <EmptySurfaceGuidance featureCount={surfacePage.canvasFeatures.length} hotspotCount={hotspotPages.length} onClose={onDismissLayoutHelp} />
               ) : null}
             </>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ContentBlock } from "@/app/_lib/authoring-types";
 
 // ── SectionBlock ───────────────────────────────────────────────
@@ -134,21 +134,36 @@ export function StepRailBlock({ block }: { block: ContentBlock }) {
   const data = parseSRPreview(block.value);
   const linkedSteps = data.steps.filter((s) => s.sectionBlockId);
   const [activeStepId, setActiveStepId] = useState<string>(linkedSteps[0]?.id ?? "");
+  // Suppress observer updates briefly after a manual click so the
+  // observer doesn't overwrite the clicked step with the first
+  // step that happens to share the same sectionBlockId.
+  const clickLockRef = useRef(false);
+  const clickLockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (linkedSteps.length === 0) return;
+    // Build a map: sectionBlockId → the LAST step index that links there.
+    // This means repeated sections resolve to the most recent step in sequence.
+    const sectionToStep = new Map<string, SRPreviewStep>();
+    linkedSteps.forEach((s) => sectionToStep.set(s.sectionBlockId, s));
+
     const obs = new IntersectionObserver(
       (entries) => {
+        if (clickLockRef.current) return;
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            const step = linkedSteps.find((s) => s.sectionBlockId === entry.target.id);
+            const step = sectionToStep.get(entry.target.id);
             if (step) setActiveStepId(step.id);
           }
         }
       },
       { rootMargin: "0px 0px -60% 0px", threshold: 0 }
     );
+    // Observe each unique section element once.
+    const seen = new Set<string>();
     linkedSteps.forEach((s) => {
+      if (seen.has(s.sectionBlockId)) return;
+      seen.add(s.sectionBlockId);
       const el = document.getElementById(s.sectionBlockId);
       if (el) obs.observe(el);
     });
@@ -156,8 +171,14 @@ export function StepRailBlock({ block }: { block: ContentBlock }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [block.value]);
 
-  function scrollToSection(sectionBlockId: string) {
-    document.getElementById(sectionBlockId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  function scrollToSection(step: SRPreviewStep) {
+    // Set active immediately so the UI responds before the scroll settles.
+    setActiveStepId(step.id);
+    // Lock the observer so it doesn't override us while smooth-scrolling.
+    clickLockRef.current = true;
+    if (clickLockTimerRef.current) clearTimeout(clickLockTimerRef.current);
+    clickLockTimerRef.current = setTimeout(() => { clickLockRef.current = false; }, 900);
+    document.getElementById(step.sectionBlockId)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   const activeIdx = data.steps.findIndex((s) => s.id === activeStepId);
@@ -171,7 +192,7 @@ export function StepRailBlock({ block }: { block: ContentBlock }) {
           <React.Fragment key={step.id}>
             <button
               type="button"
-              onClick={() => step.sectionBlockId && scrollToSection(step.sectionBlockId)}
+              onClick={() => step.sectionBlockId && scrollToSection(step)}
               disabled={!step.sectionBlockId}
               aria-label={step.label || `Step ${i + 1}`}
               title={step.label || `Step ${i + 1}`}
@@ -204,7 +225,7 @@ export function StepRailBlock({ block }: { block: ContentBlock }) {
         <React.Fragment key={step.id}>
           <button
             type="button"
-            onClick={() => step.sectionBlockId && scrollToSection(step.sectionBlockId)}
+            onClick={() => step.sectionBlockId && scrollToSection(step)}
             disabled={!step.sectionBlockId}
             className="flex shrink-0 flex-col items-center gap-1 transition-opacity disabled:cursor-default"
             style={activeStepId && activeStepId !== step.id ? { opacity: 0.4 } : undefined}

@@ -73,6 +73,10 @@ export type SocialLink = {
   id: string;
   label: string;
   url: string;
+  /** "external" = open URL in new tab; "page" = navigate to an internal card */
+  linkMode?: "external" | "page";
+  /** pageId to navigate to when linkMode === "page" */
+  linkPageId?: string;
 };
 
 export type CanvasFeature = {
@@ -95,11 +99,16 @@ export type CanvasFeature = {
   portraitZone?: "content";
   /** For button type only: whether it links to an external URL or an internal content block */
   buttonLinkMode?: "external" | "page";
+  /** For heading type: custom text color hex */
+  headingColor?: string;
+  /** For heading type: size variant */
+  headingSize?: "small" | "medium" | "large";
 };
 
 export type CanvasFeatureField =
   | "label" | "description" | "linkUrl" | "imageUrl" | "optionsText"
-  | "logoSize" | "qrSize" | "qrBgColor" | "qrBgOpacity" | "portraitZone" | "buttonLinkMode";
+  | "logoSize" | "qrSize" | "qrBgColor" | "qrBgOpacity" | "portraitZone" | "buttonLinkMode"
+  | "headingColor" | "headingSize";
 
 export type PageItem = {
   id: string;
@@ -163,6 +172,10 @@ export type SystemSettings = {
   modelRotationX?: number;
   /** Environment / lighting preset; "none" uses plain directional lights */
   modelEnvironment?: "none" | "apartment" | "city" | "dawn" | "forest" | "lobby" | "night" | "park" | "studio" | "sunset" | "warehouse";
+  /** BoardGameGeek game ID (numeric string, e.g. "266192") */
+  bggId?: string;
+  /** BGG community average complexity weight (1–5), fetched when bggId is imported */
+  bggComplexity?: number;
 };
 
 export type PageTemplate = {

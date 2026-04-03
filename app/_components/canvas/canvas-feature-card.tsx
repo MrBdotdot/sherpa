@@ -217,12 +217,17 @@ export function CanvasFeatureCard({
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
+    const headingColor = feature.headingColor || accentColor || "#0a0a0a";
+    const sizeClass =
+      feature.headingSize === "small" ? "text-base" :
+      feature.headingSize === "medium" ? "text-lg" :
+      "text-2xl";
 
     return (
       <div className="max-w-[240px]">
         <div
-          className="line-clamp-2 text-xl font-bold leading-tight drop-shadow-sm"
-          style={accentColor ? { color: accentColor } : { color: "#0a0a0a" }}
+          className={`line-clamp-2 font-bold leading-tight drop-shadow-sm ${sizeClass}`}
+          style={{ color: headingColor }}
         >
           {feature.label || "Heading"}
         </div>
@@ -268,25 +273,45 @@ export function CanvasFeatureCard({
     const options = feature.optionsText
       .split("\n")
       .map((item) => item.trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .map((item) => {
+        const pipeIdx = item.indexOf("|");
+        if (pipeIdx === -1) return { label: item, isPage: false, isExternal: false, url: "" };
+        const label = item.slice(0, pipeIdx).trim();
+        const url = item.slice(pipeIdx + 1).trim();
+        if (url.startsWith("page:")) return { label, isPage: true, isExternal: false, url: url.slice(5) };
+        return { label, isPage: false, isExternal: true, url };
+      });
 
     return (
       <div className={`w-[200px] rounded-xl border p-3 shadow-lg ${surfaceStyleClass}`}>
-        <div id={`dropdown-label-${feature.id}`} className="truncate text-xs font-semibold">{feature.label}</div>
-        <select
-          aria-labelledby={`dropdown-label-${feature.id}`}
-          className="mt-2 w-full rounded-lg border border-neutral-300 bg-white px-2 py-2 text-xs text-neutral-700"
-        >
-          {options.length > 0 ? (
-            options.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))
-          ) : (
-            <option>Add options</option>
+        <div className="truncate text-xs font-semibold">{feature.label}</div>
+        <div className="mt-2 divide-y divide-neutral-100">
+          {options.length > 0 ? options.map(({ label, isPage, isExternal, url }, i) => {
+            const hasLink = (isPage || isExternal) && !!url;
+            return (
+              <button
+                key={i}
+                type="button"
+                disabled={!hasLink}
+                onClick={() => {
+                  if (isPage && url && onNavigate) onNavigate(url);
+                  else if (isExternal && url) window.open(url, "_blank", "noopener,noreferrer");
+                }}
+                className={`flex w-full items-center justify-between gap-2 py-1.5 text-left text-xs text-neutral-700 ${
+                  hasLink ? "cursor-pointer hover:text-neutral-900" : "cursor-default"
+                }`}
+              >
+                <span className="truncate">{label}</span>
+                {hasLink ? (
+                  <span className="shrink-0 text-[10px] text-neutral-400">{isPage ? "→" : "↗"}</span>
+                ) : null}
+              </button>
+            );
+          }) : (
+            <div className="py-1.5 text-xs text-neutral-400">Add options</div>
           )}
-        </select>
+        </div>
       </div>
     );
   }
@@ -306,7 +331,7 @@ export function CanvasFeatureCard({
   // disclaimer
   return (
     <div className="max-w-[220px] rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
-      <div className="line-clamp-3 text-[11px] italic leading-5 text-neutral-500">{feature.description || feature.label}</div>
+      <div className="line-clamp-3 text-[11px] italic leading-5 text-neutral-500">{feature.label || "Disclaimer text"}</div>
     </div>
   );
 }

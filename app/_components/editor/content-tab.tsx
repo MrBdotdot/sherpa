@@ -1,11 +1,104 @@
 "use client";
 
 import { ChangeEvent, useEffect, useRef, useState, useCallback } from "react";
-import { ContentBlock, ContentBlockType, DisplayStyleKey, ImageFit, PageItem } from "@/app/_lib/authoring-types";
+import { ContentBlock, ContentBlockType, DisplayStyleKey, ImageFit, PageItem, SocialLink } from "@/app/_lib/authoring-types";
 import { DISPLAY_STYLE_OPTIONS, getDisplayStyleKey } from "@/app/_lib/display-style";
 import { BlockEditor, type BlockFormat } from "@/app/_components/editor/block-editor";
 import { BlockPickerModal } from "@/app/_components/editor/block-picker-modal";
 import { SelectField } from "@/app/_components/editor/editor-ui";
+import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
+
+function ActionLinkEditor({
+  item,
+  pages,
+  onChange,
+  onRemove,
+}: {
+  item: SocialLink;
+  pages: PageItem[];
+  onChange: (socialId: string, field: "label" | "url" | "linkMode" | "linkPageId", value: string) => void;
+  onRemove: (socialId: string) => void;
+}) {
+  const mode = item.linkMode ?? "external";
+  const linkablePages = pages.filter((p) => p.kind !== "home");
+  const linkedPage = linkablePages.find((p) => p.id === item.linkPageId);
+
+  return (
+    <div className="rounded-2xl border border-neutral-200 bg-white p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">
+          Action link
+        </div>
+        <button
+          type="button"
+          onClick={() => onRemove(item.id)}
+          className="rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs font-medium text-neutral-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+        >
+          Remove
+        </button>
+      </div>
+
+      {/* Link mode toggle */}
+      <div className="mb-3 flex rounded-xl border border-neutral-200 p-0.5">
+        {(["external", "page"] as const).map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => onChange(item.id, "linkMode", m)}
+            className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition ${
+              mode === m
+                ? "bg-neutral-900 text-white"
+                : "text-neutral-500 hover:text-neutral-800"
+            }`}
+          >
+            {m === "external" ? "External URL" : "Go to card"}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        <input
+          type="text"
+          value={item.label}
+          onChange={(e) => onChange(item.id, "label", e.target.value)}
+          placeholder="Button label"
+          aria-label="Action link label"
+          className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none focus:border-black"
+        />
+        {mode === "external" ? (
+          <input
+            type="text"
+            value={item.url}
+            onChange={(e) => onChange(item.id, "url", e.target.value)}
+            placeholder="https://..."
+            aria-label="Action link URL"
+            className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none focus:border-black"
+          />
+        ) : (
+          <div className="rounded-xl border border-neutral-200 overflow-hidden">
+            {linkedPage ? (
+              <div className="flex items-center justify-between px-3 py-2.5">
+                <span className="text-sm font-medium text-neutral-800">{linkedPage.title || "Untitled"}</span>
+                <button
+                  type="button"
+                  onClick={() => onChange(item.id, "linkPageId", "")}
+                  className="text-xs text-neutral-400 hover:text-neutral-700"
+                >
+                  Change
+                </button>
+              </div>
+            ) : (
+              <PageLinkPicker
+                pages={linkablePages}
+                onSelect={(pageId) => onChange(item.id, "linkPageId", pageId)}
+              />
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function ContentTab({
   onAddBlock,
@@ -51,7 +144,7 @@ export function ContentTab({
   onReorderBlocks: (fromIndex: number, toIndex: number) => void;
   onRemoveBlock: (blockId: string) => void;
   onRemoveSocialLink: (socialId: string) => void;
-  onSocialLinkChange: (socialId: string, field: "label" | "url", value: string) => void;
+  onSocialLinkChange: (socialId: string, field: "label" | "url" | "linkMode" | "linkPageId", value: string) => void;
   pages: PageItem[];
   scrollToBlockId?: string | null;
   selectedPage: PageItem;
@@ -242,38 +335,13 @@ export function ContentTab({
           )}
 
           {selectedPage.socialLinks.map((item) => (
-            <div key={item.id} className="rounded-2xl border border-neutral-200 bg-white p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">
-                  Action link
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onRemoveSocialLink(item.id)}
-                  className="rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs font-medium text-neutral-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
-                >
-                  Remove
-                </button>
-              </div>
-              <div className="grid gap-3 md:grid-cols-2">
-                <input
-                  type="text"
-                  value={item.label}
-                  onChange={(e) => onSocialLinkChange(item.id, "label", e.target.value)}
-                  placeholder="Button label"
-                  aria-label="Action link label"
-                  className="rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
-                />
-                <input
-                  type="text"
-                  value={item.url}
-                  onChange={(e) => onSocialLinkChange(item.id, "url", e.target.value)}
-                  placeholder="https://..."
-                  aria-label="Action link URL"
-                  className="rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
-                />
-              </div>
-            </div>
+            <ActionLinkEditor
+              key={item.id}
+              item={item}
+              pages={pages}
+              onChange={onSocialLinkChange}
+              onRemove={onRemoveSocialLink}
+            />
           ))}
         </div>
       ) : (

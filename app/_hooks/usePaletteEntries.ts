@@ -6,13 +6,11 @@ import type { PageItem } from "@/app/_lib/authoring-types";
 interface UsePaletteEntriesOptions {
   selectedFeatureId: string | null;
   selectedPage: PageItem | null;
-  isLayoutEditMode: boolean;
-  handleSystemSettingChange: (key: string, value: string) => void;
+  handleSystemSettingChange: (key: string, value: unknown) => void;
   handlePublishStatusChange: (status: "published" | "draft") => void;
   pushPagesHistory: () => void;
   setPages: React.Dispatch<React.SetStateAction<PageItem[]>>;
   setSelectedFeatureId: (id: string | null) => void;
-  setIsLayoutEditMode: React.Dispatch<React.SetStateAction<boolean>>;
   setInspectorTab: (tab: "surface" | "content" | "setup") => void;
   setShowDeleteModal: (open: boolean) => void;
   setIsGameSwitcherOpen: (open: boolean) => void;
@@ -24,13 +22,11 @@ interface UsePaletteEntriesOptions {
 export function usePaletteEntries({
   selectedFeatureId,
   selectedPage,
-  isLayoutEditMode,
   handleSystemSettingChange,
   handlePublishStatusChange,
   pushPagesHistory,
   setPages,
   setSelectedFeatureId,
-  setIsLayoutEditMode,
   setInspectorTab,
   setShowDeleteModal,
   setIsGameSwitcherOpen,
@@ -49,10 +45,8 @@ export function usePaletteEntries({
       { id: "nav-changelog", label: "View changelog", group: "Navigate", alwaysShow: true, onRun: () => setIsChangelogOpen(true) },
       // View
       { id: "view-surface", label: "Board tab", group: "View", alwaysShow: true, onRun: () => { handleDismissContent(); setInspectorTab("surface"); } },
-      { id: "view-content", label: "Content tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("content") },
+      { id: "view-content", label: "Card tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("content") },
       { id: "view-setup", label: "Settings tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("setup") },
-      // Canvas
-      { id: "canvas-layout-edit", label: isLayoutEditMode ? "Exit layout edit mode" : "Enter layout edit mode", group: "Canvas", alwaysShow: true, onRun: () => setIsLayoutEditMode((prev) => !prev) },
       // Design (only visible when queried)
       { id: "design-font-modern", label: "Font: Modern", group: "Design", onRun: () => handleSystemSettingChange("fontTheme", "modern") },
       { id: "design-font-editorial", label: "Font: Editorial", group: "Design", onRun: () => handleSystemSettingChange("fontTheme", "editorial") },
@@ -74,7 +68,7 @@ export function usePaletteEntries({
       entries.push({
         id: "canvas-delete-feature",
         label: "Delete selected element",
-        group: "Canvas",
+        group: "Board",
         alwaysShow: true,
         onRun: () => {
           pushPagesHistory();
@@ -106,7 +100,7 @@ export function usePaletteEntries({
 
     return entries;
   }, [ // eslint-disable-line react-hooks/exhaustive-deps
-    selectedFeatureId, selectedPage, isLayoutEditMode, router,
+    selectedFeatureId, selectedPage, router,
     handleSystemSettingChange, handlePublishStatusChange, pushPagesHistory,
     setPages, setSelectedFeatureId, handleDismissContent,
   ]);

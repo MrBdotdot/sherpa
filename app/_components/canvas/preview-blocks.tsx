@@ -114,19 +114,32 @@ function CarouselBlock({
         </div>
       </div>
 
-      {/* Slide content */}
+      {/* Slide content — all slides rendered in the same grid cell so the
+          container height is always the tallest slide's height, preventing
+          layout shifts when navigating between slides. */}
       <div className="p-3">
-        {activeSlide.blocks.length > 0 ? (
-          <PreviewBlocks
-            accentColor={accentColor}
-            onNavigate={onNavigate}
-            onDismissContent={onDismissContent}
-            page={{ ...page, blocks: activeSlide.blocks, summary: "" }}
-            pages={pages}
-          />
-        ) : (
-          <div className="text-sm text-neutral-400">Empty slide</div>
-        )}
+        <div className="grid">
+          {slides.map((slide, i) => (
+            <div
+              key={slide.id}
+              className="col-start-1 row-start-1"
+              style={{ visibility: i === idx ? "visible" : "hidden" }}
+              aria-hidden={i !== idx}
+            >
+              {slide.blocks.length > 0 ? (
+                <PreviewBlocks
+                  accentColor={accentColor}
+                  onNavigate={onNavigate}
+                  onDismissContent={onDismissContent}
+                  page={{ ...page, blocks: slide.blocks, summary: "" }}
+                  pages={pages}
+                />
+              ) : (
+                <div className="text-sm text-neutral-400">Empty slide</div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Dot indicators */}

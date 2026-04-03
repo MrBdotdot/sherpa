@@ -80,13 +80,14 @@ type PageEditorModalProps = {
   onSelectPage: (id: string) => void;
   onSocialLinkChange: (
     socialId: string,
-    field: "label" | "url",
+    field: "label" | "url" | "linkMode" | "linkPageId",
     value: string
   ) => void;
   onSystemSettingChange: <K extends keyof SystemSettings>(
     field: K,
     value: SystemSettings[K]
   ) => void;
+  onBggImport: (data: { name: string; complexity: number; bggId: string }) => void;
   onTitleChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onOpenPage: (id: string) => void;
   selectedFeatureId: string | null;
@@ -102,7 +103,7 @@ type PageEditorModalProps = {
 
 const TAB_LABELS: Record<InspectorTab, string> = {
   surface: "Board",
-  content: "Content",
+  content: "Card",
   setup: "Settings",
 };
 
@@ -151,6 +152,7 @@ export function PageEditorModal({
   onSelectPage,
   onSocialLinkChange,
   onSystemSettingChange,
+  onBggImport,
   onTitleChange,
   isPortraitMode,
   onOpenPage,
@@ -191,53 +193,6 @@ export function PageEditorModal({
           : "h-full border-l border-neutral-200 bg-[#f7f7f8]"
       }`}
     >
-      {/* Header */}
-      <div
-        className={`flex items-center justify-between gap-4 border-b border-neutral-200 px-5 py-4 ${
-          isOverlay ? "bg-white" : "bg-[#f7f7f8]"
-        }`}
-      >
-        <div className="min-w-0 flex-1">
-          <label htmlFor={titleId} className="sr-only">Card name</label>
-          <div className="flex items-center gap-2">
-            <input
-              id={titleId}
-              type="text"
-              value={selectedPage.title}
-              onChange={onTitleChange}
-              placeholder="Card name"
-              className="min-w-0 flex-1 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 outline-none focus:border-black"
-            />
-            {selectedPage.kind !== "home" ? (
-              <button
-                type="button"
-                onClick={onDeleteRequest}
-                aria-label="Delete card"
-                className="shrink-0 flex items-center justify-center rounded-xl border border-red-200 p-2 text-red-400 transition hover:border-red-300 hover:bg-red-50 hover:text-red-600"
-              >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                  <path d="M2 3.5h10M5.5 3.5V2.5a1 1 0 011-1h1a1 1 0 011 1v1M4 3.5l.7 7.5a1 1 0 001 .9h2.6a1 1 0 001-.9L10 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-                </svg>
-              </button>
-            ) : null}
-          </div>
-          <div className="mt-1 text-xs text-neutral-400">
-            {getPageRoleDescription(selectedPage.kind)}
-          </div>
-        </div>
-
-        {showCloseButton ? (
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close editor"
-            className="shrink-0 rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
-          >
-            Close
-          </button>
-        ) : null}
-      </div>
-
       {/* Tabs */}
       <div className={`border-b border-neutral-200 px-5 py-3 ${isOverlay ? "bg-white" : "bg-[#f7f7f8]"}`}>
         <div role="tablist" aria-label="Inspector tabs" className="inline-flex rounded-2xl border border-neutral-200 bg-white p-1">
@@ -290,6 +245,53 @@ export function PageEditorModal({
             );
           })}
         </div>
+      </div>
+
+      {/* Header */}
+      <div
+        className={`flex items-center justify-between gap-4 border-b border-neutral-200 px-5 py-4 ${
+          isOverlay ? "bg-white" : "bg-[#f7f7f8]"
+        }`}
+      >
+        <div className="min-w-0 flex-1">
+          <label htmlFor={titleId} className="sr-only">Card name</label>
+          <div className="flex items-center gap-2">
+            <input
+              id={titleId}
+              type="text"
+              value={selectedPage.title}
+              onChange={onTitleChange}
+              placeholder="Card name"
+              className="min-w-0 flex-1 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 outline-none focus:border-black"
+            />
+            {selectedPage.kind !== "home" ? (
+              <button
+                type="button"
+                onClick={onDeleteRequest}
+                aria-label="Delete card"
+                className="shrink-0 flex items-center justify-center rounded-xl border border-red-200 p-2 text-red-400 transition hover:border-red-300 hover:bg-red-50 hover:text-red-600"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path d="M2 3.5h10M5.5 3.5V2.5a1 1 0 011-1h1a1 1 0 011 1v1M4 3.5l.7 7.5a1 1 0 001 .9h2.6a1 1 0 001-.9L10 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                </svg>
+              </button>
+            ) : null}
+          </div>
+          <div className="mt-1 text-xs text-neutral-400">
+            {getPageRoleDescription(selectedPage.kind)}
+          </div>
+        </div>
+
+        {showCloseButton ? (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close editor"
+            className="shrink-0 rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
+          >
+            Close
+          </button>
+        ) : null}
       </div>
 
       {/* Body */}
@@ -350,6 +352,7 @@ export function PageEditorModal({
               onPageHeroUrlChange={onPageHeroUrlChange}
               onResetPagePosition={onResetPagePosition}
               onSystemSettingChange={onSystemSettingChange}
+              onBggImport={onBggImport}
               selectedPage={selectedPage}
               systemSettings={systemSettings}
             />

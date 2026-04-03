@@ -42,8 +42,8 @@ export const EmptySurfaceGuidance = memo(function EmptySurfaceGuidance({
       </div>
       <div className="mt-2 leading-6">
         {featureCount === 0
-          ? "Add canvas features like images, QR codes, disclaimers, buttons, and dropdowns."
-          : "Turn on layout edit mode to move surface items directly on top of the image."}
+          ? "Add board elements like images, QR codes, disclaimers, buttons, and dropdowns."
+          : "Drag board elements to reposition them directly on the image."}
       </div>
       <div className="mt-2 leading-6">
         {hotspotCount === 0

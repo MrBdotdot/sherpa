@@ -29,6 +29,8 @@ type AccountSection =
 type AccountPanelProps = {
   isOpen: boolean;
   onClose: () => void;
+  userEmail: string;
+  onSignOut: () => void;
 };
 
 const NAV_GROUPS: {
@@ -178,7 +180,7 @@ const SECTION_COMPONENTS: Record<AccountSection, React.ComponentType> = {
 
 // ── Main panel ──────────────────────────────────────────────────────
 
-export function AccountPanel({ isOpen, onClose }: AccountPanelProps) {
+export function AccountPanel({ isOpen, onClose, userEmail, onSignOut }: AccountPanelProps) {
   const [activeSection, setActiveSection] = useState<AccountSection>("profile");
 
   if (!isOpen) return null;
@@ -200,11 +202,11 @@ export function AccountPanel({ isOpen, onClose }: AccountPanelProps) {
           <div className="border-b border-neutral-100 px-4 py-4">
             <div className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900 text-sm font-semibold text-white">
-                A
+                {userEmail[0]?.toUpperCase() ?? "?"}
               </div>
               <div className="min-w-0">
-                <div className="truncate text-sm font-semibold text-neutral-900">Admin User</div>
-                <div className="truncate text-[11px] text-neutral-400">admin@studio.com</div>
+                <div className="truncate text-sm font-semibold text-neutral-900">{userEmail.split("@")[0]}</div>
+                <div className="truncate text-[11px] text-neutral-400">{userEmail}</div>
               </div>
             </div>
           </div>
@@ -239,6 +241,7 @@ export function AccountPanel({ isOpen, onClose }: AccountPanelProps) {
           <div className="border-t border-neutral-100 px-3 py-3">
             <button
               type="button"
+              onClick={onSignOut}
               className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-red-500 hover:bg-red-50"
             >
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none">

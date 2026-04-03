@@ -43,8 +43,8 @@ export function PageSetupSection({
 
         {selectedPage.kind === "page" ? (
           <EditorSubsection
-            title="Card button"
-            description="Controls how this card's button appears on the Main Page."
+            title="Board button"
+            description="Controls how this card's button appears on the Board."
           >
             <div className="space-y-4">
               <SelectField

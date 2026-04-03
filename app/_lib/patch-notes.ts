@@ -6,6 +6,100 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.16.0",
+    date: "2026-04-02",
+    changes: [
+      "Carousel: all slides now render at the height of the tallest slide — no more layout shifts when switching slides",
+      "Action links: can now link to an internal card (same destinations as canvas buttons), not just external URLs",
+      "Card creation: choosing Add Card now asks if you want to place a button on the Board for it",
+      "Onboarding: first-time users see a welcome screen explaining the Main Page, Cards, and Hotspots",
+      "BGG integration: import game title and complexity weight from BoardGameGeek via game ID; View on BGG link in Setup",
+    ],
+  },
+  {
+    version: "v0.15.1",
+    date: "2026-04-02",
+    changes: [
+      "Step Rail: clicking a step that links back to an earlier section now scrolls correctly (loop bug fixed)",
+      "Always-on drag: hotspots and canvas elements are now always draggable — no Edit Placement toggle needed",
+      "New cards default to full-page instead of modal",
+      "Editing Panel: tabs moved to the top; opening a card automatically switches to the Card tab",
+      "Connector line: a dashed line now shows from the hotspot pin to its open content card in authoring mode",
+    ],
+  },
+  {
+    version: "v0.15.0",
+    date: "2026-04-02",
+    changes: [
+      "Sign out: Account panel Sign out button now works",
+      "Account panel: shows your real email address and initial instead of placeholder",
+      "Game title: loads from Supabase on open so the name is correct after switching games",
+      "Image uploads: hero images, block images, and canvas feature images now persist to Supabase Storage (no more broken images after reload)",
+    ],
+  },
+  {
+    version: "v0.14.5",
+    date: "2026-04-02",
+    changes: [
+      "Multi-game support: Game Switcher now loads your real games from Supabase, with search and expand-to-action UI",
+      "Create new game: wizard creates a Supabase record and switches the studio to the new blank game",
+      "Switching games loads the selected game from Supabase and resets the canvas state",
+    ],
+  },
+  {
+    version: "v0.14.4",
+    date: "2026-04-02",
+    changes: [
+      "Board elements (images, QR codes, disclaimers, dropdowns, locale, search) are now always draggable outside preview mode — useFeatureDrag was still gating on the removed isLayoutEditMode state",
+      "Renamed all remaining 'canvas' user-facing strings to 'board' (empty state guidance, command palette group, element picker modal)",
+      "Command palette: removed the defunct 'Enter/Exit layout edit mode' entry",
+    ],
+  },
+  {
+    version: "v0.14.3",
+    date: "2026-04-02",
+    changes: [
+      "Heading element: default label is now 'Ugly Pickle'; added size (small/medium/large) and color controls in the Editing Panel",
+      "Disclaimer fix: editor textarea now directly edits the displayed text; label input hidden for disclaimer type",
+      "Board element picker: search and language switcher are now singletons — greyed out with 'Already on the board' if one exists",
+      "Content card drag restored — was broken by always-on drag refactor",
+    ],
+  },
+  {
+    version: "v0.14.2",
+    date: "2026-04-02",
+    changes: [
+      "Always-on drag: removed 'Edit layout' button — canvas features, hotspots, and content cards are always draggable outside preview mode",
+      "Sidebar: Board buttons moved below Hotspots so it sits adjacent to the Cards section",
+      "Hotspot delete: X replaced with trash icon",
+      "'Content module' label renamed to 'Card' throughout",
+      "Content card edge restriction removed — cards can now be dragged to the full extent of the board",
+    ],
+  },
+  {
+    version: "v0.14.1",
+    date: "2026-04-02",
+    changes: [
+      "Sample content rebranded to 'Ugly Pickle' with all interaction types and block types represented",
+      "New sample cards: Game Trailer (bottom-sheet + video), Zone Guide (modal + carousel), Buy the Game (external-link)",
+      "Warning callout variant now demonstrated in Quick Reference sample",
+      "Sidebar: 'Elements' renamed to 'Board elements'; Board section visually grouped with card background",
+      "Dropdown: now supports linked items using Label|URL format; renders as link list instead of native select",
+      "Storage key bumped to sherpa-v2 — clears stale localStorage so new sample state loads fresh",
+    ],
+  },
+  {
+    version: "v0.14.0",
+    date: "2026-04-02",
+    changes: [
+      "Fix: button-in-button hydration error in search feature card breadcrumbs",
+      "Terminology: 'Content' tab renamed to 'Card'; 'Main page' renamed to 'Board' in sidebar and labels",
+      "Terminology: 'Card buttons' / 'Card button' renamed to 'Board buttons' / 'Board button' throughout",
+      "Sample content: How to Play card now includes a step-rail block and linked cross-references",
+      "Sample content: Quick Reference card expanded with Winning section and cross-reference link",
+    ],
+  },
+  {
     version: "v0.13.9",
     date: "2026-04-02",
     changes: [
