@@ -8,6 +8,80 @@ import { CreatePageConfig, NewContainerForm } from "@/app/_components/editor/new
 
 export type { CreatePageConfig };
 
+function BrandColorsEditor({
+  colors,
+  onChange,
+}: {
+  colors: string[];
+  onChange: (colors: string[]) => void;
+}) {
+  const MAX = 8;
+
+  function update(index: number, value: string) {
+    const next = colors.map((c, i) => (i === index ? value : c));
+    onChange(next);
+  }
+
+  function add() {
+    if (colors.length >= MAX) return;
+    onChange([...colors, "#000000"]);
+  }
+
+  function remove(index: number) {
+    onChange(colors.filter((_, i) => i !== index));
+  }
+
+  return (
+    <div>
+      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+        Brand palette
+      </div>
+      <p className="mb-3 text-xs leading-5 text-neutral-400">
+        Colors saved here appear as quick-picks in all color pickers and are used to auto-style buttons and assets.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {colors.map((color, i) => (
+          <div key={i} className="group relative">
+            <label className="block cursor-pointer" title={color}>
+              <div
+                className="h-9 w-9 rounded-xl border-2 border-white shadow ring-1 ring-neutral-200 transition group-hover:ring-neutral-400"
+                style={{ backgroundColor: color }}
+              />
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => update(i, e.target.value)}
+                aria-label={`Brand color ${i + 1}`}
+                className="sr-only"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => remove(i)}
+              aria-label={`Remove brand color ${i + 1}`}
+              className="absolute -right-1 -top-1 hidden h-4 w-4 items-center justify-center rounded-full bg-neutral-800 text-[9px] text-white group-hover:flex"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+        {colors.length < MAX ? (
+          <button
+            type="button"
+            onClick={add}
+            aria-label="Add brand color"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-dashed border-neutral-300 text-neutral-400 transition hover:border-neutral-500 hover:text-neutral-600"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export function SetupTab({
   onCreatePageWithConfig,
   onHeroUpload,
@@ -379,6 +453,27 @@ export function SetupTab({
               ) : null}
             </div>
           </div>
+          <BrandColorsEditor
+            colors={systemSettings.brandColors ?? []}
+            onChange={(colors) => onSystemSettingChange("brandColors", colors)}
+          />
+          <div className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3">
+            <div>
+              <div className="text-sm font-medium text-neutral-900">Dark mode</div>
+              <div className="mt-0.5 text-xs text-neutral-500">Apply a dark theme to the player experience.</div>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={systemSettings.darkMode ?? false}
+              onClick={() => onSystemSettingChange("darkMode", !(systemSettings.darkMode ?? false))}
+              className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${(systemSettings.darkMode ?? false) ? "bg-neutral-900" : "bg-neutral-200"}`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${(systemSettings.darkMode ?? false) ? "translate-x-4" : ""}`}
+              />
+            </button>
+          </div>
         </div>
       </EditorSection>
 
@@ -459,7 +554,7 @@ export function SetupTab({
       </EditorSection>
 
       {/* Intro screen */}
-      <EditorSection title="Intro screen">
+      <EditorSection title="Intro screen" id="intro-screen-section">
         <div className="space-y-3">
           <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-neutral-700">
             <input

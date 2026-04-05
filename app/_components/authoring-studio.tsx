@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { CardPairingModal } from "@/app/_components/card-pairing-modal";
 import { OnboardingModal, shouldShowOnboarding, dismissOnboarding } from "@/app/_components/onboarding-modal";
@@ -40,6 +40,13 @@ const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
   hotspotSize: "medium",
   modelEnvironment: "studio",
 };
+const SIDEBAR_WIDTH = 300;
+const INSPECTOR_WIDTH = 380;
+const STUDIO_CHROME_MARGIN = 18;
+const STUDIO_CHROME_GAP = 24;
+const PANEL_HANDLE_WIDTH = 32;
+const SIDEBAR_WRAPPER_WIDTH = SIDEBAR_WIDTH + PANEL_HANDLE_WIDTH;
+const INSPECTOR_WRAPPER_WIDTH = INSPECTOR_WIDTH + PANEL_HANDLE_WIDTH;
 
 type InspectorTab = "surface" | "content" | "setup";
 
@@ -52,12 +59,14 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("desktop");
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [showLayoutHelp, setShowLayoutHelp] = useState(true);
-  const [isContentModalOpen, setIsContentModalOpen] = useState(false);
+  const [, setIsContentModalOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>("surface");
   const [scrollToBlock, setScrollToBlock] = useState<{ id: string; ts: number } | null>(null);
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(null);
-  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isInspectorOpen, setIsInspectorOpen] = useState(true);
+  const [isHeaderOpen, setIsHeaderOpen] = useState(true);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isGameSwitcherOpen, setIsGameSwitcherOpen] = useState(false);
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
@@ -70,6 +79,13 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
   const [hydrated, setHydrated] = useState(false);
   const [hasLoadedInitialState, setHasLoadedInitialState] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [studioDarkMode, setStudioDarkMode] = useState(() => {
+    try { return localStorage.getItem("sherpa-studio-dark") === "true"; } catch { return false; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem("sherpa-studio-dark", studioDarkMode ? "true" : "false"); } catch { /* quota */ }
+  }, [studioDarkMode]);
 
   // Refs for the keyboard handler — avoid stale closures without re-registering the listener
   const selectedFeatureIdRef = useRef(selectedFeatureId);
@@ -80,8 +96,12 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
   useEffect(() => { layoutModeRef.current = layoutMode; }, [layoutMode]);
   const isPreviewModeRef = useRef(isPreviewMode);
   useEffect(() => { isPreviewModeRef.current = isPreviewMode; }, [isPreviewMode]);
-  const isFocusModeRef = useRef(isFocusMode);
-  useEffect(() => { isFocusModeRef.current = isFocusMode; }, [isFocusMode]);
+  const isSidebarOpenRef = useRef(isSidebarOpen);
+  useEffect(() => { isSidebarOpenRef.current = isSidebarOpen; }, [isSidebarOpen]);
+  const isInspectorOpenRef = useRef(isInspectorOpen);
+  useEffect(() => { isInspectorOpenRef.current = isInspectorOpen; }, [isInspectorOpen]);
+  const isHeaderOpenRef = useRef(isHeaderOpen);
+  useEffect(() => { isHeaderOpenRef.current = isHeaderOpen; }, [isHeaderOpen]);
   const lastNudgeTimeRef = useRef(0);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -325,6 +345,7 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
 
   const handleSelectPage = useCallback((id: string) => {
     setSelectedPageId(id);
+    setIsInspectorOpen(true);
     const page = pages.find((p) => p.id === id);
     if (page?.kind === "hotspot" || page?.kind === "page") setInspectorTab("content");
   }, [pages, setSelectedPageId, setInspectorTab]);
@@ -435,13 +456,6 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
         return;
       }
 
-      // Ctrl/Cmd+K — open command palette
-      if (mod && event.key === "k") {
-        event.preventDefault();
-        setIsCommandPaletteOpen(true);
-        return;
-      }
-
       // Ctrl/Cmd+D — duplicate selected canvas feature
       if (mod && event.key === "d") {
         const featureId = selectedFeatureIdRef.current;
@@ -468,6 +482,28 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
 
       // Guard — bare keys must not fire while typing in an input
       if (isTyping()) return;
+
+      // A — open command palette
+      if (!mod && !event.altKey && !event.shiftKey && event.code === "KeyA") {
+        event.preventDefault();
+        setIsCommandPaletteOpen(true);
+        return;
+      }
+
+      // Space — toggle header + left nav + editing panel together
+      if (!mod && !event.altKey && event.code === "Space") {
+        if (isPreviewModeRef.current) return;
+        event.preventDefault();
+        const shouldOpen = !(
+          isSidebarOpenRef.current &&
+          isInspectorOpenRef.current &&
+          isHeaderOpenRef.current
+        );
+        setIsSidebarOpen(shouldOpen);
+        setIsInspectorOpen(shouldOpen);
+        setIsHeaderOpen(shouldOpen);
+        return;
+      }
 
       // Delete / Backspace — delete selected canvas feature, or selected hotspot
       if (event.key === "Delete" || event.key === "Backspace") {
@@ -503,12 +539,6 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
       // P — toggle preview mode
       if (event.key === "p" || event.key === "P") {
         setIsPreviewMode((prev) => !prev);
-        return;
-      }
-
-      // F — toggle focus mode (hide sidebar + inspector)
-      if (event.key === "f" || event.key === "F") {
-        setIsFocusMode((prev) => !prev);
         return;
       }
 
@@ -560,8 +590,8 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!activePreviewPage || !previewSurfacePage) return null;
@@ -629,6 +659,30 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
     systemSettings,
   } as const;
 
+  const dk = studioDarkMode;
+  const chromeBg    = dk ? "bg-neutral-900"   : "bg-[#fcfaf7]";
+  const chromeBord  = dk ? "border-neutral-700" : "border-[#e7dfd2]";
+  const chromeToggle = dk
+    ? "border-neutral-700 bg-neutral-900 text-neutral-400 hover:text-neutral-200"
+    : "border-[#e7dfd2] bg-[#fcfaf7] text-neutral-500 hover:text-neutral-800";
+  const chromeShadow = "shadow-[0_22px_60px_rgba(15,23,42,0.14)]";
+  const chromeToggleShadow = "shadow-[0_18px_36px_rgba(15,23,42,0.14)]";
+
+  const headerLeftInset = isSidebarOpen
+    ? STUDIO_CHROME_MARGIN + SIDEBAR_WIDTH + STUDIO_CHROME_GAP
+    : STUDIO_CHROME_MARGIN;
+  const headerRightInset = isInspectorOpen
+    ? STUDIO_CHROME_MARGIN + INSPECTOR_WIDTH + STUDIO_CHROME_GAP
+    : STUDIO_CHROME_MARGIN;
+  const sidebarTransform =
+    !isPreviewMode && isSidebarOpen
+      ? "translateX(0)"
+      : `translateX(-${SIDEBAR_WRAPPER_WIDTH}px)`;
+  const inspectorTransform =
+    !isPreviewMode && isInspectorOpen
+      ? "translateX(0)"
+      : `translateX(${INSPECTOR_WRAPPER_WIDTH}px)`;
+
   const sharedCanvasProps = {
     activePage: activePreviewPage,
     surfacePage: previewSurfacePage,
@@ -647,7 +701,10 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
     showLayoutHelp,
     onCanvasClick: handleCanvasClick,
     onPlace3dHotspot: handle3dHotspotPlace,
-    onCanvasFeaturePointerDown: handleCanvasFeaturePointerDown,
+    onCanvasFeaturePointerDown: (event: React.PointerEvent<HTMLDivElement>, featureId: string) => {
+      setIsInspectorOpen(true);
+      handleCanvasFeaturePointerDown(event, featureId);
+    },
     onContentCardPointerDown: handleContentCardPointerDown,
     onDeleteHotspot: handleDeleteHotspot,
     onDismissContent: handleDismissContent,
@@ -667,16 +724,64 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
       setCurrentGameName(name);
       setPages((prev) => prev.map((p) => p.kind === "home" ? { ...p, title: name } : p));
     },
+    studioChrome: {
+      headerOpen: isHeaderOpen,
+      leftInset: headerLeftInset,
+      rightInset: headerRightInset,
+      topInset: 0,
+      onToggleHeader: () => setIsHeaderOpen((prev) => !prev),
+      darkMode: studioDarkMode,
+    },
   } as const;
 
   return (
-    <main className="min-h-screen bg-[#f3f4f6] text-neutral-900">
-      <div className="flex min-h-screen">
-        <div className={`${isFocusMode ? "hidden" : "hidden lg:block"} h-screen w-[300px] shrink-0 overflow-hidden border-r border-neutral-200 bg-white`}>
+    <main className="fixed inset-0 overflow-hidden text-neutral-900">
+      {/* Full-screen canvas */}
+      <div className="absolute inset-0">
+        <PreviewCanvas {...sharedCanvasProps} fillHeight />
+      </div>
+
+      {/* Left panel toggle — visible when sidebar is hidden and not in preview */}
+      {!isPreviewMode && !isSidebarOpen && (
+        <button
+          type="button"
+          onClick={() => setIsSidebarOpen(true)}
+          className={`absolute left-0 top-1/2 z-50 -translate-y-1/2 rounded-r-2xl border border-l-0 px-2 py-3 ${chromeToggleShadow} transition ${chromeToggle}`}
+          aria-label="Open sidebar"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      )}
+
+      {/* Left overlay — PageSidebar */}
+      <div
+        className="absolute bottom-0 left-0 top-0 z-40 transition-transform duration-300 ease-in-out"
+        style={{ width: SIDEBAR_WRAPPER_WIDTH, transform: sidebarTransform }}
+      >
+        <button
+          type="button"
+          onClick={() => setIsSidebarOpen(false)}
+          tabIndex={!isPreviewMode && isSidebarOpen ? 0 : -1}
+          aria-hidden={isPreviewMode || !isSidebarOpen}
+          style={{ right: PANEL_HANDLE_WIDTH }}
+          className={`absolute top-1/2 z-10 -translate-y-1/2 translate-x-full rounded-r-2xl border border-l-0 px-2 py-3 ${chromeToggleShadow} transition ${chromeToggle}`}
+          aria-label="Close sidebar"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M8 2L4 6l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <div
+          className={`h-full overflow-hidden border-r ${chromeBord} ${chromeBg} ${chromeShadow}`}
+          style={{ width: SIDEBAR_WIDTH }}
+        >
           <PageSidebar
             onAddPage={() => {
               const id = handleCreatePageForButton();
               openPageEditor(id);
+              setIsInspectorOpen(true);
               setCardPairingPageId(id);
             }}
             onReorderBlocks={(pageId, fromIndex, toIndex) => {
@@ -691,6 +796,7 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
             }}
             onOpenPage={(pageId, blockId) => {
               openPageEditor(pageId);
+              setIsInspectorOpen(true);
               if (blockId) {
                 setInspectorTab("content");
                 setScrollToBlock({ id: blockId, ts: Date.now() });
@@ -699,7 +805,10 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
               }
             }}
             onPublishStatusChange={handleSidebarPublishStatusChange}
-            onSelectFeature={handleSidebarFeatureClick}
+            onSelectFeature={(pageId, featureId) => {
+              setIsInspectorOpen(true);
+              handleSidebarFeatureClick(pageId, featureId);
+            }}
             pages={pages}
             selectedFeatureId={selectedFeatureId}
             selectedPageId={selectedPageId}
@@ -707,90 +816,80 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
             currentStudioName={currentStudioName}
             currentGameId={currentGameId}
             userEmail={userEmail}
-            onRenameGame={(name) => {
-              setCurrentGameName(name);
-              setPages((prev) => prev.map((p) => p.kind === "home" ? { ...p, title: name } : p));
-            }}
             onOpenChangelog={() => setIsChangelogOpen(true)}
             onOpenAccount={() => setIsAccountOpen(true)}
             onOpenGameSwitcher={() => setIsGameSwitcherOpen(true)}
+            darkMode={studioDarkMode}
           />
         </div>
-
-        <section className="min-w-0 flex-1 bg-[#eef1f4] p-4 md:p-6 lg:flex lg:h-screen lg:overflow-hidden lg:p-0">
-          {/* Canvas column — padded uniformly on all sides */}
-          <div className="min-w-0 flex-1 lg:flex lg:flex-col lg:overflow-hidden lg:p-8">
-            <div className="mb-4 flex items-center gap-2 xl:hidden">
-              <select
-                value={selectedPageId}
-                onChange={(e) => {
-                  setSelectedPageId(e.target.value);
-                  setIsContentModalOpen(false);
-                }}
-                aria-label="Navigate to page"
-                className="min-w-0 flex-1 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-900 outline-none focus:border-black"
-              >
-                {pages.map((page) => (
-                  <option key={page.id} value={page.id}>
-                    {page.kind === "home" ? "Home" : page.title || "Untitled"}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={() => setIsContentModalOpen(true)}
-                className="shrink-0 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-800 shadow-sm hover:bg-neutral-50"
-              >
-                Inspect
-              </button>
-            </div>
-
-            <div className="rounded-[28px] border border-white/70 bg-white p-2 sm:p-4 md:p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] lg:flex-1 lg:min-h-0 lg:flex lg:flex-col">
-              <PreviewCanvas {...sharedCanvasProps} fillHeight />
-            </div>
-          </div>
-
-          {/* Editing Panel column — flush to top, right, and bottom edges */}
-          <div className={`${isFocusMode ? "hidden" : "hidden xl:flex"} xl:w-[380px] xl:shrink-0 xl:flex-col`}>
-            <div className="flex h-full flex-col overflow-hidden border-l border-neutral-200 bg-[#f7f7f8]">
-              <div className="border-b border-neutral-200 px-5 py-4">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                  Editing Panel
-                </div>
-              </div>
-
-              <div className="min-h-0 flex-1">
-                <PageEditorModal
-                  {...sharedEditorProps}
-                  isOpen={!!selectedPage}
-                  isOverlay={false}
-                  showCloseButton={false}
-                  showPreview={false}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
       </div>
 
-      {/* Mobile/tablet editor overlay — hidden at xl where the sticky inspector takes over */}
-      <div className="xl:hidden">
-        <PageEditorModal
-          {...sharedEditorProps}
-          isOpen={isContentModalOpen}
-          showPreview={false}
-        />
-      </div>
-
-      {isFocusMode && (
+      {/* Right panel toggle — visible when inspector is hidden and not in preview */}
+      {!isPreviewMode && !isInspectorOpen && (
         <button
           type="button"
-          onClick={() => setIsFocusMode(false)}
-          className="fixed right-4 top-4 z-50 rounded-lg bg-black/30 px-3 py-1.5 text-xs text-white backdrop-blur-sm hover:bg-black/50"
+          onClick={() => setIsInspectorOpen(true)}
+          className={`absolute right-0 top-1/2 z-50 -translate-y-1/2 rounded-l-2xl border border-r-0 px-2 py-3 ${chromeToggleShadow} transition ${chromeToggle}`}
+          aria-label="Open editing panel"
         >
-          Exit focus mode <span className="opacity-60">F</span>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M8 2L4 6l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
       )}
+
+      {/* Right overlay — Editing Panel */}
+      <div
+        className="absolute bottom-0 right-0 top-0 z-40 transition-transform duration-300 ease-in-out"
+        style={{ width: INSPECTOR_WRAPPER_WIDTH, transform: inspectorTransform }}
+      >
+        <button
+          type="button"
+          onClick={() => setIsInspectorOpen(false)}
+          tabIndex={!isPreviewMode && isInspectorOpen ? 0 : -1}
+          aria-hidden={isPreviewMode || !isInspectorOpen}
+          style={{ left: PANEL_HANDLE_WIDTH }}
+          className={`absolute top-1/2 z-10 -translate-x-full -translate-y-1/2 rounded-l-2xl border border-r-0 px-2 py-4 ${chromeToggleShadow} transition ${chromeToggle}`}
+          aria-label="Close editing panel"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <div
+          className={`ml-auto flex h-full flex-col overflow-hidden border-l ${chromeBord} ${chromeBg} ${chromeShadow}`}
+          style={{ width: INSPECTOR_WIDTH }}
+        >
+          <div className={`shrink-0 border-b ${chromeBord} px-5 py-4`}>
+            <div className="flex items-center justify-between gap-2">
+              <div className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${dk ? "text-neutral-400" : "text-neutral-500"}`}>
+                Editing Panel
+              </div>
+              {experienceStatus === "published" && liveViewHref ? (
+                <a
+                  href={liveViewHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-700 hover:bg-emerald-100 transition"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Live
+                </a>
+              ) : null}
+            </div>
+          </div>
+          <div className="min-h-0 flex-1">
+            <PageEditorModal
+              {...sharedEditorProps}
+              isOpen={!!selectedPage}
+              isOverlay={false}
+              showCloseButton={false}
+              showPreview={false}
+              studioDarkMode={studioDarkMode}
+            />
+          </div>
+        </div>
+      </div>
 
       {isCommandPaletteOpen && (
         <CommandPalette
@@ -803,11 +902,11 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
           onCreatePage={() => {
               const id = handleCreatePageForButton();
               openPageEditor(id);
+              setIsInspectorOpen(true);
               setCardPairingPageId(id);
             }}
           onSetLayoutMode={setLayoutMode}
           onTogglePreview={() => setIsPreviewMode((prev) => !prev)}
-          onToggleFocus={() => setIsFocusMode((prev) => !prev)}
           onClose={() => setIsCommandPaletteOpen(false)}
         />
       )}
@@ -850,6 +949,8 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
         userEmail={userEmail}
         onSignOut={() => supabase.auth.signOut()}
         onStudioNameChange={setCurrentStudioName}
+        studioDarkMode={studioDarkMode}
+        onStudioDarkModeChange={setStudioDarkMode}
       />
       <GameSwitcherModal
         isOpen={isGameSwitcherOpen}

@@ -6,6 +6,51 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.16.6",
+    date: "2026-04-04",
+    changes: [
+      "Studio dark mode — left nav, toolbar header, and editing panel all switch to a dark theme",
+      "Toggle in Account settings › Appearance; preference saved to this browser",
+      "Command palette: searching 'intro video' or 'intro screen' now opens Settings and scrolls to the intro screen section",
+    ],
+  },
+  {
+    version: "v0.16.5",
+    date: "2026-04-04",
+    changes: [
+      "Command palette: press A (was Shift+A) to open",
+      "Editing panel: clicking a board element while the panel is collapsed now opens it",
+      "Header insets now adapt when panels are open or closed — no more squashed header",
+      "Dark mode toggle in Settings — flips content modules to high-contrast dark surfaces",
+      "Account profile: photo upload, email shown as read-only, removed current-password requirement for password change",
+      "3D model: fixed 'position is read-only' crash by cloning the GLTF scene",
+      "Editing Panel header shows a Live badge + link when the experience is published",
+      "Command palette: searching 'video' now surfaces the intro screen setting",
+    ],
+  },
+  {
+    version: "v0.16.4",
+    date: "2026-04-03",
+    changes: [
+      "Studio panels (sidebar, toolbar, inspector) are now semi-transparent (60%) so the canvas background shows through",
+      "Left nav: removed game name and rename field (use the toolbar header instead)",
+      "Editing Panel tabs (Card/Board/Settings) are now centered",
+      "Focus mode removed — preview mode covers the same use case",
+      "Buttons: primary (filled), secondary (outlined), and tertiary (ghost) variants — set in the Board tab",
+      "Brand palette: define up to 8 brand colors in Settings; they appear as quick-picks in all color pickers and auto-style button assets",
+    ],
+  },
+  {
+    version: "v0.16.3",
+    date: "2026-04-03",
+    changes: [
+      "Studio layout redesign: canvas is now always full-screen — left nav and Editing Panel float as collapsible overlay drawers",
+      "Element placement in authoring mode now exactly matches the player view (feature coordinates map to the full viewport in both modes)",
+      "Preview mode: panels slide away and toolbar hides, giving a true full-screen player experience without changing coordinate space",
+      "Panel toggle tabs appear on screen edges when a panel is collapsed; F key still hides/shows both panels",
+    ],
+  },
+  {
     version: "v0.16.2",
     date: "2026-04-03",
     changes: [
@@ -190,7 +235,7 @@ export const PATCH_NOTES: PatchNote[] = [
     version: "v0.13.0",
     date: "2026-03-31",
     changes: [
-      "Command palette (⌘K or search icon in toolbar) — jump to any page, add canvas features, switch layout modes, and trigger actions from a single keyboard-driven interface",
+      "Command palette (Shift+A or search icon in toolbar) — jump to any page, add canvas features, switch layout modes, and trigger actions from a single keyboard-driven interface",
       "Delete / Backspace — removes the selected canvas feature or hotspot without reaching for the inspector",
       "⌘D — duplicates the selected canvas feature, offset by 3% so it's immediately visible",
       "1 / 2 / 3 — switches between Desktop, Landscape, and Portrait layout modes",

@@ -19,6 +19,7 @@ export function CanvasFeatureEditor({
   feature,
   isSelected,
   isPortraitMode,
+  brandColors,
   onCanvasFeatureChange,
   onCanvasFeatureImageUpload,
   onCreatePageForButton,
@@ -29,6 +30,7 @@ export function CanvasFeatureEditor({
   feature: CanvasFeature;
   isSelected: boolean;
   isPortraitMode?: boolean;
+  brandColors?: string[];
   onCanvasFeatureChange: (
     featureId: string,
     field: CanvasFeatureField,
@@ -72,6 +74,7 @@ export function CanvasFeatureEditor({
       <div className="space-y-3">
         <CanvasFeatureTypeBody
           feature={feature}
+          brandColors={brandColors}
           onCanvasFeatureChange={onCanvasFeatureChange}
           onCanvasFeatureImageUpload={onCanvasFeatureImageUpload}
           onCreatePageForButton={onCreatePageForButton}

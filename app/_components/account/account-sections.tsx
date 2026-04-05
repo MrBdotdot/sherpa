@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   FieldRow,
   TextInput,
@@ -65,9 +65,9 @@ export function ProfileSection({ userEmail, metadata }: ProfileSectionProps) {
   const [firstName, setFirstName] = useState(metadata.first_name ?? derived.firstName);
   const [lastName, setLastName] = useState(metadata.last_name ?? derived.lastName);
   const [displayName, setDisplayName] = useState(metadata.display_name ?? derived.displayName);
-  const [email, setEmail] = useState(userEmail);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState<string | null>(null);
@@ -82,42 +82,82 @@ export function ProfileSection({ userEmail, metadata }: ProfileSectionProps) {
     if (metadata.display_name !== undefined) setDisplayName(metadata.display_name);
   }, [metadata.first_name, metadata.last_name, metadata.display_name]);
 
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setAvatarUrl(url);
+  }
+
   function handleSaveProfile() {
     profileSave(async () => {
-      const updates: Parameters<typeof supabase.auth.updateUser>[0] = {
+      const { error } = await supabase.auth.updateUser({
         data: { first_name: firstName, last_name: lastName, display_name: displayName },
-      };
-      if (email !== userEmail) updates.email = email;
-      const { error } = await supabase.auth.updateUser(updates);
+      });
       if (error) throw error;
     });
   }
 
   function handleSavePassword() {
     setPasswordError(null);
-    if (!currentPassword) { setPasswordError("Enter your current password."); return; }
     if (newPassword.length < 8) { setPasswordError("New password must be at least 8 characters."); return; }
     if (newPassword !== confirmPassword) { setPasswordError("Passwords don't match."); return; }
     passwordSave(async () => {
-      const { error: verifyError } = await supabase.auth.signInWithPassword({ email: userEmail, password: currentPassword });
-      if (verifyError) throw new Error("Current password is incorrect.");
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
-      setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     });
   }
+
+  const initials = (firstName.charAt(0) || userEmail.charAt(0) || "?").toUpperCase();
 
   return (
     <div>
       <SectionHeader title="Profile" description="Your personal information and display name." />
 
       <div className="mb-6 flex items-center gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-900 text-xl font-semibold text-white">
-          {(firstName.charAt(0) || userEmail.charAt(0) || "?").toUpperCase()}
+        <div className="relative group">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt="Profile photo"
+              className="h-16 w-16 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-900 text-xl font-semibold text-white">
+              {initials}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => photoInputRef.current?.click()}
+            className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label="Upload profile photo"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M3 13.5V15h1.5l8.83-8.83-1.5-1.5L3 13.5zm2.12-.71L13.5 4.41l.59.59-8.38 8.38-.59-.29v-.29zM14.71 3.29a1 1 0 00-1.42 0l-.88.88 1.5 1.5.88-.88a1 1 0 000-1.5z" fill="white" />
+            </svg>
+          </button>
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            className="hidden"
+          />
         </div>
-        <span className="text-xs text-neutral-400">Profile photo upload coming soon.</span>
+        <div>
+          <div className="text-sm font-medium text-neutral-900">{displayName || `${firstName} ${lastName}`.trim() || "Your name"}</div>
+          <div className="text-xs text-neutral-400">{userEmail}</div>
+          <button
+            type="button"
+            onClick={() => photoInputRef.current?.click()}
+            className="mt-1.5 text-xs text-neutral-500 hover:text-neutral-900 transition underline"
+          >
+            Change photo
+          </button>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -133,10 +173,10 @@ export function ProfileSection({ userEmail, metadata }: ProfileSectionProps) {
           <TextInput placeholder="How you appear to collaborators" value={displayName} onChange={setDisplayName} />
         </FieldRow>
         <FieldRow label="Email address">
-          <TextInput type="email" placeholder="you@example.com" value={email} onChange={setEmail} />
-          {email !== userEmail && (
-            <p className="text-xs text-amber-600">A verification email will be sent to confirm the new address.</p>
-          )}
+          <div className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-500">
+            {userEmail}
+          </div>
+          <p className="text-[11px] text-neutral-400">Contact support to change your email address.</p>
         </FieldRow>
       </div>
 
@@ -147,9 +187,6 @@ export function ProfileSection({ userEmail, metadata }: ProfileSectionProps) {
       <Divider />
       <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Change password</div>
       <div className="space-y-4">
-        <FieldRow label="Current password">
-          <TextInput type="password" placeholder="••••••••" value={currentPassword} onChange={setCurrentPassword} />
-        </FieldRow>
         <FieldRow label="New password">
           <TextInput type="password" placeholder="Min 8 characters" value={newPassword} onChange={setNewPassword} />
         </FieldRow>

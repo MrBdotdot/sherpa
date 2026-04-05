@@ -16,6 +16,7 @@ export function SurfaceTab({
   selectedFeatureId,
   selectedPage,
   isPortraitMode,
+  brandColors,
 }: {
   onAddCanvasFeature: (type: CanvasFeatureType) => void;
   onCanvasFeatureChange: (featureId: string, field: CanvasFeatureField, value: string) => void;
@@ -27,6 +28,7 @@ export function SurfaceTab({
   selectedFeatureId: string | null;
   selectedPage: PageItem;
   isPortraitMode?: boolean;
+  brandColors?: string[];
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -39,6 +41,7 @@ export function SurfaceTab({
       feature={feature}
       isSelected={feature.id === selectedFeatureId}
       isPortraitMode={isPortraitMode}
+      brandColors={brandColors}
       onCanvasFeatureChange={onCanvasFeatureChange}
       onCanvasFeatureImageUpload={onCanvasFeatureImageUpload}
       onCreatePageForButton={onCreatePageForButton}

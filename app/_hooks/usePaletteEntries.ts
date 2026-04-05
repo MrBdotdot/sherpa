@@ -47,6 +47,19 @@ export function usePaletteEntries({
       { id: "view-surface", label: "Board tab", group: "View", alwaysShow: true, onRun: () => { handleDismissContent(); setInspectorTab("surface"); } },
       { id: "view-content", label: "Card tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("content") },
       { id: "view-setup", label: "Settings tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("setup") },
+      {
+        id: "view-intro-video",
+        label: "Intro video / intro screen",
+        group: "View",
+        alwaysShow: false,
+        onRun: () => {
+          setInspectorTab("setup");
+          requestAnimationFrame(() => {
+            const el = document.getElementById("intro-screen-section");
+            el?.scrollIntoView({ behavior: "smooth", block: "start" });
+          });
+        },
+      },
       // Design (only visible when queried)
       { id: "design-font-modern", label: "Font: Modern", group: "Design", onRun: () => handleSystemSettingChange("fontTheme", "modern") },
       { id: "design-font-editorial", label: "Font: Editorial", group: "Design", onRun: () => handleSystemSettingChange("fontTheme", "editorial") },

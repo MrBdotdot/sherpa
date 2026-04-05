@@ -258,12 +258,23 @@ export function CanvasFeatureCard({
   }
 
   if (feature.type === "button") {
+    const variant = feature.buttonVariant ?? "secondary";
+    const accent = accentColor || "#0a0a0a";
+    let cls = "max-w-[200px] truncate rounded-full px-4 py-2 text-xs font-semibold shadow-sm transition";
+    let style: React.CSSProperties = {};
+    if (variant === "primary") {
+      cls += " border text-white";
+      style = { backgroundColor: accent, borderColor: accent };
+    } else if (variant === "tertiary") {
+      cls += " border border-transparent bg-transparent underline-offset-2 hover:underline";
+      style = { color: accent };
+    } else {
+      // secondary (default)
+      cls += " border bg-white/80";
+      style = { borderColor: accent, color: accent };
+    }
     return (
-      <button
-        type="button"
-        className="max-w-[200px] truncate rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-900 shadow-lg hover:bg-neutral-50"
-        style={accentColor ? { borderColor: accentColor, color: accentColor } : {}}
-      >
+      <button type="button" className={cls} style={style}>
         {feature.label}
       </button>
     );

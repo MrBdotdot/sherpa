@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { APP_VERSION } from "@/app/_lib/authoring-utils";
 import { getFeatureTypeLabel } from "@/app/_lib/label-utils";
 import { CanvasFeature, ContentBlock, PageItem, PublishStatus } from "@/app/_lib/authoring-types";
@@ -19,10 +19,10 @@ type PageSidebarProps = {
   currentStudioName?: string;
   currentGameId?: string;
   userEmail?: string;
-  onRenameGame?: (name: string) => void;
   onOpenChangelog?: () => void;
   onOpenAccount?: () => void;
   onOpenGameSwitcher?: () => void;
+  darkMode?: boolean;
 };
 
 function ChevronIcon({ expanded }: { expanded: boolean }) {
@@ -275,27 +275,13 @@ export function PageSidebar({
   currentStudioName = "Bee Studio",
   currentGameId,
   userEmail = "",
-  onRenameGame,
   onOpenChangelog,
   onOpenAccount,
   onOpenGameSwitcher,
+  darkMode = false,
 }: PageSidebarProps) {
+  const dk = darkMode;
   const { displayName, initial } = getUserNameParts(userEmail);
-  const [editingName, setEditingName] = useState(false);
-  const [nameInput, setNameInput] = useState("");
-  const nameInputRef = useRef<HTMLInputElement>(null);
-
-  function startEditName() {
-    setNameInput(currentGameName);
-    setEditingName(true);
-    setTimeout(() => nameInputRef.current?.select(), 0);
-  }
-
-  function commitName() {
-    const trimmed = nameInput.trim();
-    if (trimmed && trimmed !== currentGameName) onRenameGame?.(trimmed);
-    setEditingName(false);
-  }
   const [blockDrag, setBlockDrag] = useState<{ pageId: string; dragIndex: number; dropIndex: number } | null>(null);
 
   function makeBlockDragHandlers(pageId: string) {
@@ -341,16 +327,16 @@ export function PageSidebar({
   };
 
   return (
-    <aside className="flex h-full flex-col border-r border-neutral-200 bg-white">
+    <aside className={`flex h-full flex-col ${dk ? "bg-neutral-900 text-neutral-100" : "border-r border-neutral-200/60 bg-white/60"}`}>
       <div className="min-h-0 flex-1 overflow-y-auto p-5">
         <div className="mb-6 flex items-center gap-2.5">
           <img src="/sherpa-icon.svg" alt="Sherpa" className="h-11 w-11 rounded-lg" draggable={false} />
           <div className="flex items-baseline gap-2">
-            <div className="text-lg font-semibold text-neutral-900">Sherpa</div>
+            <div className={`text-lg font-semibold ${dk ? "text-neutral-100" : "text-neutral-900"}`}>Sherpa</div>
             <button
               type="button"
               onClick={() => onOpenChangelog?.()}
-              className="rounded-full border border-neutral-200 px-2 py-0.5 text-xs text-neutral-500 hover:border-neutral-300 hover:bg-neutral-50"
+              className={`rounded-full border px-2 py-0.5 text-xs ${dk ? "border-neutral-700 text-neutral-400 hover:border-neutral-600 hover:bg-neutral-800" : "border-neutral-200 text-neutral-500 hover:border-neutral-300 hover:bg-neutral-50"}`}
             >
               {APP_VERSION}
             </button>
@@ -365,42 +351,7 @@ export function PageSidebar({
               const pageButtons = homePage.canvasFeatures.filter((f) => f.type === "page-button");
 
               return (
-                <div key={homePage.id} className="rounded-2xl border border-neutral-100 bg-neutral-50 p-3 space-y-3">
-                  {/* Game name — editable inline */}
-                  <div className="flex items-center gap-1.5 px-0.5">
-                    {editingName ? (
-                      <input
-                        ref={nameInputRef}
-                        value={nameInput}
-                        onChange={(e) => setNameInput(e.target.value)}
-                        onBlur={commitName}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") commitName();
-                          if (e.key === "Escape") setEditingName(false);
-                        }}
-                        className="min-w-0 flex-1 rounded-lg border border-neutral-300 bg-white px-2 py-0.5 text-sm font-semibold text-neutral-900 outline-none focus:border-black"
-                      />
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => onOpenPage(homePage.id)}
-                        className={`min-w-0 flex-1 truncate text-left text-sm font-semibold ${homePage.id === selectedPageId ? "text-neutral-900" : "text-neutral-700 hover:text-neutral-900"}`}
-                      >
-                        {currentGameName}
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={startEditName}
-                      title="Rename game"
-                      className="shrink-0 rounded-md p-1 text-neutral-300 hover:bg-neutral-200 hover:text-neutral-600"
-                    >
-                      <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                        <path d="M1.5 8.5V9.5h1L8 4 7 3 1.5 8.5zM9.5 2.5a.707.707 0 000-1L8.5 0.5a.707.707 0 00-1 0L6.5 1.5 8.5 3.5 9.5 2.5z" fill="currentColor" />
-                      </svg>
-                    </button>
-                  </div>
-
+                <div key={homePage.id} className={`rounded-2xl border p-3 space-y-3 ${dk ? "border-neutral-700 bg-neutral-800" : "border-neutral-100 bg-neutral-50"}`}>
                   <CollapsibleSection
                     title="Board elements"
                     open={openSections.has("elements")}
@@ -675,21 +626,21 @@ export function PageSidebar({
       </div>
 
       {/* Bottom nav */}
-      <div className="shrink-0 border-t border-neutral-100 p-3">
+      <div className={`shrink-0 border-t p-3 ${dk ? "border-neutral-700" : "border-neutral-100"}`}>
         {/* Game switcher */}
         <button
           type="button"
           onClick={() => onOpenGameSwitcher?.()}
-          className="mb-2 flex w-full items-center gap-2.5 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-left hover:bg-white transition"
+          className={`mb-2 flex w-full items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition ${dk ? "border-neutral-700 bg-neutral-800 hover:bg-neutral-700" : "border-neutral-200 bg-neutral-50 hover:bg-white"}`}
         >
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-xs font-bold text-white">
             {currentGameName[0]?.toUpperCase() ?? "?"}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-xs font-semibold text-neutral-800">{currentStudioName} / {currentGameName}</div>
+            <div className={`truncate text-xs font-semibold ${dk ? "text-neutral-200" : "text-neutral-800"}`}>{currentStudioName} / {currentGameName}</div>
             <div className="text-[10px] text-neutral-400">Switch game</div>
           </div>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0 text-neutral-300">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`shrink-0 ${dk ? "text-neutral-500" : "text-neutral-300"}`}>
             <path d="M3 4.5L6 1.5L9 4.5M3 7.5L6 10.5L9 7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
@@ -698,13 +649,13 @@ export function PageSidebar({
         <button
           type="button"
           onClick={() => onOpenAccount?.()}
-          className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 hover:bg-neutral-100 transition"
+          className={`flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left transition ${dk ? "hover:bg-neutral-800" : "hover:bg-neutral-100"}`}
         >
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-600">
+          <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${dk ? "bg-neutral-700 text-neutral-300" : "bg-neutral-200 text-neutral-600"}`}>
             {initial}
           </div>
           <div className="min-w-0">
-            <div className="truncate text-xs font-medium text-neutral-700">{displayName}</div>
+            <div className={`truncate text-xs font-medium ${dk ? "text-neutral-200" : "text-neutral-700"}`}>{displayName}</div>
             <div className="truncate text-[10px] text-neutral-400">
               {userEmail || "Signed-in account"}
             </div>

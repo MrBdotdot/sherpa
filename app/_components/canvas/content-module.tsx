@@ -87,21 +87,22 @@ export function ContentModule({
     : systemSettings.fontTheme === "geometric" ? "font-space"
     : systemSettings.fontTheme === "display" ? "font-display"
     : "font-sans";
+  const effectiveSurfaceStyle = systemSettings.darkMode ? "contrast" : systemSettings.surfaceStyle;
   const surfaceStyleClass =
-    systemSettings.surfaceStyle === "solid"
+    effectiveSurfaceStyle === "solid"
       ? "border-neutral-300 bg-white shadow-xl"
-      : systemSettings.surfaceStyle === "contrast"
+      : effectiveSurfaceStyle === "contrast"
       ? "border-neutral-900/10 bg-neutral-950/95 text-white shadow-2xl"
       : "border-white/60 bg-white shadow-lg";
   const mutedTextClass =
-    systemSettings.surfaceStyle === "contrast" ? "text-neutral-300" : "text-neutral-600";
+    effectiveSurfaceStyle === "contrast" ? "text-neutral-300" : "text-neutral-600";
   const solidBg =
-    systemSettings.surfaceStyle === "contrast" ? "bg-neutral-950/95 text-white"
-    : systemSettings.surfaceStyle === "solid" ? "bg-white"
+    effectiveSurfaceStyle === "contrast" ? "bg-neutral-950/95 text-white"
+    : effectiveSurfaceStyle === "solid" ? "bg-white"
     : "bg-white";
   const tooltipArrowColor =
-    systemSettings.surfaceStyle === "contrast" ? "rgba(10,10,10,0.95)"
-    : systemSettings.surfaceStyle === "solid" ? "#ffffff"
+    effectiveSurfaceStyle === "contrast" ? "rgba(10,10,10,0.95)"
+    : effectiveSurfaceStyle === "solid" ? "#ffffff"
     : "rgba(255,255,255,0.90)";
 
   // side-sheet and full-page always use their own slide animations — the
@@ -131,8 +132,8 @@ export function ContentModule({
   // ── External link ──────────────────────────────────────────────
   if (ctype === "external-link") {
     const linkUrl = page.publicUrl || page.socialLinks[0]?.url || "";
-    const contrastText = systemSettings.surfaceStyle === "contrast" ? "text-white" : "text-neutral-900";
-    const dimText = systemSettings.surfaceStyle === "contrast" ? "text-neutral-400" : "text-neutral-500";
+    const contrastText = effectiveSurfaceStyle === "contrast" ? "text-white" : "text-neutral-900";
+    const dimText = effectiveSurfaceStyle === "contrast" ? "text-neutral-400" : "text-neutral-500";
     return (
       <div
         className={`absolute z-30 ${animClass}`}

@@ -1,12 +1,14 @@
 export function EditorSection({
   children,
   title,
+  id,
 }: {
   children: React.ReactNode;
   title: string;
+  id?: string;
 }) {
   return (
-    <section className="border-b border-neutral-200 px-5 py-5 last:border-b-0">
+    <section id={id} className="border-b border-neutral-200 px-5 py-5 last:border-b-0">
       <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
         {title}
       </div>

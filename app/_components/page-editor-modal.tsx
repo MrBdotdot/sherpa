@@ -99,6 +99,7 @@ type PageEditorModalProps = {
   surfacePreviewPage: PageItem;
   systemSettings: SystemSettings;
   pages: PageItem[];
+  studioDarkMode?: boolean;
 };
 
 const TAB_LABELS: Record<InspectorTab, string> = {
@@ -165,8 +166,15 @@ export function PageEditorModal({
   surfacePreviewPage,
   systemSettings,
   pages,
+  studioDarkMode = false,
 }: PageEditorModalProps) {
+  const dk = studioDarkMode;
+  const panelBg   = dk ? "bg-neutral-900"    : "bg-[#fcfaf7]";
+  const panelBord = dk ? "border-neutral-700" : "border-[#e7dfd2]";
   const dialogRef = useFocusTrap<HTMLDivElement>(isOpen && isOverlay);
+  void _onPublicUrlChange;
+  void _onPublishStatusChange;
+  void _onQrToggle;
 
   if (!isOpen || !selectedPage) {
     return null;
@@ -187,15 +195,15 @@ export function PageEditorModal({
       role={isOverlay ? "dialog" : undefined}
       aria-modal={isOverlay ? "true" : undefined}
       aria-labelledby={isOverlay ? titleId : undefined}
-      className={`flex min-h-0 w-full flex-col overflow-hidden bg-neutral-50 ${
+      className={`flex min-h-0 w-full flex-col overflow-hidden ${
         isOverlay
-          ? "h-[90vh] max-w-6xl rounded-3xl shadow-2xl"
-          : "h-full border-l border-neutral-200 bg-[#f7f7f8]"
+          ? "h-[90vh] max-w-6xl rounded-3xl bg-neutral-50 shadow-2xl"
+          : `h-full ${panelBg}`
       }`}
     >
       {/* Tabs */}
-      <div className={`border-b border-neutral-200 px-5 py-3 ${isOverlay ? "bg-white" : "bg-[#f7f7f8]"}`}>
-        <div role="tablist" aria-label="Inspector tabs" className="inline-flex rounded-2xl border border-neutral-200 bg-white p-1">
+      <div className={`border-b px-5 py-3 ${isOverlay ? `border-neutral-200 bg-white` : `${panelBord} ${panelBg}`}`}>
+        <div role="tablist" aria-label="Inspector tabs" className="flex justify-center"><div className="inline-flex rounded-2xl border border-neutral-200 bg-white p-1">
           {visibleTabs.map((tab) => {
             const isDisabled = selectedPage.kind === "home" && tab === "content";
             const badge = tab === "surface" ? surfaceBadge : tab === "content" ? contentBadge : 0;
@@ -244,13 +252,13 @@ export function PageEditorModal({
               </button>
             );
           })}
-        </div>
+        </div></div>
       </div>
 
       {/* Header */}
       <div
-        className={`flex items-center justify-between gap-4 border-b border-neutral-200 px-5 py-4 ${
-          isOverlay ? "bg-white" : "bg-[#f7f7f8]"
+        className={`flex items-center justify-between gap-4 border-b px-5 py-4 ${
+          isOverlay ? `border-neutral-200 bg-white` : `${panelBord} ${panelBg}`
         }`}
       >
         <div className="min-w-0 flex-1">
@@ -302,8 +310,8 @@ export function PageEditorModal({
           id={`inspector-panel-${activeTab}`}
           aria-labelledby={`inspector-tab-${activeTab}`}
           className={`min-h-0 overflow-y-auto inspector-content-in ${
-            isOverlay ? "bg-neutral-50" : "bg-[#f7f7f8]"
-          } ${showPreview ? "border-r border-neutral-200" : ""}`}
+            isOverlay ? "bg-neutral-50" : panelBg
+          } ${showPreview ? `border-r ${panelBord}` : ""}`}
         >
           {activeTab === "surface" ? (
             <SurfaceTab
@@ -317,6 +325,7 @@ export function PageEditorModal({
               selectedFeatureId={selectedFeatureId}
               selectedPage={selectedPage}
               isPortraitMode={isPortraitMode}
+              brandColors={systemSettings.brandColors ?? []}
             />
           ) : activeTab === "content" ? (
             <ContentTab
@@ -401,6 +410,9 @@ export function PageEditorModal({
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-4"
+      role="button"
+      tabIndex={0}
+      aria-label="Close editor overlay"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
     >

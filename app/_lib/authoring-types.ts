@@ -103,12 +103,14 @@ export type CanvasFeature = {
   headingColor?: string;
   /** For heading type: size variant */
   headingSize?: "small" | "medium" | "large";
+  /** For button type: visual hierarchy variant */
+  buttonVariant?: "primary" | "secondary" | "tertiary";
 };
 
 export type CanvasFeatureField =
   | "label" | "description" | "linkUrl" | "imageUrl" | "optionsText"
   | "logoSize" | "qrSize" | "qrBgColor" | "qrBgOpacity" | "portraitZone" | "buttonLinkMode"
-  | "headingColor" | "headingSize";
+  | "headingColor" | "headingSize" | "buttonVariant";
 
 export type PageItem = {
   id: string;
@@ -176,6 +178,10 @@ export type SystemSettings = {
   bggId?: string;
   /** BGG community average complexity weight (1–5), fetched when bggId is imported */
   bggComplexity?: number;
+  /** Brand color palette — hex strings (up to 8); used as quick-picks in color pickers and to auto-style assets */
+  brandColors?: string[];
+  /** Dark mode for the player experience */
+  darkMode?: boolean;
 };
 
 export type PageTemplate = {

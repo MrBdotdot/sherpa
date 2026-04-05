@@ -129,6 +129,7 @@ function DropdownItemsEditor({
 
 type Props = {
   feature: CanvasFeature;
+  brandColors?: string[];
   onCanvasFeatureChange: (featureId: string, field: CanvasFeatureField, value: string) => void;
   onCanvasFeatureImageUpload: (featureId: string, event: ChangeEvent<HTMLInputElement>) => void;
   onCreatePageForButton: () => string;
@@ -138,6 +139,7 @@ type Props = {
 
 export function CanvasFeatureTypeBody({
   feature,
+  brandColors,
   onCanvasFeatureChange,
   onCanvasFeatureImageUpload,
   onCreatePageForButton,
@@ -390,6 +392,21 @@ export function CanvasFeatureTypeBody({
           </div>
           <div className="space-y-2">
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Color</div>
+            {brandColors && brandColors.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {brandColors.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => onCanvasFeatureChange(feature.id, "headingColor", c)}
+                    aria-label={`Set heading color to ${c}`}
+                    title={c}
+                    className="h-6 w-6 rounded-lg border-2 transition"
+                    style={{ backgroundColor: c, borderColor: feature.headingColor === c ? "#000" : "transparent" }}
+                  />
+                ))}
+              </div>
+            ) : null}
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -437,6 +454,27 @@ export function CanvasFeatureTypeBody({
       {/* Button */}
       {feature.type === "button" ? (
         <div className="space-y-3">
+          <div>
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Style</div>
+            <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
+              {(["primary", "secondary", "tertiary"] as const).map((v) => {
+                const isActive = (feature.buttonVariant ?? "secondary") === v;
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => onCanvasFeatureChange(feature.id, "buttonVariant", v)}
+                    aria-pressed={isActive}
+                    className={`flex-1 rounded-lg py-1.5 text-xs font-medium capitalize transition-all ${
+                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-600"
+                    }`}
+                  >
+                    {v}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <div>
             <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Destination</div>
             <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">

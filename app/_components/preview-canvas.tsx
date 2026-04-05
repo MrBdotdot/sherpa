@@ -69,6 +69,14 @@ type PreviewCanvasProps = {
   /** When true the canvas stretches to fill its parent height instead of using a fixed min-height.
    *  Use in the main studio layout; leave false (default) for modal/sidebar previews. */
   fillHeight?: boolean;
+  studioChrome?: {
+    headerOpen: boolean;
+    leftInset: number;
+    rightInset: number;
+    topInset?: number;
+    onToggleHeader: () => void;
+    darkMode?: boolean;
+  };
 };
 
 const LAYOUT_MODES: { mode: LayoutMode; label: string }[] = [
@@ -113,6 +121,7 @@ export function PreviewCanvas({
   onRenameGame,
   liveViewHref,
   fillHeight = false,
+  studioChrome,
 }: PreviewCanvasProps) {
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState("");
@@ -135,10 +144,11 @@ export function PreviewCanvas({
       nameInputRef.current?.select();
     }
   }, [editingName]);
+  const effectiveSurfaceStyle = systemSettings.darkMode ? "contrast" : systemSettings.surfaceStyle;
   const surfaceStyleClass =
-    systemSettings.surfaceStyle === "solid"
+    effectiveSurfaceStyle === "solid"
       ? "border-neutral-300 bg-white shadow-xl"
-      : systemSettings.surfaceStyle === "contrast"
+      : effectiveSurfaceStyle === "contrast"
         ? "border-neutral-900/10 bg-neutral-950/95 text-white shadow-2xl"
         : "border-white/60 bg-white shadow-lg";
 
@@ -198,6 +208,7 @@ export function PreviewCanvas({
   const [landscapePanY, setLandscapePanY] = useState(50);
   const [landscapeImageAspect, setLandscapeImageAspect] = useState(0);
   const landscapePanRef = useRef<{ startX: number; startY: number; startPanX: number; startPanY: number; pointerId: number; moved: boolean } | null>(null);
+
 
   // Hotspot layer offset for landscape mode. Canvas is always 667 × 375 px.
   // Only one axis overflows at a time depending on image vs canvas aspect ratio.
@@ -373,14 +384,226 @@ export function PreviewCanvas({
     onContentCardPointerDown,
   };
 
+  const hasStudioChrome = fillHeight && !isPreviewMode && !!studioChrome;
+  const studioHeaderTopInset = studioChrome?.topInset ?? 18;
+  const studioHeaderOpen = studioChrome?.headerOpen ?? true;
+  const studioHeaderLeftInset = studioChrome?.leftInset ?? 18;
+  const studioHeaderRightInset = studioChrome?.rightInset ?? 18;
+  const headerDark = studioChrome?.darkMode ?? false;
+  const headerBg    = headerDark ? "bg-neutral-900"   : "bg-[#fcfaf7]";
+  const headerBord  = headerDark ? "border-neutral-700" : "border-[#e7dfd2]";
+  const headerLabel = headerDark ? "text-neutral-400" : "text-neutral-500";
+
+  const authoringHeaderContent = (
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-center">
+      <div className="min-w-0 flex-1">
+        <div className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${headerLabel}`}>
+          Currently editing
+        </div>
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          {activePage.kind === "home" ? (
+            editingName ? (
+              <input
+                ref={nameInputRef}
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                onBlur={commitName}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") commitName();
+                  if (e.key === "Escape") setEditingName(false);
+                }}
+                className="rounded-xl border border-[#d8cfbf] bg-white px-3 py-1.5 text-sm font-semibold text-neutral-900 outline-none focus:border-neutral-900"
+              />
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-semibold text-neutral-900">
+                  {gameName || activePage.title || "Untitled"}
+                </span>
+                <button
+                  type="button"
+                  onClick={startEditName}
+                  title="Rename game"
+                  className="rounded-lg p-1 text-neutral-400 transition hover:bg-[#f1ebdf] hover:text-neutral-700"
+                >
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                    <path d="M1.5 8.5V9.5h1L8 4 7 3 1.5 8.5zM9.5 2.5a.707.707 0 000-1L8.5 0.5a.707.707 0 00-1 0L6.5 1.5 8.5 3.5 9.5 2.5z" fill="currentColor" />
+                  </svg>
+                </button>
+              </div>
+            )
+          ) : (
+            <div className="text-sm font-semibold text-neutral-900">
+              {activePage.title || "Untitled page"}
+            </div>
+          )}
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setStatusMenuOpen((v) => !v)}
+              className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition hover:opacity-80 ${getExperienceStatusClasses(experienceStatus)}`}
+            >
+              {getExperienceStatusLabel(experienceStatus)}
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
+                <path d="M1 2.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+
+            {statusMenuOpen && (
+              <div
+                className="absolute left-0 top-full z-30 mt-1.5 w-44 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl"
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
+                  Experience status
+                </div>
+                {(["draft", "published"] as ExperienceStatus[]).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => { onExperienceStatusChange(s); setStatusMenuOpen(false); }}
+                    className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition hover:bg-neutral-50 ${experienceStatus === s ? "font-semibold text-neutral-900" : "text-neutral-600"}`}
+                  >
+                    <span className={`h-2 w-2 rounded-full ${s === "published" ? "bg-emerald-500" : "bg-amber-400"}`} />
+                    {getExperienceStatusLabel(s)}
+                    {s === "draft" && <span className="ml-auto text-[10px] text-neutral-400">Not live</span>}
+                    {s === "published" && <span className="ml-auto text-[10px] text-neutral-400">Live</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex shrink-0 items-center self-start rounded-2xl border border-[#ddd3c3] bg-[#f1ebdf] p-1 shadow-sm xl:justify-self-center">
+        {LAYOUT_MODES.map(({ mode, label }) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => onSetLayoutMode(mode)}
+            className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-all ${
+              layoutMode === mode
+                ? "bg-white text-neutral-900 shadow-sm"
+                : "text-neutral-600 hover:text-neutral-800"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 xl:justify-self-end xl:justify-end">
+        {saveState === "saving" && (
+          <div className="flex items-center gap-1.5 text-[11px] text-neutral-500" aria-live="polite" aria-label="Saving">
+            <svg className="animate-spin" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="14 8" strokeLinecap="round" />
+            </svg>
+            Saving
+          </div>
+        )}
+        {saveState === "saved" && (
+          <div className="flex items-center gap-1.5 text-[11px] text-emerald-700" aria-live="polite" aria-label="Saved">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Saved
+          </div>
+        )}
+        {saveState === "error" && (
+          <div className="flex items-center gap-1.5 text-[11px] text-red-600" aria-live="polite" aria-label="Save failed">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M6 3.5v3M6 8.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            Save failed
+          </div>
+        )}
+        {onOpenCommandPalette && (
+          <button
+            type="button"
+            onClick={onOpenCommandPalette}
+            className="rounded-xl border border-[#d8cfbf] bg-white px-3 py-2 text-neutral-600 shadow-sm transition hover:bg-[#f7f3ea] hover:text-neutral-900"
+            aria-label="Search and actions"
+            title="Search and actions (A)"
+          >
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+              <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M8.5 8.5L11.5 11.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
+        {experienceStatus === "published" && liveViewHref ? (
+          <a
+            href={liveViewHref}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 shadow-sm transition hover:bg-emerald-100"
+          >
+            Open live view
+          </a>
+        ) : null}
+        <button
+          type="button"
+          onClick={onTogglePreviewMode}
+          className="rounded-xl border border-[#d8cfbf] bg-white px-3 py-2 text-xs font-medium text-neutral-800 shadow-sm transition hover:bg-[#f7f3ea]"
+        >
+          Preview
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div
-      className={isPreviewMode ? "fixed inset-0 z-50 flex flex-col bg-black" : `relative overflow-hidden rounded-3xl border border-neutral-200 bg-[#f4f5f7]${fillHeight ? " flex flex-col flex-1 min-h-0" : ""}`}
+      className={fillHeight ? "absolute inset-0" : isPreviewMode ? "fixed inset-0 z-50 flex flex-col bg-black" : "relative overflow-hidden rounded-3xl border border-neutral-200 bg-[#f4f5f7]"}
       onPointerDownCapture={() => {
         if (statusMenuOpen) setStatusMenuOpen(false);
       }}
     >
-      <div className={`shrink-0 border-b border-neutral-200 bg-white px-4 py-3 ${isPreviewMode ? "flex items-center justify-end" : ""}`}>
+      {hasStudioChrome ? (
+        <div
+          className="absolute z-30 transition-transform duration-300 ease-in-out"
+          style={{
+            top: studioHeaderTopInset,
+            left: studioHeaderLeftInset,
+            right: studioHeaderRightInset,
+            transform: studioHeaderOpen ? "translateY(0)" : "translateY(-100%)",
+          }}
+        >
+          <div
+            className={`relative rounded-[28px] px-5 py-4 transition-[background-color,border-color,box-shadow] duration-300 ease-in-out ${
+              studioHeaderOpen
+                ? `border ${headerBord} ${headerBg} shadow-[0_22px_60px_rgba(15,23,42,0.14)]`
+                : "border border-transparent bg-transparent shadow-none"
+            }`}
+          >
+            {authoringHeaderContent}
+            <button
+              type="button"
+              onClick={() => studioChrome?.onToggleHeader()}
+              aria-label={studioHeaderOpen ? "Collapse header controls" : "Expand header controls"}
+              className={`absolute left-1/2 top-full flex -translate-x-1/2 -translate-y-px items-center justify-center rounded-b-[18px] border border-t-0 px-4 py-2 shadow-[0_14px_24px_rgba(15,23,42,0.12)] transition ${headerBord} ${headerBg} ${headerLabel} hover:text-neutral-700`}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d={studioHeaderOpen ? "M3 9l4-4 4 4" : "M3 5l4 4 4-4"}
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      ) : null}
+      {!hasStudioChrome && <div className={
+        fillHeight && isPreviewMode ? "absolute right-0 top-0 z-50 flex items-center justify-end p-4"
+        : fillHeight ? "absolute top-0 left-0 right-0 z-30 border-b border-neutral-200/40 bg-white/60 px-4 py-3"
+        : isPreviewMode ? "shrink-0 border-b border-neutral-200 bg-white px-4 py-3 flex items-center justify-end"
+        : "shrink-0 border-b border-neutral-200 bg-white px-4 py-3"
+      }>
         {isPreviewMode ? (
           <button
             type="button"
@@ -514,7 +737,7 @@ export function PreviewCanvas({
                   onClick={onOpenCommandPalette}
                   className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-neutral-500 shadow-sm hover:bg-neutral-50 hover:text-neutral-800"
                   aria-label="Search and actions"
-                  title="Search and actions (⌘K)"
+                  title="Search and actions (A)"
                 >
                   <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
                     <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" strokeWidth="1.4" />
@@ -542,15 +765,20 @@ export function PreviewCanvas({
             </div>
           </div>
         )}
-      </div>
+      </div>}
 
-      <div className={
-        isPreviewMode && isMobileFrame ? "relative flex-1 overflow-hidden flex items-center justify-center bg-neutral-900"
-        : isPreviewMode ? "relative flex-1 overflow-hidden"
+      <div
+        className={
+        isPreviewMode && isMobileFrame && fillHeight ? "absolute inset-0 overflow-hidden flex items-center justify-center bg-neutral-900"
+        : isPreviewMode && isMobileFrame ? "relative flex-1 overflow-hidden flex items-center justify-center bg-neutral-900"
+        : isPreviewMode && fillHeight ? "absolute inset-0 overflow-hidden"
+        : isPreviewMode ? "relative flex-1 overflow-hidden flex items-center justify-center bg-black"
+        : isMobileFrame && fillHeight ? "absolute inset-0 flex flex-col items-center justify-center bg-neutral-800 overflow-y-auto"
         : isMobileFrame ? "flex flex-col items-center bg-neutral-800 py-10 px-4"
-        : fillHeight ? "flex flex-1 min-h-0 flex-col p-4"
+        : fillHeight ? "absolute inset-0 overflow-hidden"
         : "p-4"
-      }>
+      }
+      >
         <div
           ref={canvasRef}
           className={`overflow-hidden ${
@@ -558,19 +786,21 @@ export function PreviewCanvas({
               ? "relative flex flex-col w-[390px] rounded-[44px] border-[6px] border-neutral-700 shadow-[0_40px_80px_rgba(0,0,0,0.6)]"
               : isPreviewMode && layoutMode === "mobile-landscape"
               ? "relative max-w-full w-[667px] rounded-[44px] border-[6px] border-neutral-700 bg-white shadow-[0_40px_80px_rgba(0,0,0,0.6)]"
+              : isPreviewMode && fillHeight
+              ? "absolute inset-0"
               : isPreviewMode
-              ? "relative h-full w-full"
+              ? "relative w-full max-h-full"
               : layoutMode === "mobile-portrait"
               ? "relative flex flex-col w-[390px] rounded-[44px] border-[6px] border-neutral-700 shadow-[0_40px_80px_rgba(0,0,0,0.6)]"
               : layoutMode === "mobile-landscape"
               ? "relative max-w-full w-[667px] rounded-[44px] border-[6px] border-neutral-700 bg-white shadow-[0_40px_80px_rgba(0,0,0,0.6)]"
-              : fillHeight ? "relative flex-1 min-h-0 rounded-[28px] border border-neutral-200 bg-white shadow-sm"
-              : "relative min-h-[620px] rounded-[28px] border border-neutral-200 bg-white shadow-sm"
+              : fillHeight ? "absolute inset-0"
+              : "relative w-full rounded-[28px] border border-neutral-200 bg-white shadow-sm"
           }`}
           style={{
             height: layoutMode === "mobile-portrait" ? 780
               : layoutMode === "mobile-landscape" ? 375
-              : (!isPreviewMode ? undefined : undefined),
+              : undefined,
             touchAction: "none",
           }}
           onPointerDown={layoutMode === "mobile-landscape" ? (e) => {
@@ -751,7 +981,11 @@ export function PreviewCanvas({
                   onHeroUpload={onHeroUpload}
                   objectPositionX={layoutMode === "mobile-landscape" ? landscapePanX : undefined}
                   objectPositionY={layoutMode === "mobile-landscape" ? landscapePanY : undefined}
-                  onImageLoad={layoutMode === "mobile-landscape" ? (w, h) => setLandscapeImageAspect(w / h) : undefined}
+                  onImageLoad={
+                    layoutMode === "mobile-landscape"
+                      ? (w, h) => setLandscapeImageAspect(w / h)
+                      : undefined
+                  }
                 />
               )}
 

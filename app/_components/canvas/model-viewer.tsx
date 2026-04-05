@@ -195,7 +195,10 @@ function ModelScene({
   onHotspotScreenPos?: (x: number, y: number) => void;
   onLoad: () => void;
 }) {
-  const { scene } = useGLTF(url);
+  const { scene: gltfScene } = useGLTF(url);
+  // Clone the GLTF scene so each instance owns its own Three.js objects,
+  // preventing "position is read-only" from shared cached scene references.
+  const scene = useMemo(() => gltfScene.clone(true), [gltfScene]);
   const groupRef = useRef<THREE.Group>(null);
 
   // Auto-fit: normalise longest axis to 2 units, then apply user scale multiplier.

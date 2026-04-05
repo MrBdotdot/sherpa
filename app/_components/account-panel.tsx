@@ -28,7 +28,8 @@ type AccountSection =
   | "language"
   | "billing"
   | "terms"
-  | "privacy";
+  | "privacy"
+  | "appearance";
 
 type AccountPanelProps = {
   isOpen: boolean;
@@ -36,6 +37,8 @@ type AccountPanelProps = {
   userEmail: string;
   onSignOut: () => void;
   onStudioNameChange?: (name: string) => void;
+  studioDarkMode?: boolean;
+  onStudioDarkModeChange?: (v: boolean) => void;
 };
 
 const NAV_GROUPS: {
@@ -144,6 +147,21 @@ const NAV_GROUPS: {
     ],
   },
   {
+    label: "Studio",
+    items: [
+      {
+        id: "appearance" as AccountSection,
+        label: "Appearance",
+        icon: (
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.4" />
+            <path d="M7 1.5v11M1.5 7h11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeDasharray="2 2" />
+          </svg>
+        ),
+      },
+    ],
+  },
+  {
     label: "Legal",
     items: [
       {
@@ -170,7 +188,7 @@ const NAV_GROUPS: {
   },
 ];
 
-export function AccountPanel({ isOpen, onClose, userEmail, onSignOut, onStudioNameChange }: AccountPanelProps) {
+export function AccountPanel({ isOpen, onClose, userEmail, onSignOut, onStudioNameChange, studioDarkMode = false, onStudioDarkModeChange }: AccountPanelProps) {
   const { displayName, initial } = getUserNameParts(userEmail);
   const [activeSection, setActiveSection] = useState<AccountSection>("profile");
   const [metadata, setMetadata] = useState<UserMetadata>({});
@@ -225,6 +243,35 @@ export function AccountPanel({ isOpen, onClose, userEmail, onSignOut, onStudioNa
         break;
       case "privacy":
         sectionContent = <PrivacySection />;
+        break;
+      case "appearance":
+        sectionContent = (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-base font-semibold text-neutral-900">Appearance</h2>
+              <p className="mt-1 text-sm text-neutral-500">Customize how the studio looks for you. These settings are saved to this browser only.</p>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3.5">
+                <div>
+                  <div className="text-sm font-medium text-neutral-900">Dark studio</div>
+                  <div className="mt-0.5 text-xs text-neutral-500">Applies a dark theme to the left nav, toolbar, and editing panel.</div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={studioDarkMode}
+                  onClick={() => onStudioDarkModeChange?.(!studioDarkMode)}
+                  className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${studioDarkMode ? "bg-neutral-900" : "bg-neutral-200"}`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${studioDarkMode ? "translate-x-4" : ""}`}
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        );
         break;
     }
   }

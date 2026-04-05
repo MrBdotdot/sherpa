@@ -17,7 +17,7 @@ type PaletteEntry =
   | { kind: "feature"; id: string; label: string; group: string; featureType: CanvasFeatureType }
   | { kind: "block"; id: string; label: string; group: string; blockType: ContentBlockType }
   | { kind: "layout"; id: string; label: string; group: string; mode: LayoutMode; hint: string }
-  | { kind: "action"; id: string; label: string; group: string; action: "new-page" | "toggle-preview" | "toggle-focus"; hint?: string }
+  | { kind: "action"; id: string; label: string; group: string; action: "new-page" | "toggle-preview"; hint?: string }
   | { kind: "ext" } & ExtEntry;
 
 const BLOCK_ACTIONS: { type: ContentBlockType; label: string }[] = [
@@ -56,7 +56,6 @@ interface CommandPaletteProps {
   onCreatePage: () => void;
   onSetLayoutMode: (mode: LayoutMode) => void;
   onTogglePreview: () => void;
-  onToggleFocus: () => void;
   onClose: () => void;
 }
 
@@ -83,7 +82,6 @@ export function CommandPalette({
   onCreatePage,
   onSetLayoutMode,
   onTogglePreview,
-  onToggleFocus,
   onClose,
 }: CommandPaletteProps) {
   const [query, setQuery] = useState("");
@@ -125,7 +123,6 @@ export function CommandPalette({
     const actionEntries: PaletteEntry[] = [
       { kind: "action", id: "new-page", label: "New card", group: "Actions", action: "new-page" },
       { kind: "action", id: "toggle-preview", label: "Toggle preview", group: "Actions", action: "toggle-preview", hint: "P" },
-      { kind: "action", id: "toggle-focus", label: "Toggle focus mode", group: "Actions", action: "toggle-focus", hint: "F" },
     ];
     const extPaletteEntries: PaletteEntry[] = (extraEntries ?? []).map((e) => ({ kind: "ext" as const, ...e }));
     const extAlways = extPaletteEntries.filter((e) => e.kind === "ext" && (e as ExtEntry & { kind: "ext" }).alwaysShow);
@@ -164,7 +161,6 @@ export function CommandPalette({
       case "action":
         if (entry.action === "new-page") onCreatePage();
         else if (entry.action === "toggle-preview") onTogglePreview();
-        else if (entry.action === "toggle-focus") onToggleFocus();
         break;
     }
     onClose();
