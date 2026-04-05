@@ -453,6 +453,7 @@ export function PreviewCanvas({
               <div
                 className="absolute left-0 top-full z-30 mt-1.5 w-44 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl"
                 onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
               >
                 <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
                   Experience status
@@ -461,7 +462,7 @@ export function PreviewCanvas({
                   <button
                     key={s}
                     type="button"
-                    onClick={() => { onExperienceStatusChange(s); setStatusMenuOpen(false); }}
+                    onClick={(e) => { e.stopPropagation(); onExperienceStatusChange(s); setStatusMenuOpen(false); }}
                     className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition hover:bg-neutral-50 ${experienceStatus === s ? "font-semibold text-neutral-900" : "text-neutral-600"}`}
                   >
                     <span className={`h-2 w-2 rounded-full ${s === "published" ? "bg-emerald-500" : "bg-amber-400"}`} />
@@ -666,6 +667,7 @@ export function PreviewCanvas({
                     <div
                       className="absolute left-0 top-full z-30 mt-1.5 w-44 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl"
                       onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
                         Experience status
@@ -674,7 +676,7 @@ export function PreviewCanvas({
                         <button
                           key={s}
                           type="button"
-                          onClick={() => { onExperienceStatusChange(s); setStatusMenuOpen(false); }}
+                          onClick={(e) => { e.stopPropagation(); onExperienceStatusChange(s); setStatusMenuOpen(false); }}
                           className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition hover:bg-neutral-50 ${experienceStatus === s ? "font-semibold text-neutral-900" : "text-neutral-600"}`}
                         >
                           <span className={`h-2 w-2 rounded-full ${s === "published" ? "bg-emerald-500" : "bg-amber-400"}`} />
