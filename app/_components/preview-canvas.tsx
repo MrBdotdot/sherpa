@@ -8,7 +8,7 @@ const ModelViewer = dynamic(
   { ssr: false }
 );
 import { HotspotPin } from "@/app/_components/canvas/hotspot-pin";
-import { getExperienceStatusClasses, getExperienceStatusLabel } from "@/app/_lib/label-utils";
+import { getExperienceStatusLabel } from "@/app/_lib/label-utils";
 import {
   ExperienceStatus,
   LayoutMode,
@@ -278,9 +278,6 @@ export function PreviewCanvas({
     if (img.complete && img.naturalWidth > 0) setLandscapeImageAspect(img.naturalWidth / img.naturalHeight);
   }, [surfacePage.heroImage, layoutMode]);
 
-  // ── Experience status popover ─────────────────────────────────
-  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
-
   // ── Intro screen ──────────────────────────────────────────────
   const introEnabled = !!(systemSettings.introScreen?.enabled && systemSettings.introScreen.youtubeUrl);
   const [introVisible, setIntroVisible] = useState(false);
@@ -394,6 +391,55 @@ export function PreviewCanvas({
   const headerBord  = headerDark ? "border-neutral-700" : "border-[#e7dfd2]";
   const headerLabel = headerDark ? "text-neutral-400" : "text-neutral-500";
 
+  function renderExperienceStatusControl({ dark = false }: { dark?: boolean } = {}) {
+    const containerClass = dark
+      ? "border-neutral-700 bg-neutral-800/90"
+      : "border-[#d8cfbf] bg-white";
+    const inactiveClass = dark
+      ? "text-neutral-400 hover:bg-neutral-700 hover:text-neutral-100"
+      : "text-neutral-500 hover:bg-[#f7f3ea] hover:text-neutral-900";
+
+    return (
+      <div className="flex items-center gap-2">
+        <span
+          className={`hidden text-[10px] font-semibold uppercase tracking-[0.16em] ${
+            dark ? "text-neutral-400" : "text-neutral-500"
+          } sm:inline`}
+        >
+          Experience
+        </span>
+        <div
+          role="group"
+          aria-label="Experience status"
+          className={`inline-flex items-center rounded-xl border p-1 shadow-sm ${containerClass}`}
+        >
+          {(["draft", "published"] as ExperienceStatus[]).map((status) => {
+            const isActive = experienceStatus === status;
+            const activeClass =
+              status === "published"
+                ? "bg-emerald-600 text-white shadow-sm"
+                : "bg-amber-500 text-white shadow-sm";
+
+            return (
+              <button
+                key={status}
+                type="button"
+                aria-pressed={isActive}
+                disabled={isActive}
+                onClick={() => onExperienceStatusChange(status)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition disabled:cursor-default ${
+                  isActive ? activeClass : inactiveClass
+                }`}
+              >
+                {getExperienceStatusLabel(status)}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   const authoringHeaderContent = (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-center">
       <div className="min-w-0 flex-1">
@@ -436,44 +482,6 @@ export function PreviewCanvas({
               {activePage.title || "Untitled page"}
             </div>
           )}
-
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setStatusMenuOpen((v) => !v)}
-              className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition hover:opacity-80 ${getExperienceStatusClasses(experienceStatus)}`}
-            >
-              {getExperienceStatusLabel(experienceStatus)}
-              <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
-                <path d="M1 2.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-
-            {statusMenuOpen && (
-              <div
-                className="absolute left-0 top-full z-30 mt-1.5 w-44 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
-                  Experience status
-                </div>
-                {(["draft", "published"] as ExperienceStatus[]).map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); onExperienceStatusChange(s); setStatusMenuOpen(false); }}
-                    className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition hover:bg-neutral-50 ${experienceStatus === s ? "font-semibold text-neutral-900" : "text-neutral-600"}`}
-                  >
-                    <span className={`h-2 w-2 rounded-full ${s === "published" ? "bg-emerald-500" : "bg-amber-400"}`} />
-                    {getExperienceStatusLabel(s)}
-                    {s === "draft" && <span className="ml-auto text-[10px] text-neutral-400">Not live</span>}
-                    {s === "published" && <span className="ml-auto text-[10px] text-neutral-400">Live</span>}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
@@ -534,6 +542,7 @@ export function PreviewCanvas({
             </svg>
           </button>
         )}
+        {renderExperienceStatusControl({ dark: headerDark })}
         {experienceStatus === "published" && liveViewHref ? (
           <a
             href={liveViewHref}
@@ -558,11 +567,6 @@ export function PreviewCanvas({
   return (
     <div
       className={fillHeight ? "absolute inset-0" : isPreviewMode ? "fixed inset-0 z-50 flex flex-col bg-black" : "relative overflow-hidden rounded-3xl border border-neutral-200 bg-[#f4f5f7]"}
-      onPointerDownCapture={(e) => {
-        if (statusMenuOpen && !(e.target as HTMLElement).closest("[data-status-menu]")) {
-          setStatusMenuOpen(false);
-        }
-      }}
     >
       {hasStudioChrome ? (
         <div
@@ -651,46 +655,6 @@ export function PreviewCanvas({
                 ) : (
                   <div className="text-sm font-semibold text-neutral-900">{activePage.title || "Untitled page"}</div>
                 )}
-
-                {/* Global experience status — interactive */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setStatusMenuOpen((v) => !v)}
-                    className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition hover:opacity-80 ${getExperienceStatusClasses(experienceStatus)}`}
-                  >
-                    {getExperienceStatusLabel(experienceStatus)}
-                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
-                      <path d="M1 2.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-
-                  {statusMenuOpen && (
-                    <div
-                      className="absolute left-0 top-full z-30 mt-1.5 w-44 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl"
-                      data-status-menu
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
-                        Experience status
-                      </div>
-                      {(["draft", "published"] as ExperienceStatus[]).map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); onExperienceStatusChange(s); setStatusMenuOpen(false); }}
-                          className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition hover:bg-neutral-50 ${experienceStatus === s ? "font-semibold text-neutral-900" : "text-neutral-600"}`}
-                        >
-                          <span className={`h-2 w-2 rounded-full ${s === "published" ? "bg-emerald-500" : "bg-amber-400"}`} />
-                          {getExperienceStatusLabel(s)}
-                          {s === "draft" && <span className="ml-auto text-[10px] text-neutral-400">Not live</span>}
-                          {s === "published" && <span className="ml-auto text-[10px] text-neutral-400">Live</span>}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
 
@@ -750,6 +714,7 @@ export function PreviewCanvas({
                   </svg>
                 </button>
               )}
+              {renderExperienceStatusControl()}
               {experienceStatus === "published" && liveViewHref ? (
                 <a
                   href={liveViewHref}

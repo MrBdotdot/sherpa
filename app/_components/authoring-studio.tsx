@@ -10,7 +10,7 @@ import { PageSidebar } from "@/app/_components/page-sidebar";
 import { PreviewCanvas } from "@/app/_components/preview-canvas";
 import { ChangelogModal } from "@/app/_components/changelog-modal";
 import { AccountPanel } from "@/app/_components/account-panel";
-import { GameSwitcherModal } from "@/app/_components/game-switcher-modal";
+import { GameSwitcherModal, type GameEntry } from "@/app/_components/game-switcher-modal";
 import { CommandPalette } from "@/app/_components/command-palette";
 import { createId, createSamplePages, getHomePageId } from "@/app/_lib/authoring-utils";
 import { ExperienceStatus, LayoutMode, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
@@ -241,20 +241,64 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
   }, [selectedPageId]);
 
   const { pagesHistoryRef, pagesRedoRef, pushPagesHistory, HISTORY_LIMIT } = useStudioHistory(pages, setPages);
-  const experienceStatus: ExperienceStatus = homePage?.publishStatus === "published" ? "published" : "draft";
+  const experienceStatus: ExperienceStatus =
+    pages.length > 0 && pages.every((page) => page.publishStatus === "published")
+      ? "published"
+      : "draft";
   const liveViewHref = currentGameId
     ? BASE_DOMAIN
       ? `https://${currentGameId}.${BASE_DOMAIN}`
       : `/play/${currentGameId}`
     : null;
 
+  const switchToGame = useCallback((id: string, name: string, studio?: string) => {
+    if (studio) setCurrentStudioName(studio);
+
+    loadGame(id).then((remote) => {
+      // Batch ALL state updates together so the persist effect always sees a
+      // consistent (gameId, pages) pair - never the old pages under the new ID.
+      if (remote) {
+        const loaded = migrateLocaleFeature(migratePageButtons(remote.pages));
+        const nextPages = loaded.length > 0 ? loaded : createSamplePages();
+        setPages(nextPages);
+        setSystemSettings(remote.systemSettings ?? DEFAULT_SYSTEM_SETTINGS);
+        setSelectedPageId(getHomePageId(nextPages, id));
+      } else {
+        const nextPages = createSamplePages();
+        setPages(nextPages);
+        setSystemSettings(DEFAULT_SYSTEM_SETTINGS);
+        setSelectedPageId(getHomePageId(nextPages, id));
+      }
+
+      setSelectedFeatureId(null);
+      setInspectorTab("surface");
+      setIsContentModalOpen(false);
+      setCurrentGameId(id);
+      setCurrentGameName(name);
+      setSaveState("idle");
+    }).catch(() => {/* stay on current state */});
+  }, []);
+
+  const openFreshWorkspace = useCallback(() => {
+    const nextGameId = crypto.randomUUID();
+    const nextPages = createSamplePages();
+
+    setPages(nextPages);
+    setSystemSettings(DEFAULT_SYSTEM_SETTINGS);
+    setSelectedPageId(getHomePageId(nextPages, nextGameId));
+    setSelectedFeatureId(null);
+    setInspectorTab("surface");
+    setIsContentModalOpen(false);
+    setCurrentGameId(nextGameId);
+    setCurrentGameName("Untitled Game");
+    setSaveState("idle");
+  }, []);
+
   const handleExperienceStatusChange = useCallback((status: ExperienceStatus) => {
     pushPagesHistory();
     setPages((prev) =>
       prev.map((page) =>
-        page.kind === "home"
-          ? { ...page, publishStatus: status }
-          : page
+        page.publishStatus === status ? page : { ...page, publishStatus: status }
       )
     );
   }, [pushPagesHistory]);
@@ -974,29 +1018,14 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
         currentGameId={currentGameId}
         userId={userId}
         onClose={() => setIsGameSwitcherOpen(false)}
-        onSelectGame={(id, name, studio) => {
-          if (studio) setCurrentStudioName(studio);
-          loadGame(id).then((remote) => {
-            // Batch ALL state updates together so the persist effect always sees a
-            // consistent (gameId, pages) pair — never the old pages under the new ID.
-            if (remote) {
-              const loaded = migrateLocaleFeature(migratePageButtons(remote.pages));
-              const nextPages = loaded.length > 0 ? loaded : createSamplePages();
-              setPages(nextPages);
-              setSystemSettings(remote.systemSettings ?? DEFAULT_SYSTEM_SETTINGS);
-              setSelectedPageId(getHomePageId(nextPages, id));
-            } else {
-              const nextPages = createSamplePages();
-              setPages(nextPages);
-              setSystemSettings(DEFAULT_SYSTEM_SETTINGS);
-              setSelectedPageId(getHomePageId(nextPages, id));
-            }
-            setSelectedFeatureId(null);
-            setInspectorTab("surface");
-            setIsContentModalOpen(false);
-            setCurrentGameId(id);
-            setCurrentGameName(name);
-          }).catch(() => {/* stay on current state */});
+        onSelectGame={switchToGame}
+        onDeleteCurrentGame={(nextGame: GameEntry | null) => {
+          if (nextGame) {
+            switchToGame(nextGame.id, nextGame.title);
+            return;
+          }
+
+          openFreshWorkspace();
         }}
       />
     </main>

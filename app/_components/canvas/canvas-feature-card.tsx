@@ -122,7 +122,6 @@ function LocaleFeatureCard({
       {open ? (
         <ul
           id={menuId}
-          role="listbox"
           aria-label="Select language"
           className={`absolute right-0 top-full mt-1.5 min-w-[140px] rounded-xl border p-1.5 shadow-lg ${surfaceStyleClass}`}
         >
@@ -237,7 +236,7 @@ export function CanvasFeatureCard({
           </div>
         ) : null}
         {subLinks.length > 0 ? (
-          <ul role="list" className={`mt-2 rounded-xl border p-2 shadow-sm ${surfaceStyleClass}`}>
+          <ul className={`mt-2 rounded-xl border p-2 shadow-sm ${surfaceStyleClass}`}>
             {subLinks.map((link) => {
               const [label] = link.split("|");
               return (
@@ -259,7 +258,9 @@ export function CanvasFeatureCard({
 
   if (feature.type === "button") {
     const variant = feature.buttonVariant ?? "secondary";
-    const accent = accentColor || "#0a0a0a";
+    const accent = accentColor || "#111827";
+    const hasAction = !!feature.linkUrl;
+    const opensPage = (feature.buttonLinkMode ?? "external") === "page";
     let cls = "max-w-[200px] truncate rounded-full px-4 py-2 text-xs font-semibold shadow-sm transition";
     let style: React.CSSProperties = {};
     if (variant === "primary") {
@@ -270,11 +271,24 @@ export function CanvasFeatureCard({
       style = { color: accent };
     } else {
       // secondary (default)
-      cls += " border bg-white/80";
+      cls += " border bg-white/92";
       style = { borderColor: accent, color: accent };
     }
     return (
-      <button type="button" className={cls} style={style}>
+      <button
+        type="button"
+        onClick={() => {
+          if (!feature.linkUrl) return;
+          if (opensPage) onNavigate?.(feature.linkUrl);
+          else window.open(feature.linkUrl, "_blank", "noopener,noreferrer");
+        }}
+        className={`${cls} ${
+          hasAction
+            ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-md"
+            : "cursor-default opacity-80"
+        }`}
+        style={style}
+      >
         {feature.label}
       </button>
     );
@@ -328,11 +342,16 @@ export function CanvasFeatureCard({
   }
 
   if (feature.type === "page-button") {
+    const buttonAccent = accentColor || "#111827";
+
     return (
       <button
         type="button"
-        className="max-w-[200px] truncate rounded-full border border-neutral-300 bg-white px-3 py-2 text-xs font-medium shadow-sm transition hover:bg-neutral-50"
-        style={accentColor ? { borderColor: accentColor, color: accentColor } : {}}
+        onClick={() => {
+          if (feature.linkUrl) onNavigate?.(feature.linkUrl);
+        }}
+        className="max-w-[200px] cursor-pointer truncate rounded-full border bg-white/92 px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl"
+        style={{ borderColor: buttonAccent, color: buttonAccent }}
       >
         {feature.label || "Page"}
       </button>

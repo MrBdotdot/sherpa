@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 import { CanvasBackground } from "@/app/_components/canvas/canvas-background";
 import { HotspotPin } from "@/app/_components/canvas/hotspot-pin";
@@ -43,6 +43,19 @@ export function PlayerView({
     selectedPageId && pages.some((page) => page.id === selectedPageId)
       ? selectedPageId
       : (homePage?.id ?? "");
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      if (!modulePageRef.current || isModuleExitingRef.current) return;
+      event.preventDefault();
+      isModuleExitingRef.current = true;
+      setIsModuleExiting(true);
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   if (!homePage) {
     return (
@@ -119,16 +132,11 @@ export function PlayerView({
   return (
     <div
       className="fixed inset-0 overflow-hidden bg-black"
-      onClick={handleDismissContent}
-      onKeyDown={(event) => {
-        if (event.key === "Escape" || event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          handleDismissContent();
-        }
+      onPointerDown={(event) => {
+        if (event.button !== 0) return;
+        if (event.target !== event.currentTarget) return;
+        handleDismissContent();
       }}
-      role="button"
-      tabIndex={0}
-      aria-label={modulePage ? "Dismiss open rules content" : "Published rules experience"}
     >
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">

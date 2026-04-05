@@ -3,20 +3,18 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/_lib/supabase";
+import { deleteGame } from "@/app/_lib/supabase-game";
+import { ConfirmGameDeleteModal } from "@/app/_components/confirm-game-delete-modal";
 
-type GameEntry = { id: string; title: string };
+export type GameEntry = { id: string; title: string };
 
-// ── Creation wizard ───────────────────────────────────────────────
-
-function CreateWizard({
-  userId,
-  onBack,
-  onDone,
-}: {
+type CreateWizardProps = {
   userId: string;
   onBack: () => void;
   onDone: (id: string, name: string) => void;
-}) {
+};
+
+function CreateWizard({ userId, onBack, onDone }: CreateWizardProps) {
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,8 +22,10 @@ function CreateWizard({
   async function handleCreate() {
     const trimmed = name.trim();
     if (!trimmed) return;
+
     setCreating(true);
     setError(null);
+
     const id = crypto.randomUUID();
     const { error } = await supabase.from("games").insert({
       id,
@@ -40,12 +40,14 @@ function CreateWizard({
         modelEnvironment: "studio",
       },
     });
+
     if (error) {
       setError(error.message);
       setCreating(false);
-    } else {
-      onDone(id, trimmed);
+      return;
     }
+
+    onDone(id, trimmed);
   }
 
   return (
@@ -65,21 +67,23 @@ function CreateWizard({
           <div className="text-sm font-semibold text-neutral-900">New board game rules</div>
         </div>
       </div>
+
       <div className="px-5 py-4">
-        <label className="mb-1.5 block text-xs font-medium text-neutral-500">Rules experience name</label>
+        <label htmlFor="create-game-name" className="mb-1.5 block text-xs font-medium text-neutral-500">Rules experience name</label>
         <input
+          id="create-game-name"
           type="text"
-          placeholder="e.g. Catan — How to Play"
+          placeholder="e.g. Catan - How to Play"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); }}
           className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400 focus:bg-white"
-          autoFocus
         />
         {error && (
           <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{error}</div>
         )}
       </div>
+
       <div className="flex justify-end border-t border-neutral-100 px-5 py-3">
         <button
           type="button"
@@ -87,14 +91,12 @@ function CreateWizard({
           disabled={!name.trim() || creating}
           className="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-40"
         >
-          {creating ? "Creating…" : "Create"}
+          {creating ? "Creating..." : "Create"}
         </button>
       </div>
     </div>
   );
 }
-
-// ── Main modal ────────────────────────────────────────────────────
 
 type GameSwitcherModalProps = {
   isOpen: boolean;
@@ -102,7 +104,12 @@ type GameSwitcherModalProps = {
   userId: string;
   onClose: () => void;
   onSelectGame: (gameId: string, gameName: string, studioName: string) => void;
+  onDeleteCurrentGame: (nextGame: GameEntry | null) => void;
 };
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Something went wrong.";
+}
 
 export function GameSwitcherModal({
   isOpen,
@@ -110,17 +117,20 @@ export function GameSwitcherModal({
   userId,
   onClose,
   onSelectGame,
+  onDeleteCurrentGame,
 }: GameSwitcherModalProps) {
   const router = useRouter();
-  const [games, setGames] = useState<GameEntry[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [games, setGames] = useState<GameEntry[] | null>(null);
   const [expandedGameId, setExpandedGameId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [showWizard, setShowWizard] = useState(false);
+  const [pendingDeleteGame, setPendingDeleteGame] = useState<GameEntry | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
-    setLoading(true);
+
     supabase
       .from("games")
       .select("id, title")
@@ -128,7 +138,6 @@ export function GameSwitcherModal({
       .order("updated_at", { ascending: false })
       .then(({ data }) => {
         setGames(data ?? []);
-        setLoading(false);
       });
   }, [isOpen, userId]);
 
@@ -138,6 +147,10 @@ export function GameSwitcherModal({
     setExpandedGameId(null);
     setQuery("");
     setShowWizard(false);
+    setGames(null);
+    setPendingDeleteGame(null);
+    setDeleteError(null);
+    setIsDeleting(false);
   }
 
   function handleClose() {
@@ -155,19 +168,50 @@ export function GameSwitcherModal({
     router.push(`/analytics?game=${game.id}&name=${encodeURIComponent(game.title)}`);
   }
 
-  const filteredGames = games.filter((g) =>
-    g.title.toLowerCase().includes(query.toLowerCase())
+  async function handleConfirmDelete() {
+    if (!pendingDeleteGame || isDeleting) return;
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await deleteGame(pendingDeleteGame.id);
+
+      const remainingGames = (games ?? []).filter((game) => game.id !== pendingDeleteGame.id);
+      setGames(remainingGames);
+      setExpandedGameId((current) => current === pendingDeleteGame.id ? null : current);
+
+      if (pendingDeleteGame.id === currentGameId) {
+        onDeleteCurrentGame(remainingGames[0] ?? null);
+        handleClose();
+        return;
+      }
+
+      setPendingDeleteGame(null);
+      setIsDeleting(false);
+    } catch (error) {
+      setDeleteError(getErrorMessage(error));
+      setIsDeleting(false);
+    }
+  }
+
+  const filteredGames = (games ?? []).filter((game) =>
+    game.title.toLowerCase().includes(query.toLowerCase())
   );
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      onClick={handleClose}
+      onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
+      onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === "Escape" || e.key === "Enter" || e.key === " ") handleClose();
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label="Close game switcher"
     >
-      <div
-        className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
         {showWizard ? (
           <CreateWizard
             userId={userId}
@@ -179,7 +223,6 @@ export function GameSwitcherModal({
           />
         ) : (
           <>
-            {/* Header */}
             <div className="border-b border-neutral-200 px-5 py-4">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-semibold text-neutral-900">Switch game</div>
@@ -197,33 +240,34 @@ export function GameSwitcherModal({
               <div className="mt-3">
                 <input
                   type="search"
-                  placeholder="Search games…"
+                  placeholder="Search games..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400 focus:bg-white"
-                  autoFocus
                 />
               </div>
             </div>
 
-            {/* List */}
             <div className="max-h-80 overflow-y-auto p-2">
-              {loading ? (
-                <div className="px-3 py-6 text-center text-sm text-neutral-400">Loading…</div>
+              {games === null ? (
+                <div className="px-3 py-6 text-center text-sm text-neutral-400">Loading...</div>
               ) : filteredGames.length === 0 ? (
                 <div className="px-3 py-6 text-center text-sm text-neutral-400">
-                  {query ? "No games match your search" : "No games yet — create one below"}
+                  {query ? "No games match your search" : "No games yet - create one below"}
                 </div>
               ) : (
-                filteredGames.map((g) => {
-                  const isCurrent = g.id === currentGameId;
-                  const isExpanded = expandedGameId === g.id;
+                filteredGames.map((game) => {
+                  const isCurrent = game.id === currentGameId;
+                  const isExpanded = expandedGameId === game.id;
+
                   return (
-                    <div key={g.id}>
-                      {/* Game row */}
+                    <div key={game.id}>
                       <button
                         type="button"
-                        onClick={() => setExpandedGameId(isExpanded ? null : g.id)}
+                        onClick={() => {
+                          setDeleteError(null);
+                          setExpandedGameId(isExpanded ? null : game.id);
+                        }}
                         className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition ${
                           isExpanded
                             ? "bg-neutral-900 text-white"
@@ -237,8 +281,9 @@ export function GameSwitcherModal({
                             isExpanded ? "bg-white/15 text-white" : "bg-neutral-900 text-white"
                           }`}
                         >
-                          {g.title[0]?.toUpperCase() ?? "?"}
+                          {game.title[0]?.toUpperCase() ?? "?"}
                         </div>
+
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <span
@@ -246,7 +291,7 @@ export function GameSwitcherModal({
                                 isExpanded ? "text-white" : "text-neutral-900"
                               }`}
                             >
-                              {g.title}
+                              {game.title}
                             </span>
                             {isCurrent && !isExpanded && (
                               <span className="shrink-0 rounded-full bg-neutral-900 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
@@ -255,6 +300,7 @@ export function GameSwitcherModal({
                             )}
                           </div>
                         </div>
+
                         <svg
                           width="12"
                           height="12"
@@ -274,12 +320,11 @@ export function GameSwitcherModal({
                         </svg>
                       </button>
 
-                      {/* Expanded action panel */}
                       {isExpanded && (
                         <div className="mx-1 mb-1 overflow-hidden rounded-b-xl border border-t-0 border-neutral-200 bg-neutral-50">
                           <button
                             type="button"
-                            onClick={() => handleEditRules(g)}
+                            onClick={() => handleEditRules(game)}
                             className="group flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-white"
                           >
                             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 group-hover:border-neutral-300">
@@ -292,10 +337,12 @@ export function GameSwitcherModal({
                               <div className="text-xs text-neutral-400">Open the authoring studio</div>
                             </div>
                           </button>
+
                           <div className="mx-4 border-t border-neutral-200" />
+
                           <button
                             type="button"
-                            onClick={() => handleViewAnalytics(g)}
+                            onClick={() => handleViewAnalytics(game)}
                             className="group flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-white"
                           >
                             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 group-hover:border-neutral-300">
@@ -310,6 +357,27 @@ export function GameSwitcherModal({
                               <div className="text-xs text-neutral-400">Sessions, hotspot performance, devices</div>
                             </div>
                           </button>
+
+                          <div className="mx-4 border-t border-neutral-200" />
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeleteError(null);
+                              setPendingDeleteGame(game);
+                            }}
+                            className="group flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-white"
+                          >
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-white text-red-500 group-hover:border-red-300">
+                              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <path d="M3 4h8M5.5 4V3a1 1 0 011-1h1a1 1 0 011 1v1M5 6.5v3M9 6.5v3M4 4l.5 6.25A1 1 0 005.5 11h3a1 1 0 001-.75L10 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-red-600">Delete game</div>
+                              <div className="text-xs text-neutral-400">Permanently remove this rules experience</div>
+                            </div>
+                          </button>
                         </div>
                       )}
                     </div>
@@ -318,7 +386,6 @@ export function GameSwitcherModal({
               )}
             </div>
 
-            {/* Footer */}
             <div className="border-t border-neutral-200 px-5 py-3">
               <button
                 type="button"
@@ -334,6 +401,20 @@ export function GameSwitcherModal({
           </>
         )}
       </div>
+
+      <ConfirmGameDeleteModal
+        isOpen={!!pendingDeleteGame}
+        gameTitle={pendingDeleteGame?.title ?? ""}
+        isCurrentGame={pendingDeleteGame?.id === currentGameId}
+        isDeleting={isDeleting}
+        error={deleteError}
+        onCancel={() => {
+          if (isDeleting) return;
+          setPendingDeleteGame(null);
+          setDeleteError(null);
+        }}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }

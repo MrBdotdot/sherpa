@@ -28,7 +28,7 @@ export const EmptySurfaceGuidance = memo(function EmptySurfaceGuidance({
   return (
     <div
       className="absolute left-4 top-4 z-20 max-w-sm rounded-2xl border border-dashed border-neutral-300 bg-white p-4 text-sm text-neutral-600 shadow-sm"
-      onClick={(event) => event.stopPropagation()}
+      onPointerDown={(event) => event.stopPropagation()}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="font-medium text-neutral-900">Build the layout</div>
@@ -107,13 +107,7 @@ export const FeaturePlacer = memo(function FeaturePlacer({
           className={`absolute z-20 ${isLayoutEditMode ? "cursor-grab active:cursor-grabbing" : ""}`}
           style={{ left: `${feature.x}%`, top: `${feature.y}%`, transform: "translate3d(-50%, -50%, 0)", touchAction: "none" }}
           onPointerDown={(event) => onCanvasFeaturePointerDown(event, feature.id)}
-          onClick={(event) => {
-            event.stopPropagation();
-            if (!isLayoutEditMode && feature.linkUrl) {
-              if (feature.type === "page-button") onSelectPage(feature.linkUrl);
-              else if (feature.type === "button" && feature.buttonLinkMode === "page") onSelectPage(feature.linkUrl);
-            }
-          }}
+          onPointerDownCapture={(event) => event.stopPropagation()}
         >
           {isLayoutEditMode ? (
             <div className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">

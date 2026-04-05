@@ -4,17 +4,35 @@ import { FormEvent, useState } from "react";
 import { supabase } from "@/app/_lib/supabase";
 
 export function LoginScreen() {
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
+    if (mode === "forgot") {
+      const redirectTo =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/reset-password`
+          : undefined;
+
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        email,
+        redirectTo ? { redirectTo } : undefined
+      );
+
+      if (error) setError(error.message);
+      else setResetSent(true);
+      setLoading(false);
+      return;
+    }
 
     if (mode === "signin") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -51,22 +69,50 @@ export function LoginScreen() {
               Back to sign in
             </button>
           </div>
+        ) : resetSent ? (
+          <div className="rounded-2xl border border-neutral-200 bg-white p-6 text-center shadow-sm">
+            <div className="mb-2 text-base font-semibold text-neutral-900">Reset link sent</div>
+            <div className="text-sm text-neutral-500">
+              If <span className="font-medium text-neutral-700">{email}</span> is an account in Sherpa,
+              a password reset link is on its way now.
+            </div>
+            <button
+              type="button"
+              onClick={() => { setResetSent(false); setMode("signin"); }}
+              className="mt-4 text-xs font-medium text-neutral-500 underline hover:text-neutral-700"
+            >
+              Back to sign in
+            </button>
+          </div>
         ) : (
           <form onSubmit={handleSubmit} className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
-              {(["signin", "signup"] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => { setMode(m); setError(null); }}
-                  className={`flex-1 rounded-lg py-1.5 text-sm font-medium transition-all ${
-                    mode === m ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-700"
-                  }`}
-                >
-                  {m === "signin" ? "Sign in" : "Create account"}
-                </button>
-              ))}
-            </div>
+            {mode === "forgot" ? (
+              <div className="mb-5">
+                <div className="text-base font-semibold text-neutral-900">Reset your password</div>
+                <p className="mt-1 text-sm text-neutral-500">
+                  Enter the email you use for Sherpa and we will send you a reset link.
+                </p>
+              </div>
+            ) : (
+              <div className="mb-5 flex rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
+                {(["signin", "signup"] as const).map((entry) => (
+                  <button
+                    key={entry}
+                    type="button"
+                    onClick={() => {
+                      setMode(entry);
+                      setError(null);
+                      setResetSent(false);
+                    }}
+                    className={`flex-1 rounded-lg py-1.5 text-sm font-medium transition-all ${
+                      mode === entry ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-700"
+                    }`}
+                  >
+                    {entry === "signin" ? "Sign in" : "Create account"}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className="space-y-3">
               <div>
@@ -84,22 +130,25 @@ export function LoginScreen() {
                   className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none focus:border-black"
                 />
               </div>
-              <div>
-                <label htmlFor="password" className="mb-1.5 block text-xs font-medium text-neutral-700">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="8+ characters"
-                  required
-                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                  minLength={8}
-                  className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none focus:border-black"
-                />
-              </div>
+
+              {mode !== "forgot" && (
+                <div>
+                  <label htmlFor="password" className="mb-1.5 block text-xs font-medium text-neutral-700">
+                    Password
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="8+ characters"
+                    required
+                    autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                    minLength={8}
+                    className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none focus:border-black"
+                  />
+                </div>
+              )}
             </div>
 
             {error && (
@@ -113,13 +162,37 @@ export function LoginScreen() {
               disabled={loading}
               className="mt-4 w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50"
             >
-              {loading ? "…" : mode === "signin" ? "Sign in" : "Create account"}
+              {loading ? "..." : mode === "forgot" ? "Send reset link" : mode === "signin" ? "Sign in" : "Create account"}
             </button>
+
+            {mode === "signin" && (
+              <div className="mt-3 text-center">
+                <button
+                  type="button"
+                  onClick={() => { setMode("forgot"); setError(null); }}
+                  className="text-xs font-medium text-neutral-500 underline hover:text-neutral-700"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
 
             {mode === "signup" && (
               <p className="mt-3 text-center text-[11px] leading-5 text-neutral-400">
                 You&apos;ll receive a confirmation email. Make sure to verify before signing in.
               </p>
+            )}
+
+            {mode === "forgot" && (
+              <div className="mt-3 text-center">
+                <button
+                  type="button"
+                  onClick={() => { setMode("signin"); setError(null); }}
+                  className="text-xs font-medium text-neutral-500 underline hover:text-neutral-700"
+                >
+                  Back to sign in
+                </button>
+              </div>
             )}
           </form>
         )}

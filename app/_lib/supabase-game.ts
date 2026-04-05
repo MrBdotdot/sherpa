@@ -134,3 +134,12 @@ export async function loadGame(
 
   return { pages, systemSettings: game.system_settings, gameTitle: game.title ?? "" };
 }
+
+export async function deleteGame(gameId: string): Promise<void> {
+  const { error } = await supabase
+    .from("games")
+    .delete()
+    .eq("id", gameId);
+
+  if (error) throw error;
+}
