@@ -31,6 +31,7 @@ import { useCanvasFeatureHandlers } from "@/app/_hooks/useCanvasFeatureHandlers"
 import { useA11yMonitor } from "@/app/_hooks/useA11yMonitor";
 import { A11yNotificationStack } from "@/app/_components/a11y-notification";
 import { usePaletteEntries } from "@/app/_hooks/usePaletteEntries";
+import { useRouter } from "next/navigation";
 
 const STORAGE_KEY = "sherpa-v2";
 const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
@@ -50,7 +51,10 @@ const INSPECTOR_WRAPPER_WIDTH = INSPECTOR_WIDTH + PANEL_HANDLE_WIDTH;
 
 type InspectorTab = "surface" | "content" | "setup";
 
+const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN ?? "";
+
 export function AuthoringStudio({ userId, userEmail }: { userId: string; userEmail: string }) {
+  const router = useRouter();
   const [pages, setPages] = useState<PageItem[]>(createSamplePages);
   const pagesRef = useRef(pages);
   useEffect(() => { pagesRef.current = pages; }, [pages]);
@@ -86,6 +90,13 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
   useEffect(() => {
     try { localStorage.setItem("sherpa-studio-dark", studioDarkMode ? "true" : "false"); } catch { /* quota */ }
   }, [studioDarkMode]);
+
+  // Keep the browser URL in sync with the active game
+  useEffect(() => {
+    if (currentGameId) {
+      router.replace(`/?game=${currentGameId}`, { scroll: false });
+    }
+  }, [currentGameId, router]);
 
   // Refs for the keyboard handler — avoid stale closures without re-registering the listener
   const selectedFeatureIdRef = useRef(selectedFeatureId);
@@ -229,7 +240,11 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
 
   const { pagesHistoryRef, pagesRedoRef, pushPagesHistory, HISTORY_LIMIT } = useStudioHistory(pages, setPages);
   const experienceStatus: ExperienceStatus = homePage?.publishStatus === "published" ? "published" : "draft";
-  const liveViewHref = currentGameId ? `/play/${currentGameId}` : null;
+  const liveViewHref = currentGameId
+    ? BASE_DOMAIN
+      ? `https://${currentGameId}.${BASE_DOMAIN}`
+      : `/play/${currentGameId}`
+    : null;
 
   const handleExperienceStatusChange = useCallback((status: ExperienceStatus) => {
     pushPagesHistory();
