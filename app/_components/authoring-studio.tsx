@@ -31,7 +31,7 @@ import { useCanvasFeatureHandlers } from "@/app/_hooks/useCanvasFeatureHandlers"
 import { useA11yMonitor } from "@/app/_hooks/useA11yMonitor";
 import { A11yNotificationStack } from "@/app/_components/a11y-notification";
 import { usePaletteEntries } from "@/app/_hooks/usePaletteEntries";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const STORAGE_KEY = "sherpa-v2";
 const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
@@ -55,6 +55,8 @@ const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN ?? "";
 
 export function AuthoringStudio({ userId, userEmail }: { userId: string; userEmail: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const gameIdFromUrl = searchParams.get("game");
   const [pages, setPages] = useState<PageItem[]>(createSamplePages);
   const pagesRef = useRef(pages);
   useEffect(() => { pagesRef.current = pages; }, [pages]);
@@ -77,7 +79,7 @@ export function AuthoringStudio({ userId, userEmail }: { userId: string; userEma
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [cardPairingPageId, setCardPairingPageId] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [currentGameId, setCurrentGameId] = useState(userId);
+  const [currentGameId, setCurrentGameId] = useState(gameIdFromUrl ?? userId);
   const [currentGameName, setCurrentGameName] = useState("Ugly Pickle");
   const [currentStudioName, setCurrentStudioName] = useState("Bee Studio");
   const [hydrated, setHydrated] = useState(false);
