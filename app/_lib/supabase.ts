@@ -3,9 +3,15 @@ import { createClient } from "@supabase/supabase-js";
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
+if (!url || !key) {
+  throw new Error(
+    "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. In Next.js, NEXT_PUBLIC_* values are inlined into the client bundle at build time, so redeploy after setting them."
+  );
+}
+
 export const supabase = createClient(
-  url || "https://placeholder.supabase.co",
-  key || "placeholder",
+  url,
+  key,
   {
     auth: {
       // We bootstrap the session in useAuth and start refresh manually after
