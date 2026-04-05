@@ -558,8 +558,10 @@ export function PreviewCanvas({
   return (
     <div
       className={fillHeight ? "absolute inset-0" : isPreviewMode ? "fixed inset-0 z-50 flex flex-col bg-black" : "relative overflow-hidden rounded-3xl border border-neutral-200 bg-[#f4f5f7]"}
-      onPointerDownCapture={() => {
-        if (statusMenuOpen) setStatusMenuOpen(false);
+      onPointerDownCapture={(e) => {
+        if (statusMenuOpen && !(e.target as HTMLElement).closest("[data-status-menu]")) {
+          setStatusMenuOpen(false);
+        }
       }}
     >
       {hasStudioChrome ? (
@@ -666,6 +668,7 @@ export function PreviewCanvas({
                   {statusMenuOpen && (
                     <div
                       className="absolute left-0 top-full z-30 mt-1.5 w-44 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl"
+                      data-status-menu
                       onPointerDown={(e) => e.stopPropagation()}
                       onClick={(e) => e.stopPropagation()}
                     >
