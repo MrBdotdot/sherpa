@@ -26,20 +26,20 @@ function ActionLinkEditor({
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-4">
       <div className="mb-3 flex items-center justify-between">
-        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
           Action link
         </div>
         <button
           type="button"
           onClick={() => onRemove(item.id)}
-          className="rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs font-medium text-neutral-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+          className="rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs font-medium text-neutral-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
         >
           Remove
         </button>
       </div>
 
       {/* Link mode toggle */}
-      <div className="mb-3 flex rounded-xl border border-neutral-200 p-0.5">
+      <div className="mb-3 flex rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
         {(["external", "page"] as const).map((m) => (
           <button
             key={m}
@@ -47,8 +47,8 @@ function ActionLinkEditor({
             onClick={() => onChange(item.id, "linkMode", m)}
             className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition ${
               mode === m
-                ? "bg-neutral-900 text-white"
-                : "text-neutral-500 hover:text-neutral-800"
+                ? "bg-white text-neutral-900 shadow-sm"
+                : "text-neutral-500 hover:text-neutral-700"
             }`}
           >
             {m === "external" ? "External URL" : "Go to card"}
@@ -63,7 +63,7 @@ function ActionLinkEditor({
           onChange={(e) => onChange(item.id, "label", e.target.value)}
           placeholder="Button label"
           aria-label="Action link label"
-          className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none focus:border-black"
+          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
         />
         {mode === "external" ? (
           <input
@@ -72,7 +72,7 @@ function ActionLinkEditor({
             onChange={(e) => onChange(item.id, "url", e.target.value)}
             placeholder="https://..."
             aria-label="Action link URL"
-            className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none focus:border-black"
+            className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
           />
         ) : (
           <div className="rounded-xl border border-neutral-200 overflow-hidden">
@@ -180,7 +180,8 @@ export function ContentTab({
   return (
     <div className="space-y-6 p-5">
       {/* Container visuals — display style + background tint */}
-      <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-4">
+      {false ? (
+        <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-4">
         <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
           Container appearance
         </div>
@@ -240,7 +241,7 @@ export function ContentTab({
                     onContentTintChange(selectedPage.contentTintColor, Number(e.target.value))
                   }
                   aria-label="Background tint opacity"
-                  className="w-full accent-neutral-900"
+                  className="w-full accent-[#3B82F6]"
                 />
               </div>
             ) : null}
@@ -248,11 +249,13 @@ export function ContentTab({
         ) : null}
       </div>
 
+      ) : null}
+
       <div className="sticky top-0 z-10 -mx-5 bg-neutral-50 px-5 py-2">
         <button
           type="button"
           onClick={() => setPickerOpen(true)}
-          className="w-full rounded-2xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+          className="w-full rounded-full bg-[#3B82F6] px-3 py-2.5 text-sm font-medium text-white transition hover:bg-[#2563EB]"
         >
           + Add content block
         </button>
@@ -267,7 +270,7 @@ export function ContentTab({
               <div
                 key={block.id}
                 ref={(el) => { blockRefs.current[block.id] = el; }}
-                className={`group relative rounded-2xl transition-shadow duration-300 ${highlightBlockId === block.id ? "ring-2 ring-black/25 shadow-lg" : ""} ${dragIndex === index ? "opacity-40" : ""}`}
+                className={`group relative rounded-2xl transition-shadow duration-300 ${highlightBlockId === block.id ? "ring-4 ring-black/25 shadow-lg" : ""} ${dragIndex === index ? "opacity-40" : ""}`}
                 onDragOver={(e) => { e.preventDefault(); setDropIndex(index); }}
                 onDrop={(e) => { e.preventDefault(); handleDrop(index); }}
               >
@@ -346,7 +349,7 @@ export function ContentTab({
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-8 text-center text-sm text-neutral-500">
-          No content yet — add a text block or action link.
+          No content yet. Add a text block or action link.
         </div>
       )}
 

@@ -1,7 +1,12 @@
 "use client";
 
 import { ChangeEvent, useEffect, useRef } from "react";
-import { CanvasFeature, CanvasFeatureField, CanvasFeatureType, PageItem } from "@/app/_lib/authoring-types";
+import {
+  CanvasFeature,
+  CanvasFeatureField,
+  CanvasFeatureType,
+  PageItem,
+} from "@/app/_lib/authoring-types";
 import { CanvasFeatureTypeBody } from "@/app/_components/editor/canvas-feature-type-body";
 
 export const CANVAS_ELEMENT_TYPES: Array<{ type: CanvasFeatureType; label: string; description: string }> = [
@@ -31,11 +36,7 @@ export function CanvasFeatureEditor({
   isSelected: boolean;
   isPortraitMode?: boolean;
   brandColors?: string[];
-  onCanvasFeatureChange: (
-    featureId: string,
-    field: CanvasFeatureField,
-    value: string
-  ) => void;
+  onCanvasFeatureChange: (featureId: string, field: CanvasFeatureField, value: string) => void;
   onCanvasFeatureImageUpload: (featureId: string, event: ChangeEvent<HTMLInputElement>) => void;
   onCreatePageForButton: () => string;
   onOpenPage: (id: string) => void;
@@ -54,18 +55,22 @@ export function CanvasFeatureEditor({
     <div
       ref={containerRef}
       className={`rounded-2xl border bg-white p-4 transition ${
-        isSelected ? "border-black ring-2 ring-black/10" : "border-neutral-200"
+        isSelected ? "border-[#3B82F6] ring-2 ring-[#3B82F6]/10" : "border-neutral-200"
       }`}
     >
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
-          <div className="text-sm font-medium text-neutral-900">{feature.label}</div>
+          <div className="text-sm font-medium text-neutral-900">
+            {feature.type === "locale"
+              ? "Language switcher"
+              : feature.label || feature.type}
+          </div>
           <div className="text-xs text-neutral-500 capitalize">{feature.type}</div>
         </div>
         <button
           type="button"
           onClick={() => onRemoveCanvasFeature(feature.id)}
-          className="rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs font-medium text-neutral-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+          className="rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs font-medium text-neutral-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600"
         >
           Remove
         </button>
@@ -75,17 +80,17 @@ export function CanvasFeatureEditor({
         <CanvasFeatureTypeBody
           feature={feature}
           brandColors={brandColors}
+          pages={pages}
           onCanvasFeatureChange={onCanvasFeatureChange}
           onCanvasFeatureImageUpload={onCanvasFeatureImageUpload}
           onCreatePageForButton={onCreatePageForButton}
           onOpenPage={onOpenPage}
-          pages={pages}
         />
 
         {/* Portrait zone toggle — only shown in portrait layout mode */}
         {isPortraitMode ? (
           <div className="space-y-1.5 border-t border-neutral-100 pt-3">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
               Portrait zone
             </div>
             <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
@@ -112,36 +117,6 @@ export function CanvasFeatureEditor({
           </div>
         ) : null}
 
-        {/* Locale */}
-        {feature.type === "locale" ? (
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Default language code</div>
-              <input
-                type="text"
-                value={feature.label}
-                onChange={(e) => onCanvasFeatureChange(feature.id, "label", e.target.value)}
-                placeholder="EN"
-                aria-label="Default language code"
-                className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Languages — one per line</div>
-              <textarea
-                value={feature.optionsText}
-                onChange={(e) => onCanvasFeatureChange(feature.id, "optionsText", e.target.value)}
-                placeholder={"English|EN\nEspañol|ES\nFrançais|FR"}
-                aria-label="Languages, one per line"
-                rows={5}
-                className="w-full resize-none rounded-xl border border-neutral-300 px-3 py-3 font-mono text-xs outline-none focus:border-black"
-              />
-              <div className="text-xs leading-5 text-neutral-400">
-                Format: <code className="rounded bg-neutral-100 px-1">Display Name|CODE</code> — the code appears on the button
-              </div>
-            </div>
-          </div>
-        ) : null}
       </div>
     </div>
   );

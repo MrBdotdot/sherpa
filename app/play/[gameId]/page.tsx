@@ -28,20 +28,26 @@ export default function PlayPage() {
 
   if (notFound) {
     return (
-      <div className="flex h-screen items-center justify-center bg-neutral-950">
-        <div className="text-center">
+      <div className="flex h-screen flex-col items-center justify-center gap-6 bg-neutral-950 px-6 text-center">
+        <div>
           <div className="text-xl font-semibold text-white">Experience not found</div>
           <div className="mt-2 text-sm text-neutral-400">
             This link may be invalid or the experience is not published.
           </div>
         </div>
+        <a
+          href="/gallery"
+          className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-medium text-white/80 transition hover:bg-white/10"
+        >
+          Browse the gallery
+        </a>
       </div>
     );
   }
 
   if (!pages || !systemSettings) {
     return (
-      <div className="flex h-screen items-center justify-center bg-neutral-950">
+      <div className="flex h-screen items-center justify-center bg-neutral-950" role="status" aria-label="Loading experience">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-700 border-t-white" />
       </div>
     );

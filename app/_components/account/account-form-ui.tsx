@@ -31,7 +31,7 @@ export function TextInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-400 focus:ring-2 focus:ring-neutral-100 disabled:bg-neutral-50 disabled:text-neutral-400"
+      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 disabled:bg-neutral-50 disabled:text-neutral-400"
     />
   );
 }
@@ -58,7 +58,7 @@ export function Toggle({
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`relative mt-0.5 h-5 w-9 shrink-0 rounded-full transition-colors ${checked ? "bg-neutral-900" : "bg-neutral-200"}`}
+        className={`relative mt-0.5 h-5 w-9 shrink-0 rounded-full transition-colors ${checked ? "bg-[#3B82F6]" : "bg-neutral-200"}`}
       >
         <span
           className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${checked ? "translate-x-4" : ""}`}
@@ -98,7 +98,7 @@ export function SaveButton({
         type="button"
         onClick={onSave}
         disabled={saveState === "saving"}
-        className="rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+        className="rounded-full bg-[#3B82F6] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#2563EB] disabled:opacity-50"
       >
         {saveState === "saving" ? "Saving…" : label}
       </button>
@@ -106,7 +106,7 @@ export function SaveButton({
         <span className="text-xs font-medium text-emerald-600">Saved</span>
       )}
       {saveState === "error" && (
-        <span className="text-xs font-medium text-red-500">Failed to save — try again</span>
+        <span className="text-xs font-medium text-red-500">Could not save. Try again.</span>
       )}
     </div>
   );

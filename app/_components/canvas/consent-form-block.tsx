@@ -117,8 +117,8 @@ export function ConsentFormBlock({
     return (
       <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
         <div className="text-xl text-emerald-600">✓</div>
-        <div className="mt-1 text-sm font-semibold text-emerald-800">Signed — thank you</div>
-        <div className="mt-0.5 text-xs text-emerald-600">Returning to the experience…</div>
+        <div className="mt-1 text-sm font-semibold text-emerald-800">Signed. Thank you.</div>
+        <div className="mt-0.5 text-xs text-emerald-600">Returning to the experience.</div>
       </div>
     );
   }
@@ -141,7 +141,7 @@ export function ConsentFormBlock({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Type your full name"
-          className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-black"
+          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
         />
       </div>
 
@@ -164,7 +164,7 @@ export function ConsentFormBlock({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
-            className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-black"
+            className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
           />
         </div>
       ) : null}
@@ -173,7 +173,7 @@ export function ConsentFormBlock({
         type="submit"
         disabled={status === "submitting" || !name.trim()}
         style={accentColor ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
-        className="w-full rounded-xl border border-neutral-900 bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-40"
+        className="w-full rounded-full border border-[#3B82F6] bg-[#3B82F6] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2563EB] disabled:opacity-40"
       >
         {status === "submitting" ? "Signing…" : "I agree and sign"}
       </button>

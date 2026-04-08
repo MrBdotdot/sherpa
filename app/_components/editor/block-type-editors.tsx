@@ -29,8 +29,8 @@ export function CalloutBlockEditor({
               aria-pressed={block.variant === v}
               className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition ${
                 block.variant === v
-                  ? "border-neutral-900 bg-neutral-900 text-white"
-                  : "border-neutral-300 text-neutral-600 hover:bg-neutral-50"
+                  ? "border-[#3B82F6] bg-[#3B82F6] text-white"
+                  : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
               }`}
             >
               {v}
@@ -44,7 +44,7 @@ export function CalloutBlockEditor({
         placeholder="Add a rule clarification, exception, or helpful tip"
         aria-label={label}
         rows={3}
-        className="w-full resize-none rounded-xl border border-neutral-300 px-3 py-3 text-sm leading-6 outline-none transition focus:border-black"
+        className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 text-sm leading-6 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
       />
     </div>
   );
@@ -73,9 +73,9 @@ export function ImageBlockEditor({
         onChange={(event) => onBlockChange(block.id, event.target.value)}
         placeholder="Paste image URL"
         aria-label="Image URL"
-        className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none transition focus:border-black"
+        className="w-full rounded-lg border border-neutral-200 px-3 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
       />
-      <label className="inline-flex cursor-pointer items-center rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
+      <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
         Upload from computer
         <input type="file" accept="image/*" onChange={(event) => onBlockImageUpload(block.id, event)} className="hidden" />
       </label>
@@ -95,7 +95,7 @@ export function ImageBlockEditor({
               aria-pressed={(block.imageFit ?? "cover") === opt.value}
               className={`flex-1 rounded-lg border py-1.5 text-[11px] font-medium transition ${
                 (block.imageFit ?? "cover") === opt.value
-                  ? "border-neutral-900 bg-neutral-900 text-white"
+                  ? "border-[#3B82F6] bg-[#3B82F6] text-white"
                   : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
               }`}
             >
@@ -130,7 +130,7 @@ export function ImageBlockEditor({
             onBlockPropsChange(block.id, { imageSize: v >= 800 ? undefined : v });
           }}
           aria-label="Image width"
-          className="w-full accent-neutral-900"
+          className="w-full accent-[#3B82F6]"
         />
         <div className="mt-1 flex justify-between text-[10px] text-neutral-400">
           <span>80px</span>
@@ -144,7 +144,7 @@ export function ImageBlockEditor({
           value={block.imageCaption ?? ""}
           onChange={(e) => onBlockPropsChange(block.id, { imageCaption: e.target.value || undefined })}
           placeholder="Optional caption below image"
-          className="w-full rounded-xl border border-neutral-300 px-3 py-2.5 text-sm outline-none transition focus:border-black"
+          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
         />
       </div>
       <label className="flex cursor-pointer items-center gap-3">
@@ -185,7 +185,7 @@ export function ConsentBlockEditor({
           onChange={(e) => updateConsentField("statement", e.target.value)}
           placeholder="I agree that [Your Company] may use photos, video, and audio recordings of my likeness for marketing and promotional purposes."
           rows={4}
-          className="w-full resize-none rounded-xl border border-neutral-300 px-3 py-3 text-sm leading-6 outline-none transition focus:border-black"
+          className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 text-sm leading-6 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
         />
       </div>
       <div>
@@ -195,10 +195,10 @@ export function ConsentBlockEditor({
           value={(consentConfig.endpoint as string) ?? ""}
           onChange={(e) => updateConsentField("endpoint", e.target.value)}
           placeholder="Paste your Web3Forms access key"
-          className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none transition focus:border-black"
+          className="w-full rounded-lg border border-neutral-200 px-3 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
         />
         <div className="mt-1.5 text-xs text-neutral-400">
-          Get a free access key at web3forms.com — submissions go to your registered email.
+          Get a free access key at web3forms.com. Submissions go to your registered email.
         </div>
       </div>
       <label className="flex cursor-pointer items-center gap-3">

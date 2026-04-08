@@ -166,7 +166,7 @@ export function CarouselBlockEditor({
                 ))
               ) : (
                 <div className="rounded-xl border border-dashed border-neutral-200 px-3 py-3 text-xs text-neutral-400">
-                  No content yet — add a block below.
+                  No content yet. Add a block below.
                 </div>
               )}
 

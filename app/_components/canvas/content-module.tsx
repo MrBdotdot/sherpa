@@ -3,6 +3,7 @@
 import React from "react";
 import { PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 import { getQrImageUrl } from "@/app/_lib/label-utils";
+import { getFontThemeClass } from "@/app/_lib/font-theme";
 import { PreviewBlocks } from "@/app/_components/canvas/preview-blocks";
 import { StepRailBlock, parseSRPreview } from "@/app/_components/canvas/step-rail-block";
 
@@ -61,10 +62,8 @@ export function ContentModule({
   onContentCardPointerDown,
   portraitZone = false,
   moduleRef,
-  arrowRef,
 }: ContentModuleProps & {
   moduleRef?: React.Ref<HTMLDivElement>;
-  arrowRef?: React.Ref<HTMLDivElement>;
 }) {
   const ctype = page.interactionType;
   const cardSize = page.cardSize ?? "medium";
@@ -80,13 +79,7 @@ export function ContentModule({
   const sideSheetWidth =
     cardSize === "compact" ? "w-[260px]" : cardSize === "large" ? "w-[480px]" : "w-[320px]";
 
-  const fontThemeClass =
-    systemSettings.fontTheme === "editorial" ? "font-serif"
-    : systemSettings.fontTheme === "friendly" ? "font-sans tracking-[0.01em]"
-    : systemSettings.fontTheme === "mono" ? "font-mono"
-    : systemSettings.fontTheme === "geometric" ? "font-space"
-    : systemSettings.fontTheme === "display" ? "font-display"
-    : "font-sans";
+  const fontThemeClass = getFontThemeClass(systemSettings.fontTheme);
   const effectiveSurfaceStyle = systemSettings.darkMode ? "contrast" : systemSettings.surfaceStyle;
   const surfaceStyleClass =
     effectiveSurfaceStyle === "solid"
@@ -100,11 +93,6 @@ export function ContentModule({
     effectiveSurfaceStyle === "contrast" ? "bg-neutral-950/95 text-white"
     : effectiveSurfaceStyle === "solid" ? "bg-white"
     : "bg-white";
-  const tooltipArrowColor =
-    effectiveSurfaceStyle === "contrast" ? "rgba(10,10,10,0.95)"
-    : effectiveSurfaceStyle === "solid" ? "#ffffff"
-    : "rgba(255,255,255,0.90)";
-
   // side-sheet and full-page always use their own slide animations — the
   // hotspot-preview-modal animation applies translate(-50%,-50%) which
   // completely breaks the edge-anchored positioning of these layouts.
@@ -147,11 +135,6 @@ export function ContentModule({
         onClick={(e) => e.stopPropagation()}
         onAnimationEnd={handleAnimEnd}
       >
-        {isLayoutEditMode && !isExiting ? (
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-            <span>Card</span>
-          </div>
-        ) : null}
         <div className={`w-[260px] max-w-[calc(100%-2rem)] rounded-2xl border px-4 py-4 text-center shadow-xl ${surfaceStyleClass} ${fontThemeClass}`}>
           <div className={`text-2xl ${contrastText}`}>↗</div>
           <div className={`mt-1.5 text-sm font-semibold ${contrastText}`}>
@@ -341,10 +324,10 @@ export function ContentModule({
               </div>
               <div className="flex flex-wrap gap-2">
                 {page.socialLinks.map((item) => {
-                  const btnClass = `rounded-full border px-2.5 py-1.5 text-xs ${
+                  const btnClass = `rounded-full px-2.5 py-1.5 text-xs ${
                     systemSettings.surfaceStyle === "contrast"
-                      ? "border-white/20 text-white hover:bg-white/10"
-                      : "border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+                      ? "text-white hover:bg-white/10"
+                      : "text-neutral-700 hover:bg-neutral-50"
                   }`;
                   if ((item.linkMode ?? "external") === "page" && item.linkPageId) {
                     return (
@@ -425,11 +408,6 @@ export function ContentModule({
         <div className="mb-3 flex justify-center">
           <div className={`h-1 w-10 rounded-full ${systemSettings.surfaceStyle === "contrast" ? "bg-white/20" : "bg-neutral-300"}`} />
         </div>
-        {isLayoutEditMode && !isExiting ? (
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-            <span>Card</span>
-          </div>
-        ) : null}
         {renderContent(true)}
       </div>
     );
@@ -464,11 +442,6 @@ export function ContentModule({
           ) : null}
           <div className="flex-1 overflow-y-auto px-6 pb-6 pt-4">
             <div className="mx-auto w-full max-w-md py-4">
-              {isLayoutEditMode && !isExiting ? (
-                <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-                  <span>Card</span>
-                </div>
-              ) : null}
               {renderContent(false)}
             </div>
           </div>
@@ -483,11 +456,6 @@ export function ContentModule({
         onClick={(e) => e.stopPropagation()}
         onAnimationEnd={handleAnimEnd}
       >
-        {isLayoutEditMode && !isExiting ? (
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-            <span>Card</span>
-          </div>
-        ) : null}
         {renderContent(true)}
       </div>
     );
@@ -501,7 +469,7 @@ export function ContentModule({
   const wrapperStyle: React.CSSProperties = {
     left: `${page.contentX}%`,
     top: `${page.contentY}%`,
-    transform: ctype === "tooltip" ? "translate3d(-50%, -110%, 0)" : "translate3d(-50%, -50%, 0)",
+    transform: "translate3d(-50%, -50%, 0)",
     touchAction: "none",
     ...pointerEventsStyle,
   };
@@ -521,15 +489,6 @@ export function ContentModule({
         onClick={(e) => e.stopPropagation()}
         onAnimationEnd={handleAnimEnd}
       >
-        {isLayoutEditMode && !isExiting ? (
-          <div
-            aria-hidden="true"
-            className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap inline-flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white pointer-events-none"
-          >
-            <span>Card</span>
-            {isContentDraggable ? <span className="opacity-60">Move</span> : null}
-          </div>
-        ) : null}
         <div
           className={innerCardClass}
           style={ctype === "modal" ? tintStyle : undefined}
@@ -538,24 +497,6 @@ export function ContentModule({
           {renderContent(true)}
         </div>
       </div>
-      {ctype === "tooltip" ? (
-        <div
-          ref={arrowRef}
-          aria-hidden="true"
-          className="pointer-events-none absolute z-30"
-          style={{
-            left: `${page.contentX}%`,
-            top: `${page.contentY}%`,
-            transform: "translate3d(-50%, -10%, 0)",
-            width: 0,
-            height: 0,
-            borderLeft: "8px solid transparent",
-            borderRight: "8px solid transparent",
-            borderTop: `8px solid ${tooltipArrowColor}`,
-            filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.08))",
-          }}
-        />
-      ) : null}
     </>
   );
 }

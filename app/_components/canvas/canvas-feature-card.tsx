@@ -1,14 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CanvasFeature, PageItem } from "@/app/_lib/authoring-types";
 import { SearchFeatureCard } from "@/app/_components/canvas/search-feature-card";
+import { LocaleLanguage, parseLocaleLanguages } from "@/app/_lib/localization";
 
 function ImageFeatureCard({
   feature,
+  fontThemeClass,
   surfaceStyleClass,
 }: {
   feature: CanvasFeature;
+  fontThemeClass: string;
   surfaceStyleClass: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -24,7 +27,7 @@ function ImageFeatureCard({
 
   if (!feature.imageUrl) {
     return (
-      <div className="w-[180px] rounded-xl border border-dashed border-neutral-300 bg-white/90 p-3 shadow-sm">
+      <div className={`w-[180px] rounded-xl border border-dashed border-neutral-300 bg-white/90 p-3 shadow-sm ${fontThemeClass}`}>
         <div className="truncate text-xs font-semibold text-neutral-900">{feature.label}</div>
         <div className="mt-2 rounded-lg border border-dashed border-neutral-300 px-3 py-3 text-[11px] text-neutral-400">
           Upload image
@@ -34,7 +37,7 @@ function ImageFeatureCard({
   }
 
   return (
-    <div className="relative">
+    <div className={`relative ${fontThemeClass}`}>
       <button
         type="button"
         onClick={() => hasLinks && setOpen((v) => !v)}
@@ -86,53 +89,68 @@ function ImageFeatureCard({
 
 function LocaleFeatureCard({
   feature,
+  activeLanguageCode,
+  availableLanguages,
+  fontThemeClass,
+  isInteractive,
+  onLanguageChange,
   surfaceStyleClass,
 }: {
   feature: CanvasFeature;
+  activeLanguageCode?: string;
+  availableLanguages?: LocaleLanguage[];
+  fontThemeClass: string;
+  isInteractive: boolean;
+  onLanguageChange?: (languageCode: string) => void;
   surfaceStyleClass: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(feature.label || "EN");
   const menuId = `locale-menu-${feature.id}`;
+  const options = availableLanguages ?? parseLocaleLanguages(feature);
+  const active = activeLanguageCode ?? options[0]?.code ?? feature.label ?? "EN";
 
-  const options = feature.optionsText
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .map((l) => {
-      const [display, code] = l.split("|");
-      return { display: display.trim(), code: (code ?? display).trim() };
-    });
+  useEffect(() => {
+    if (!isInteractive) setOpen(false);
+  }, [isInteractive]);
 
   return (
-    <div className="relative">
+    <div className={`relative ${fontThemeClass}`}>
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        aria-controls={menuId}
+        onClick={isInteractive ? () => setOpen((v) => !v) : undefined}
+        aria-expanded={isInteractive ? open : undefined}
+        aria-haspopup={isInteractive ? "listbox" : undefined}
+        aria-controls={isInteractive ? menuId : undefined}
         aria-label={`Language: ${active}`}
-        className={`flex max-w-[140px] items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm transition ${surfaceStyleClass}`}
+        tabIndex={isInteractive ? 0 : -1}
+        className={`flex max-w-[140px] items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold shadow-sm transition ${surfaceStyleClass}`}
       >
-        <span aria-hidden="true">🌐</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" className="shrink-0">
+          <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1" />
+          <path d="M1.75 6h8.5M6 1.5c1 1.15 1.5 2.68 1.5 4.5S7 9.35 6 10.5M6 1.5C5 2.65 4.5 4.18 4.5 6S5 9.35 6 10.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+        </svg>
         <span className="truncate">{active}</span>
-        <span aria-hidden="true" className="shrink-0 opacity-50">▾</span>
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true" className="shrink-0 opacity-50">
+          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </button>
-      {open ? (
+      {isInteractive && open ? (
         <ul
           id={menuId}
           aria-label="Select language"
           className={`absolute right-0 top-full mt-1.5 min-w-[140px] rounded-xl border p-1.5 shadow-lg ${surfaceStyleClass}`}
         >
-          {options.length > 0 ? options.map(({ display, code }) => (
+          {options.length > 0 ? options.map(({ label, code }) => (
             <li key={code} role="option" aria-selected={active === code}>
               <button
                 type="button"
-                onClick={() => { setActive(code); setOpen(false); }}
+                onClick={() => {
+                  onLanguageChange?.(code);
+                  setOpen(false);
+                }}
                 className={`flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-xs font-medium transition hover:bg-black/5 ${active === code ? "font-semibold" : ""}`}
               >
-                <span className="truncate">{display}</span>
+                <span className="truncate">{label}</span>
                 <span className="shrink-0 opacity-50">{code}</span>
               </button>
             </li>
@@ -149,13 +167,23 @@ export function CanvasFeatureCard({
   accentColor,
   feature,
   pages = [],
+  activeLanguageCode,
+  availableLanguages,
+  fontThemeClass = "font-sans",
+  isInteractive = true,
   onNavigate,
+  onLanguageChange,
   surfaceStyleClass,
 }: {
   accentColor: string;
   feature: CanvasFeature;
   pages?: PageItem[];
+  activeLanguageCode?: string;
+  availableLanguages?: LocaleLanguage[];
+  fontThemeClass?: string;
+  isInteractive?: boolean;
   onNavigate?: (id: string) => void;
+  onLanguageChange?: (languageCode: string) => void;
   surfaceStyleClass: string;
 }) {
   if (feature.type === "search") {
@@ -163,6 +191,7 @@ export function CanvasFeatureCard({
       <SearchFeatureCard
         feature={feature}
         pages={pages}
+        fontThemeClass={fontThemeClass}
         onNavigate={onNavigate}
         surfaceStyleClass={surfaceStyleClass}
       />
@@ -182,7 +211,7 @@ export function CanvasFeatureCard({
     }
     return (
       <div
-        className={`rounded-xl border p-0.5 shadow-lg ${surfaceStyleClass}`}
+        className={`rounded-xl border p-0.5 shadow-lg ${fontThemeClass} ${surfaceStyleClass}`}
         style={{ width: qrSize + 4, ...bgStyle }}
       >
         {feature.label ? (
@@ -204,11 +233,21 @@ export function CanvasFeatureCard({
   }
 
   if (feature.type === "image") {
-    return <ImageFeatureCard feature={feature} surfaceStyleClass={surfaceStyleClass} />;
+    return <ImageFeatureCard feature={feature} fontThemeClass={fontThemeClass} surfaceStyleClass={surfaceStyleClass} />;
   }
 
   if (feature.type === "locale") {
-    return <LocaleFeatureCard feature={feature} surfaceStyleClass={surfaceStyleClass} />;
+    return (
+      <LocaleFeatureCard
+        feature={feature}
+        activeLanguageCode={activeLanguageCode}
+        availableLanguages={availableLanguages}
+        fontThemeClass={fontThemeClass}
+        isInteractive={isInteractive}
+        onLanguageChange={onLanguageChange}
+        surfaceStyleClass={surfaceStyleClass}
+      />
+    );
   }
 
   if (feature.type === "heading") {
@@ -223,7 +262,7 @@ export function CanvasFeatureCard({
       "text-2xl";
 
     return (
-      <div className="max-w-[240px]">
+      <div className={`max-w-[240px] ${fontThemeClass}`}>
         <div
           className={`line-clamp-2 font-bold leading-tight drop-shadow-sm ${sizeClass}`}
           style={{ color: headingColor }}
@@ -264,15 +303,14 @@ export function CanvasFeatureCard({
     let cls = "max-w-[200px] truncate rounded-full px-4 py-2 text-xs font-semibold shadow-sm transition";
     let style: React.CSSProperties = {};
     if (variant === "primary") {
-      cls += " border text-white";
-      style = { backgroundColor: accent, borderColor: accent };
+      cls += " text-white";
+      style = { backgroundColor: accent };
     } else if (variant === "tertiary") {
-      cls += " border border-transparent bg-transparent underline-offset-2 hover:underline";
+      cls += " bg-transparent underline-offset-2 hover:underline";
       style = { color: accent };
     } else {
-      // secondary (default)
-      cls += " border bg-white/92";
-      style = { borderColor: accent, color: accent };
+      cls += " bg-white/92";
+      style = { color: accent };
     }
     return (
       <button
@@ -282,7 +320,7 @@ export function CanvasFeatureCard({
           if (opensPage) onNavigate?.(feature.linkUrl);
           else window.open(feature.linkUrl, "_blank", "noopener,noreferrer");
         }}
-        className={`${cls} ${
+        className={`${cls} ${fontThemeClass} ${
           hasAction
             ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-md"
             : "cursor-default opacity-80"
@@ -309,7 +347,7 @@ export function CanvasFeatureCard({
       });
 
     return (
-      <div className={`w-[200px] rounded-xl border p-3 shadow-lg ${surfaceStyleClass}`}>
+      <div className={`w-[200px] rounded-xl border p-3 shadow-lg ${fontThemeClass} ${surfaceStyleClass}`}>
         <div className="truncate text-xs font-semibold">{feature.label}</div>
         <div className="mt-2 divide-y divide-neutral-100">
           {options.length > 0 ? options.map(({ label, isPage, isExternal, url }, i) => {
@@ -329,7 +367,11 @@ export function CanvasFeatureCard({
               >
                 <span className="truncate">{label}</span>
                 {hasLink ? (
-                  <span className="shrink-0 text-[10px] text-neutral-400">{isPage ? "→" : "↗"}</span>
+                  isPage ? (
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true" className="shrink-0 text-neutral-400"><path d="M2 5h6M5.5 2.5 8 5l-2.5 2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  ) : (
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true" className="shrink-0 text-neutral-400"><path d="M2.5 7.5 7.5 2.5M4 2.5h3.5v3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  )
                 ) : null}
               </button>
             );
@@ -350,17 +392,16 @@ export function CanvasFeatureCard({
         onClick={() => {
           if (feature.linkUrl) onNavigate?.(feature.linkUrl);
         }}
-        className="max-w-[200px] cursor-pointer truncate rounded-full border bg-white/92 px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl"
-        style={{ borderColor: buttonAccent, color: buttonAccent }}
+        className={`max-w-[200px] cursor-pointer truncate rounded-full bg-white/92 px-3 py-2 text-xs font-semibold shadow-lg backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl ${fontThemeClass}`}
+        style={{ color: buttonAccent }}
       >
         {feature.label || "Page"}
       </button>
     );
   }
 
-  // disclaimer
   return (
-    <div className="max-w-[220px] rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
+    <div className={`max-w-[220px] rounded-xl border border-neutral-200 bg-white p-3 shadow-sm ${fontThemeClass}`}>
       <div className="line-clamp-3 text-[11px] italic leading-5 text-neutral-500">{feature.label || "Disclaimer text"}</div>
     </div>
   );

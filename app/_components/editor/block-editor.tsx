@@ -2,75 +2,29 @@
 
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ContentBlock, ContentBlockType, ImageFit, PageItem } from "@/app/_lib/authoring-types";
+import { ContentBlock, ImageFit, PageItem } from "@/app/_lib/authoring-types";
 import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
 import { StepRailBlockEditor } from "@/app/_components/editor/step-rail-block-editor";
 import { TabsBlockEditor } from "@/app/_components/editor/tabs-block-editor";
 import { CarouselBlockEditor } from "@/app/_components/editor/carousel-block-editor";
 import { CalloutBlockEditor, ConsentBlockEditor, ImageBlockEditor } from "@/app/_components/editor/block-type-editors";
+import {
+  CONTENT_ELEMENT_TYPES,
+  TYPE_LABELS,
+  FORMAT_OPTIONS,
+  FORMAT_SUPPORTED,
+  HALF_WIDTH_SUPPORTED,
+  TEXT_ALIGN_SUPPORTED,
+  VERTICAL_ALIGN_SUPPORTED,
+  getEffectiveFormat,
+  getTextareaPlaceholder,
+  type BlockFormat,
+  type VerticalAlign,
+} from "@/app/_lib/block-type-config";
+import { useInlineTriggerState } from "@/app/_hooks/useInlineTriggerState";
 
-export const CONTENT_ELEMENT_TYPES = [
-  { kind: "block" as const, type: "text" as ContentBlockType, label: "Text", description: "Paragraph, heading, list, or steps" },
-  { kind: "block" as const, type: "callout" as ContentBlockType, label: "Callout", description: "Info, warning, or tip highlight" },
-  { kind: "block" as const, type: "tabs" as ContentBlockType, label: "Tabs", description: "Toggle between named sections" },
-  { kind: "block" as const, type: "section" as ContentBlockType, label: "Section", description: "Named anchor for the Step Rail to link to" },
-  { kind: "block" as const, type: "step-rail" as ContentBlockType, label: "Step Rail", description: "Sticky navigation rail — links to Section blocks" },
-  { kind: "block" as const, type: "carousel" as ContentBlockType, label: "Carousel", description: "Swipeable slides with full content per slide" },
-  { kind: "block" as const, type: "consent" as ContentBlockType, label: "Consent Form", description: "Playtester likeness release — collects name and signature" },
-  { kind: "block" as const, type: "image" as ContentBlockType, label: "Image", description: "Inline photo or diagram" },
-  { kind: "block" as const, type: "video" as ContentBlockType, label: "Video", description: "Embedded video clip" },
-  { kind: "action-link" as const, type: null, label: "Action link", description: "Outbound link button — store, social, download" },
-];
-
-const TYPE_LABELS: Record<ContentBlockType, string> = {
-  text: "Text",
-  image: "Image",
-  video: "Video",
-  steps: "Steps",
-  callout: "Callout",
-  consent: "Consent Form",
-  tabs: "Tabs",
-  section: "Section",
-  "step-rail": "Step Rail",
-  carousel: "Carousel",
-};
-
-type TriggerState = { active: boolean; start: number; query: string; index: number };
-const TRIGGER_CLOSED: TriggerState = { active: false, start: 0, query: "", index: 0 };
-
-// Types that support the formatting toolbar (prose/h2/h3/bullets/steps + bold/italic)
-const FORMAT_SUPPORTED: ContentBlockType[] = ["text", "steps"];
-const HALF_WIDTH_SUPPORTED: ContentBlockType[] = ["text", "steps", "callout", "image"];
-const TEXT_ALIGN_SUPPORTED: ContentBlockType[] = ["text", "steps", "callout"];
-const VERTICAL_ALIGN_SUPPORTED: ContentBlockType[] = ["text", "steps", "callout", "image"];
-
-export type BlockFormat = ContentBlock["blockFormat"];
-
-type VerticalAlign = ContentBlock["verticalAlign"];
-
-const FORMAT_OPTIONS: Array<{ value: BlockFormat; label: string; title: string }> = [
-  { value: "prose", label: "¶", title: "Paragraph" },
-  { value: "h2", label: "H2", title: "Heading 2" },
-  { value: "h3", label: "H3", title: "Heading 3" },
-  { value: "bullets", label: "•", title: "Bullet list" },
-  { value: "steps", label: "1.", title: "Numbered list" },
-];
-
-function getEffectiveFormat(block: ContentBlock): BlockFormat {
-  if (block.blockFormat) return block.blockFormat;
-  if (block.type === "steps") return "steps";
-  return "prose";
-}
-
-function getTextareaPlaceholder(format: BlockFormat): string {
-  switch (format) {
-    case "h2": return "Section heading";
-    case "h3": return "Sub-heading";
-    case "bullets": return "One item per line";
-    case "steps": return "Set up the board\nDeal 5 cards to each player\nThe youngest player goes first";
-    default: return "Enter text content — supports **bold**, *italic*, and more";
-  }
-}
+export type { BlockFormat } from "@/app/_lib/block-type-config";
+export { CONTENT_ELEMENT_TYPES };
 
 export function BlockEditor({
   block,
@@ -116,7 +70,7 @@ export function BlockEditor({
   const [linkPickerOpen, setLinkPickerOpen] = useState(false);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [customColor, setCustomColor] = useState("#e11d48");
-  const [trigger, setTrigger] = useState<TriggerState>(TRIGGER_CLOSED);
+  const { trigger, setTrigger, closeTrigger } = useInlineTriggerState();
   const [triggerPos, setTriggerPos] = useState<{ top: number; right: number } | null>(null);
   const [linkPickerPos, setLinkPickerPos] = useState<{ top: number; right: number } | null>(null);
   const [colorPickerPos, setColorPickerPos] = useState<{ top: number; right: number } | null>(null);
@@ -159,10 +113,6 @@ export function BlockEditor({
   const triggerResults = trigger.query
     ? linkablePages.filter((p) => (p.title || "").toLowerCase().includes(trigger.query.toLowerCase()))
     : linkablePages;
-
-  function closeTrigger() {
-    setTrigger(TRIGGER_CLOSED);
-  }
 
   function commitTrigger(pageId: string, pageTitle: string) {
     const ta = textareaRef.current;
@@ -277,7 +227,7 @@ export function BlockEditor({
             onClick={() => onMoveBlockUp(block.id)}
             disabled={isFirst}
             aria-label={`Move ${label} up`}
-            className="rounded-lg border border-neutral-300 px-2 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-50 disabled:opacity-30"
+            className="rounded-lg border border-neutral-200 px-2 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-50 disabled:opacity-30"
           >
             <span aria-hidden="true">↑</span>
           </button>
@@ -286,7 +236,7 @@ export function BlockEditor({
             onClick={() => onMoveBlockDown(block.id)}
             disabled={isLast}
             aria-label={`Move ${label} down`}
-            className="rounded-lg border border-neutral-300 px-2 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-50 disabled:opacity-30"
+            className="rounded-lg border border-neutral-200 px-2 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-50 disabled:opacity-30"
           >
             <span aria-hidden="true">↓</span>
           </button>
@@ -294,7 +244,7 @@ export function BlockEditor({
             type="button"
             onClick={() => onRemoveBlock(block.id)}
             aria-label={`Remove ${label}`}
-            className="rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs font-medium text-neutral-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+            className="rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs font-medium text-neutral-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600"
           >
             Remove
           </button>
@@ -402,14 +352,14 @@ export function BlockEditor({
                       type="text"
                       value={customColor}
                       onChange={(e) => setCustomColor(e.target.value)}
-                      className="flex-1 rounded-lg border border-neutral-200 px-2 py-1 text-xs font-mono outline-none focus:border-neutral-400"
+                      className="flex-1 rounded-lg border border-neutral-200 px-2 py-1 text-xs font-mono outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
                       placeholder="#hexcolor"
                       maxLength={7}
                     />
                     <button
                       type="button"
                       onClick={() => applyColor(customColor)}
-                      className="rounded-lg border border-neutral-900 bg-neutral-900 px-2 py-1 text-xs font-medium text-white hover:bg-neutral-700"
+                      className="rounded-full bg-[#3B82F6] px-2 py-1 text-xs font-medium text-white hover:bg-[#2563EB]"
                     >
                       Apply
                     </button>
@@ -574,7 +524,7 @@ export function BlockEditor({
             placeholder={getTextareaPlaceholder(effectiveFormat)}
             aria-label={label}
             rows={effectiveFormat === "h2" || effectiveFormat === "h3" ? 2 : 5}
-            className="w-full resize-none rounded-xl border border-neutral-300 px-3 py-3 text-sm leading-6 outline-none transition focus:border-black"
+            className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 text-sm leading-6 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
           />
           {trigger.active && triggerPos ? createPortal(
             <div
@@ -582,13 +532,13 @@ export function BlockEditor({
               style={{ position: "fixed", top: triggerPos.top, right: triggerPos.right, minWidth: 220, zIndex: 9999 }}
             >
               <div className="border-b border-neutral-100 px-3 py-1.5 text-[11px] font-semibold text-neutral-400">
-                Link to page{trigger.query ? ` — "${trigger.query}"` : ""}
+                Link to page{trigger.query ? `: "${trigger.query}"` : ""}
               </div>
               {triggerResults.length > 0 ? (
                 <PageLinkPicker pages={triggerResults} activeIndex={trigger.index} onMouseDownSelect={commitTrigger} />
               ) : (
                 <div className="px-3 py-3 text-xs text-neutral-400">
-                  No pages to link to — add a page first.
+                  No pages yet. Add a page first.
                 </div>
               )}
             </div>,
@@ -643,7 +593,7 @@ export function BlockEditor({
           onChange={(event) => onBlockChange(block.id, event.target.value)}
           placeholder="Paste video URL or file URL"
           aria-label="Video URL"
-          className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none transition focus:border-black"
+          className="w-full rounded-lg border border-neutral-200 px-3 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
         />
       )}
     </div>
@@ -667,7 +617,7 @@ function SectionBlockEditor({
         value={block.value}
         onChange={(e) => onBlockChange(block.id, e.target.value)}
         placeholder="e.g. Overview, Setup, Victory Conditions"
-        className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none transition focus:border-black"
+        className="w-full rounded-lg border border-neutral-200 px-3 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
       />
       <div className="mt-1.5 text-xs text-neutral-400">
         This label appears as a divider in your content. The Step Rail links to this section by name.

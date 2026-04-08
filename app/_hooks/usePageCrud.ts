@@ -10,6 +10,7 @@ import {
 import { applyDisplayStyle } from "@/app/_lib/display-style";
 import {
   DisplayStyleKey,
+  InspectorTab,
   PageItem,
   TemplateId,
 } from "@/app/_lib/authoring-types";
@@ -22,7 +23,7 @@ type UsePageCrudProps = {
   pushPagesHistory: () => void;
   updateSelectedPage: (updater: (page: PageItem) => PageItem) => void;
   setIsContentModalOpen: (v: boolean) => void;
-  setInspectorTab: (tab: "surface" | "content" | "setup") => void;
+  setInspectorTab: (tab: InspectorTab) => void;
   setShowDeleteModal: (v: boolean) => void;
 };
 
@@ -124,7 +125,7 @@ export function usePageCrud({
     if (newPage.canvasFeatures.length === 0 && (newPage.blocks.length > 0 || newPage.socialLinks.length > 0)) {
       setInspectorTab("content");
     } else {
-      setInspectorTab("surface");
+      setInspectorTab("board");
     }
   };
 

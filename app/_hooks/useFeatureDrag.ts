@@ -2,10 +2,17 @@
 
 import React, { useEffect, useState } from "react";
 import { clamp } from "@/app/_lib/authoring-utils";
-import { PageItem } from "@/app/_lib/authoring-types";
+import { InspectorTab, LayoutMode, PageItem } from "@/app/_lib/authoring-types";
+import { resolveCanvasFeatureForLayout, updateFeaturePositionForLayout } from "@/app/_lib/responsive-board";
 
 const SNAP_LINES = [33.333, 50, 66.666];
 const SNAP_THRESHOLD = 2;
+
+// Pixel distance from a panel edge that triggers auto-collapse while dragging
+const PANEL_COLLAPSE_PROXIMITY = 120;
+const SIDEBAR_WIDTH_PX = 300;
+const INSPECTOR_WIDTH_PX = 380;
+const HEADER_HEIGHT_PX = 80;
 
 type FeatureDragState = {
   id: string;
@@ -26,28 +33,37 @@ type UseFeatureDragProps = {
   canvasRef: React.RefObject<HTMLDivElement | null>;
   imageStripRef: React.RefObject<HTMLDivElement | null>;
   contentZoneRef: React.RefObject<HTMLDivElement | null>;
-  isPortraitMode: boolean;
+  dragThresholdRef: React.RefObject<boolean>;
+  layoutMode: LayoutMode;
   isPreviewMode: boolean;
   pages: PageItem[];
   setPages: React.Dispatch<React.SetStateAction<PageItem[]>>;
   setSelectedPageId: (id: string) => void;
   setSelectedFeatureId: (id: string | null) => void;
-  setInspectorTab: (tab: "surface" | "content" | "setup") => void;
+  setInspectorTab: (tab: InspectorTab) => void;
+  onCollapseSidebar?: () => void;
+  onCollapseInspector?: () => void;
+  onCollapseHeader?: () => void;
 };
 
 export function useFeatureDrag({
   canvasRef,
   imageStripRef,
   contentZoneRef,
-  isPortraitMode,
+  dragThresholdRef,
+  layoutMode,
   isPreviewMode,
   pages,
   setPages,
   setSelectedPageId,
   setSelectedFeatureId,
   setInspectorTab,
+  onCollapseSidebar,
+  onCollapseInspector,
+  onCollapseHeader,
 }: UseFeatureDragProps) {
   const [featureDragState, setFeatureDragState] = useState<FeatureDragState | null>(null);
+  const isPortraitMode = layoutMode === "mobile-portrait";
 
   const getFeatureCoordEl = (isContentZone?: boolean) => {
     if (!isPortraitMode) return canvasRef.current;
@@ -68,12 +84,9 @@ export function useFeatureDrag({
     const ownerPage = pages.find((p) => p.canvasFeatures.some((f) => f.id === featureId));
     const feature = ownerPage?.canvasFeatures.find((f) => f.id === featureId);
     if (!ownerPage || !feature) return;
+    const resolvedFeature = resolveCanvasFeatureForLayout(feature, layoutMode)?.feature ?? feature;
 
-    // Select the feature in the sidebar and editing panel immediately on pointer-down.
-    setSelectedPageId(ownerPage.id);
-    setSelectedFeatureId(featureId);
-    setInspectorTab("surface");
-    const isContentZone = isPortraitMode && feature.portraitZone === "content";
+    const isContentZone = isPortraitMode && resolvedFeature.portraitZone === "content";
     const activeEl = getFeatureCoordEl(isContentZone);
     if (!activeEl) return;
 
@@ -81,8 +94,8 @@ export function useFeatureDrag({
 
     const rect = activeEl.getBoundingClientRect();
     const featureRect = event.currentTarget.getBoundingClientRect();
-    const effectiveFx = isPortraitMode ? (feature.mobileX ?? feature.x) : feature.x;
-    const effectiveFy = isPortraitMode ? (feature.mobileY ?? feature.y) : feature.y;
+    const effectiveFx = resolvedFeature.x;
+    const effectiveFy = resolvedFeature.y;
     const featurePixelX = (effectiveFx / 100) * rect.width;
     const featurePixelY = (effectiveFy / 100) * rect.height;
 
@@ -100,6 +113,10 @@ export function useFeatureDrag({
   useEffect(() => {
     if (!featureDragState || isPreviewMode) return;
 
+    let sidebarCollapsed = false;
+    let inspectorCollapsed = false;
+    let headerCollapsed = false;
+
     const handlePointerMove = (event: PointerEvent) => {
       const el = getFeatureCoordEl(featureDragState.isContentZone);
       if (!el) return;
@@ -110,6 +127,21 @@ export function useFeatureDrag({
       const x = getSnappedValue(clamp((rawX / rect.width) * 100, 0, 100));
       const y = getSnappedValue(clamp((rawY / rect.height) * 100, 0, 100));
 
+      (dragThresholdRef as React.MutableRefObject<boolean>).current = true;
+
+      if (!sidebarCollapsed && onCollapseSidebar && event.clientX < SIDEBAR_WIDTH_PX + PANEL_COLLAPSE_PROXIMITY) {
+        sidebarCollapsed = true;
+        onCollapseSidebar();
+      }
+      if (!inspectorCollapsed && onCollapseInspector && event.clientX > window.innerWidth - INSPECTOR_WIDTH_PX - PANEL_COLLAPSE_PROXIMITY) {
+        inspectorCollapsed = true;
+        onCollapseInspector();
+      }
+      if (!headerCollapsed && onCollapseHeader && event.clientY < HEADER_HEIGHT_PX + PANEL_COLLAPSE_PROXIMITY) {
+        headerCollapsed = true;
+        onCollapseHeader();
+      }
+
       setPages((prev) =>
         prev.map((page) =>
           page.id === featureDragState.ownerPageId
@@ -117,9 +149,13 @@ export function useFeatureDrag({
                 ...page,
                 canvasFeatures: page.canvasFeatures.map((feature) =>
                   feature.id === featureDragState.id
-                    ? isPortraitMode
-                      ? { ...feature, mobileX: x, mobileY: y }
-                      : { ...feature, x, y }
+                    ? updateFeaturePositionForLayout(
+                        feature,
+                        layoutMode,
+                        x,
+                        y,
+                        featureDragState.isContentZone ? "content" : undefined
+                      )
                     : feature
                 ),
               }
@@ -130,6 +166,9 @@ export function useFeatureDrag({
 
     const handlePointerUp = () => {
       setFeatureDragState(null);
+      window.setTimeout(() => {
+        (dragThresholdRef as React.MutableRefObject<boolean>).current = false;
+      }, 0);
     };
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -139,7 +178,15 @@ export function useFeatureDrag({
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [featureDragState, isPreviewMode]);
+  }, [featureDragState, isPreviewMode, isPortraitMode, layoutMode, setPages]);
 
-  return { featureDragState, handleCanvasFeaturePointerDown };
+  const handleSelectCanvasFeature = (featureId: string) => {
+    const ownerPage = pages.find((p) => p.canvasFeatures.some((f) => f.id === featureId));
+    if (!ownerPage) return;
+    setSelectedPageId(ownerPage.id);
+    setSelectedFeatureId(featureId);
+    setInspectorTab("board");
+  };
+
+  return { featureDragState, handleCanvasFeaturePointerDown, handleSelectCanvasFeature };
 }

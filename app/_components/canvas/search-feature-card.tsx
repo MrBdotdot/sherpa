@@ -21,11 +21,13 @@ function HighlightedSnippet({ text, query, className }: { text: string; query: s
 export function SearchFeatureCard({
   feature,
   pages = [],
+  fontThemeClass = "font-sans",
   onNavigate,
   surfaceStyleClass,
 }: {
   feature: CanvasFeature;
   pages: PageItem[];
+  fontThemeClass?: string;
   onNavigate?: (id: string) => void;
   surfaceStyleClass: string;
 }) {
@@ -67,9 +69,9 @@ export function SearchFeatureCard({
   }
 
   return (
-    <div ref={containerRef} className="relative w-[220px]" onClick={(e) => e.stopPropagation()}>
+    <div ref={containerRef} className={`relative w-[220px] ${fontThemeClass}`} onClick={(e) => e.stopPropagation()}>
       {/* Search bar */}
-      <div className={`flex items-center gap-2 rounded-full border px-3 py-1.5 ${surfaceStyleClass}`}>
+      <div className={`flex items-center gap-2 rounded-full px-3 py-1.5 ${surfaceStyleClass}`}>
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" className="shrink-0 opacity-50">
           <circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.3" />
           <path d="M8 8L11 11" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />

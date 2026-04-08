@@ -7,6 +7,10 @@ import { PageItem } from "@/app/_lib/authoring-types";
 const SAFE_MARGIN = 0;
 const SNAP_LINES = [33.333, 50, 66.666];
 const SNAP_THRESHOLD = 2;
+const PANEL_COLLAPSE_PROXIMITY = 120;
+const SIDEBAR_WIDTH_PX = 300;
+const INSPECTOR_WIDTH_PX = 380;
+const HEADER_HEIGHT_PX = 80;
 
 type ContentDragState = {
   pointerOffsetX: number;
@@ -27,6 +31,9 @@ type UseContentDragProps = {
   pages: PageItem[];
   setPages: React.Dispatch<React.SetStateAction<PageItem[]>>;
   selectedPageId: string;
+  onCollapseSidebar?: () => void;
+  onCollapseInspector?: () => void;
+  onCollapseHeader?: () => void;
 };
 
 export function useContentDrag({
@@ -36,6 +43,9 @@ export function useContentDrag({
   pages,
   setPages,
   selectedPageId,
+  onCollapseSidebar,
+  onCollapseInspector,
+  onCollapseHeader,
 }: UseContentDragProps) {
   const [contentDragState, setContentDragState] = useState<ContentDragState | null>(null);
 
@@ -71,9 +81,26 @@ export function useContentDrag({
   useEffect(() => {
     if (!contentDragState || isPreviewMode || !selectedPageId) return;
 
+    let sidebarCollapsed = false;
+    let inspectorCollapsed = false;
+    let headerCollapsed = false;
+
     const handlePointerMove = (event: PointerEvent) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
+
+      if (!sidebarCollapsed && onCollapseSidebar && event.clientX < SIDEBAR_WIDTH_PX + PANEL_COLLAPSE_PROXIMITY) {
+        sidebarCollapsed = true;
+        onCollapseSidebar();
+      }
+      if (!inspectorCollapsed && onCollapseInspector && event.clientX > window.innerWidth - INSPECTOR_WIDTH_PX - PANEL_COLLAPSE_PROXIMITY) {
+        inspectorCollapsed = true;
+        onCollapseInspector();
+      }
+      if (!headerCollapsed && onCollapseHeader && event.clientY < HEADER_HEIGHT_PX + PANEL_COLLAPSE_PROXIMITY) {
+        headerCollapsed = true;
+        onCollapseHeader();
+      }
 
       const rect = canvas.getBoundingClientRect();
       const rawX = event.clientX - rect.left - contentDragState.pointerOffsetX;

@@ -12,8 +12,9 @@ import {
   SocialLink,
   TemplateId,
 } from "@/app/_lib/authoring-types";
+import { getKnownLocaleLanguage } from "@/app/_lib/localization";
 
-export const APP_VERSION = "v0.16.6";
+export const APP_VERSION = "v0.17.10";
 
 export type { PatchNote } from "@/app/_lib/patch-notes";
 export { PATCH_NOTES } from "@/app/_lib/patch-notes";
@@ -83,7 +84,7 @@ export const PAGE_TEMPLATES: PageTemplate[] = [
 ];
 
 export function createId(prefix: string) {
-  return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  return `${prefix}-${crypto.randomUUID()}`;
 }
 
 export function clamp(value: number, min: number, max: number) {
@@ -144,7 +145,7 @@ export function createCanvasFeature(
         type,
         label: "QR Code",
         description: "Link visitors to the live rules experience.",
-        linkUrl: "https://example.com/rules",
+        linkUrl: "",
         imageUrl: "",
         optionsText: "",
         x: 82,
@@ -166,7 +167,7 @@ export function createCanvasFeature(
       return {
         id: createId("feature"),
         type,
-        label: "Ugly Pickle",
+        label: "Heading",
         description: "",
         linkUrl: "",
         imageUrl: "",
@@ -190,9 +191,9 @@ export function createCanvasFeature(
       return {
         id: createId("feature"),
         type,
-        label: "Buy Now",
+        label: "Primary action",
         description: "Link to a store, landing page, or signup form.",
-        linkUrl: "https://example.com",
+        linkUrl: "",
         imageUrl: "",
         optionsText: "",
         x: 76,
@@ -206,7 +207,7 @@ export function createCanvasFeature(
         description: "Let visitors choose from a small list of destinations.",
         linkUrl: "",
         imageUrl: "",
-        optionsText: "How to Play\nFAQ\nStore Locator",
+        optionsText: "",
         x: 50,
         y: 18,
       };
@@ -214,7 +215,7 @@ export function createCanvasFeature(
       return {
         id: createId("feature"),
         type,
-        label: "Board Button",
+        label: "Card button",
         description: "",
         linkUrl: "",
         imageUrl: "",
@@ -250,7 +251,7 @@ export function createCanvasFeature(
       return {
         id: createId("feature"),
         type,
-        label: "Feature",
+        label: "Element",
         description: "",
         linkUrl: "",
         imageUrl: "",
@@ -365,22 +366,61 @@ export function createHotspotPage(count: number, heroImage: string): PageItem {
   });
 }
 
-export function createInitialPages(): PageItem[] {
+export function createInitialPages({
+  defaultLanguageCode = "EN",
+  gameName = "Untitled Game",
+}: {
+  defaultLanguageCode?: string;
+  gameName?: string;
+} = {}): PageItem[] {
+  const defaultLanguage = getKnownLocaleLanguage(defaultLanguageCode) ?? {
+    code: defaultLanguageCode.trim().toUpperCase() || "EN",
+    label: defaultLanguageCode.trim().toUpperCase() || "EN",
+  };
+  const starterPage = createStandardPage(1);
+  starterPage.title = "Rules overview";
+  starterPage.blocks = [
+    createBlock(
+      "text",
+      `Start writing the ${defaultLanguage.label.toLowerCase()} version of your rules here.`
+    ),
+  ];
+  const localeFeature = createCanvasFeature("locale");
+  localeFeature.label = defaultLanguage.code;
+  localeFeature.optionsText = `${defaultLanguage.label}|${defaultLanguage.code}`;
+
   return [
     {
       ...createBasePage({
         kind: "home",
         title: "Home",
-        summary: "Welcome to the rules experience.",
-        blocks: [createBlock("text", "Add intro content for the landing page.")],
-        publicUrl: "https://example.com/rules",
-        showQrCode: true,
+        summary: `Welcome to ${gameName}.`,
+        blocks: [],
+        publicUrl: "",
+        showQrCode: false,
         interactionType: "full-page",
         publishStatus: "draft",
       }),
       id: createId("home"),
-      canvasFeatures: [createCanvasFeature("locale")],
+      canvasFeatures: [
+        localeFeature,
+        {
+          ...createCanvasFeature("heading"),
+          label: gameName,
+          description: "Build your rules experience from here.",
+          x: 20,
+          y: 10,
+        },
+        {
+          ...createCanvasFeature("page-button"),
+          label: starterPage.title,
+          linkUrl: starterPage.id,
+          x: 50,
+          y: 84,
+        },
+      ],
     },
+    starterPage,
   ];
 }
 

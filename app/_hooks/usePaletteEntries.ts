@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { ExtEntry } from "@/app/_components/command-palette";
-import type { PageItem } from "@/app/_lib/authoring-types";
+import type { InspectorTab, PageItem } from "@/app/_lib/authoring-types";
 
 interface UsePaletteEntriesOptions {
   selectedFeatureId: string | null;
@@ -11,7 +11,7 @@ interface UsePaletteEntriesOptions {
   pushPagesHistory: () => void;
   setPages: React.Dispatch<React.SetStateAction<PageItem[]>>;
   setSelectedFeatureId: (id: string | null) => void;
-  setInspectorTab: (tab: "surface" | "content" | "setup") => void;
+  setInspectorTab: (tab: InspectorTab) => void;
   setShowDeleteModal: (open: boolean) => void;
   setIsGameSwitcherOpen: (open: boolean) => void;
   setIsChangelogOpen: (open: boolean) => void;
@@ -44,16 +44,17 @@ export function usePaletteEntries({
       { id: "nav-account", label: "Account settings", group: "Navigate", alwaysShow: true, onRun: () => setIsAccountOpen(true) },
       { id: "nav-changelog", label: "View changelog", group: "Navigate", alwaysShow: true, onRun: () => setIsChangelogOpen(true) },
       // View
-      { id: "view-surface", label: "Board tab", group: "View", alwaysShow: true, onRun: () => { handleDismissContent(); setInspectorTab("surface"); } },
-      { id: "view-content", label: "Card tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("content") },
-      { id: "view-setup", label: "Settings tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("setup") },
+      { id: "view-overview", label: "Overview tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("overview") },
+      { id: "view-content", label: "Content tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("content") },
+      { id: "view-board", label: "Board tab", group: "View", alwaysShow: true, onRun: () => { handleDismissContent(); setInspectorTab("board"); } },
+      { id: "view-experience", label: "Experience tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("experience") },
       {
         id: "view-intro-video",
         label: "Intro video / intro screen",
         group: "View",
         alwaysShow: false,
         onRun: () => {
-          setInspectorTab("setup");
+          setInspectorTab("experience");
           requestAnimationFrame(() => {
             const el = document.getElementById("intro-screen-section");
             el?.scrollIntoView({ behavior: "smooth", block: "start" });

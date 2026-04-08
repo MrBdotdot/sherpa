@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import React from "react";
+import { useFocusTrap } from "@/app/_hooks/useFocusTrap";
 import {
   ProfileSection,
   BusinessSection,
@@ -13,10 +14,8 @@ import {
   BillingSection,
   TermsSection,
   PrivacySection,
-  type UserMetadata,
 } from "@/app/_components/account/account-sections";
-import { getUserNameParts } from "@/app/_lib/user-display";
-import { supabase } from "@/app/_lib/supabase";
+import { UserMetadata, getUserProfile } from "@/app/_lib/user-profile";
 
 type AccountSection =
   | "profile"
@@ -35,7 +34,9 @@ type AccountPanelProps = {
   isOpen: boolean;
   onClose: () => void;
   userEmail: string;
+  userMetadata?: UserMetadata;
   onSignOut: () => void;
+  onUserMetadataChange?: (metadata: UserMetadata) => void;
   onStudioNameChange?: (name: string) => void;
   studioDarkMode?: boolean;
   onStudioDarkModeChange?: (v: boolean) => void;
@@ -188,92 +189,112 @@ const NAV_GROUPS: {
   },
 ];
 
-export function AccountPanel({ isOpen, onClose, userEmail, onSignOut, onStudioNameChange, studioDarkMode = false, onStudioDarkModeChange }: AccountPanelProps) {
-  const { displayName, initial } = getUserNameParts(userEmail);
+export function AccountPanel({
+  isOpen,
+  onClose,
+  userEmail,
+  userMetadata = {},
+  onSignOut,
+  onUserMetadataChange,
+  onStudioNameChange,
+  studioDarkMode = false,
+  onStudioDarkModeChange,
+}: AccountPanelProps) {
   const [activeSection, setActiveSection] = useState<AccountSection>("profile");
-  const [metadata, setMetadata] = useState<UserMetadata>({});
-  const [metadataLoading, setMetadataLoading] = useState(false);
+  const [metadata, setMetadata] = useState<UserMetadata>(userMetadata);
 
   useEffect(() => {
-    if (!isOpen) return;
-    setMetadataLoading(true);
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setMetadata((user?.user_metadata as UserMetadata) ?? {});
-      setMetadataLoading(false);
-    }).catch(() => setMetadataLoading(false));
-  }, [isOpen]);
+    setMetadata(userMetadata);
+  }, [userMetadata]);
+
+  const dialogRef = useFocusTrap<HTMLDivElement>(isOpen);
 
   if (!isOpen) return null;
 
+  const profile = getUserProfile(userEmail, metadata);
   let sectionContent: React.ReactNode;
-  if (metadataLoading) {
-    sectionContent = (
-      <div className="flex h-full items-center justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-600" />
-      </div>
-    );
-  } else {
-    switch (activeSection) {
-      case "profile":
-        sectionContent = <ProfileSection userEmail={userEmail} metadata={metadata} />;
-        break;
-      case "business":
-        sectionContent = <BusinessSection metadata={metadata} onStudioNameChange={onStudioNameChange} />;
-        break;
-      case "security":
-        sectionContent = <SecuritySection metadata={metadata} />;
-        break;
-      case "notifications":
-        sectionContent = <NotificationsSection metadata={metadata} />;
-        break;
-      case "sessions":
-        sectionContent = <SessionsSection userDisplayName={displayName} />;
-        break;
-      case "team":
-        sectionContent = <TeamSection userDisplayName={displayName} userEmail={userEmail} />;
-        break;
-      case "language":
-        sectionContent = <LanguageSection metadata={metadata} />;
-        break;
-      case "billing":
-        sectionContent = <BillingSection />;
-        break;
-      case "terms":
-        sectionContent = <TermsSection />;
-        break;
-      case "privacy":
-        sectionContent = <PrivacySection />;
-        break;
-      case "appearance":
-        sectionContent = (
-          <div>
-            <div className="mb-6">
-              <h2 className="text-base font-semibold text-neutral-900">Appearance</h2>
-              <p className="mt-1 text-sm text-neutral-500">Customize how the studio looks for you. These settings are saved to this browser only.</p>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3.5">
-                <div>
-                  <div className="text-sm font-medium text-neutral-900">Dark studio</div>
-                  <div className="mt-0.5 text-xs text-neutral-500">Applies a dark theme to the left nav, toolbar, and editing panel.</div>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={studioDarkMode}
-                  onClick={() => onStudioDarkModeChange?.(!studioDarkMode)}
-                  className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${studioDarkMode ? "bg-neutral-900" : "bg-neutral-200"}`}
-                >
-                  <span
-                    className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${studioDarkMode ? "translate-x-4" : ""}`}
-                  />
-                </button>
+  switch (activeSection) {
+    case "profile":
+      sectionContent = (
+        <ProfileSection
+          userEmail={userEmail}
+          metadata={metadata}
+          onMetadataChange={(nextMetadata) => {
+            setMetadata(nextMetadata);
+            onUserMetadataChange?.(nextMetadata);
+          }}
+        />
+      );
+      break;
+    case "business":
+      sectionContent = <BusinessSection metadata={metadata} onStudioNameChange={onStudioNameChange} />;
+      break;
+    case "security":
+      sectionContent = <SecuritySection metadata={metadata} />;
+      break;
+    case "notifications":
+      sectionContent = <NotificationsSection metadata={metadata} />;
+      break;
+    case "sessions":
+      sectionContent = (
+        <SessionsSection
+          userDisplayName={profile.displayName}
+          userAvatarUrl={profile.avatarUrl}
+          userInitial={profile.initial}
+        />
+      );
+      break;
+    case "team":
+      sectionContent = (
+        <TeamSection
+          userDisplayName={profile.displayName}
+          userEmail={userEmail}
+          userAvatarUrl={profile.avatarUrl}
+          userInitial={profile.initial}
+        />
+      );
+      break;
+    case "language":
+      sectionContent = <LanguageSection metadata={metadata} />;
+      break;
+    case "billing":
+      sectionContent = <BillingSection />;
+      break;
+    case "terms":
+      sectionContent = <TermsSection />;
+      break;
+    case "privacy":
+      sectionContent = <PrivacySection />;
+      break;
+    case "appearance":
+      sectionContent = (
+        <div>
+          <div className="mb-6">
+            <h2 className="text-base font-semibold text-neutral-900">Appearance</h2>
+            <p className="mt-1 text-sm text-neutral-500">Customize how the studio looks for you. These settings are saved to this browser only.</p>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3.5">
+              <div>
+                <div className="text-sm font-medium text-neutral-900">Dark studio</div>
+                <div className="mt-0.5 text-xs text-neutral-500">Applies a dark theme to the left nav, toolbar, and editing panel.</div>
               </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={studioDarkMode}
+                onClick={() => onStudioDarkModeChange?.(!studioDarkMode)}
+                className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${studioDarkMode ? "bg-[#3B82F6]" : "bg-neutral-200"}`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${studioDarkMode ? "translate-x-4" : ""}`}
+                />
+              </button>
             </div>
           </div>
-        );
-        break;
-    }
+        </div>
+      );
+      break;
   }
 
   return (
@@ -285,6 +306,7 @@ export function AccountPanel({ isOpen, onClose, userEmail, onSignOut, onStudioNa
         className="absolute inset-0"
       />
       <div
+        ref={dialogRef}
         className="relative flex w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl"
         style={{ height: "min(82vh, 680px)" }}
         role="dialog"
@@ -295,11 +317,19 @@ export function AccountPanel({ isOpen, onClose, userEmail, onSignOut, onStudioNa
         <div className="flex w-52 shrink-0 flex-col border-r border-neutral-100 bg-neutral-50">
           <div className="border-b border-neutral-100 px-4 py-4">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900 text-sm font-semibold text-white">
-                {initial}
-              </div>
+              {profile.avatarUrl ? (
+                <img
+                  src={profile.avatarUrl}
+                  alt={profile.displayName || "Profile photo"}
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1e3a8a] text-sm font-semibold text-white">
+                  {profile.initial}
+                </div>
+              )}
               <div className="min-w-0">
-                <div className="truncate text-sm font-semibold text-neutral-900">{displayName}</div>
+                <div className="truncate text-sm font-semibold text-neutral-900">{profile.displayName}</div>
                 <div className="truncate text-[11px] text-neutral-400">{userEmail}</div>
               </div>
             </div>

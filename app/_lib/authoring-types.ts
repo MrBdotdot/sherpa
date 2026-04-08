@@ -1,5 +1,7 @@
 export type PageKind = "home" | "page" | "hotspot";
 export type LayoutMode = "desktop" | "mobile-landscape" | "mobile-portrait";
+export type MobileLayoutMode = Exclude<LayoutMode, "desktop">;
+export type InspectorTab = "overview" | "content" | "board" | "experience";
 export type ContentBlockType = "text" | "image" | "video" | "steps" | "callout" | "consent" | "tabs" | "section" | "step-rail" | "carousel";
 export type PageButtonPlacement = "top" | "bottom" | "left" | "right" | "stack";
 export type InteractionType =
@@ -11,6 +13,7 @@ export type InteractionType =
   | "external-link";
 export type PublishStatus = "draft" | "published";
 export type ExperienceStatus = "draft" | "published";
+export type TranslationMap = Record<string, Record<string, string>>;
 export type CanvasFeatureType =
   | "qr"
   | "image"
@@ -95,6 +98,8 @@ export type CanvasFeature = {
   y: number;
   mobileX?: number;
   mobileY?: number;
+  originLayout?: LayoutMode;
+  layoutOverrides?: Partial<Record<MobileLayoutMode, CanvasFeatureLayoutOverride>>;
   /** In portrait mode, "content" renders in the content zone; undefined renders in the image strip */
   portraitZone?: "content";
   /** For button type only: whether it links to an external URL or an internal content block */
@@ -105,6 +110,13 @@ export type CanvasFeature = {
   headingSize?: "small" | "medium" | "large";
   /** For button type: visual hierarchy variant */
   buttonVariant?: "primary" | "secondary" | "tertiary";
+};
+
+export type CanvasFeatureLayoutOverride = {
+  x?: number;
+  y?: number;
+  hidden?: boolean;
+  portraitZone?: "content";
 };
 
 export type CanvasFeatureField =
@@ -154,7 +166,10 @@ export type SystemSettings = {
   fontTheme: "modern" | "editorial" | "friendly" | "mono" | "geometric" | "display";
   surfaceStyle: "glass" | "solid" | "contrast";
   accentColor: string;
+  defaultLanguageCode?: string;
+  gameIcon?: string;
   hotspotSize: "small" | "medium" | "large";
+  translations?: TranslationMap;
   introScreen?: {
     enabled: boolean;
     youtubeUrl: string;

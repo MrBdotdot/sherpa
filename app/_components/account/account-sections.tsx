@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FieldRow,
   TextInput,
@@ -8,109 +8,37 @@ import {
   SectionHeader,
   Divider,
   SaveButton,
-  type SaveState,
 } from "@/app/_components/account/account-form-ui";
-import { getUserNameParts } from "@/app/_lib/user-display";
 import { supabase } from "@/app/_lib/supabase";
-
-// ── Shared types ───────────────────────────────────────────────
-
-export type UserMetadata = {
-  first_name?: string;
-  last_name?: string;
-  display_name?: string;
-  studio_name?: string;
-  website?: string;
-  business_email?: string;
-  country?: string;
-  language?: string;
-  notifications?: {
-    rulesChanges?: boolean;
-    publishingChanges?: boolean;
-    comments?: boolean;
-    teamInvitations?: boolean;
-    roleChanges?: boolean;
-    billing?: boolean;
-    planChanges?: boolean;
-  };
-  security?: {
-    loginNotifications?: boolean;
-    sessionTimeout?: boolean;
-  };
-};
-
-function useSave(): [SaveState, (fn: () => Promise<void>) => void] {
-  const [saveState, setSaveState] = useState<SaveState>("idle");
-  function save(fn: () => Promise<void>) {
-    setSaveState("saving");
-    fn()
-      .then(() => {
-        setSaveState("saved");
-        setTimeout(() => setSaveState("idle"), 2500);
-      })
-      .catch(() => setSaveState("error"));
-  }
-  return [saveState, save];
-}
+import { UserMetadata } from "@/app/_lib/user-profile";
+import { useSave } from "@/app/_hooks/useSave";
+import { useProfileSection } from "@/app/_hooks/useProfileSection";
 
 // ── Profile ────────────────────────────────────────────────────
 
 type ProfileSectionProps = {
   userEmail: string;
   metadata: UserMetadata;
+  onMetadataChange?: (metadata: UserMetadata) => void;
 };
 
-export function ProfileSection({ userEmail, metadata }: ProfileSectionProps) {
-  const derived = getUserNameParts(userEmail);
-  const [firstName, setFirstName] = useState(metadata.first_name ?? derived.firstName);
-  const [lastName, setLastName] = useState(metadata.last_name ?? derived.lastName);
-  const [displayName, setDisplayName] = useState(metadata.display_name ?? derived.displayName);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const photoInputRef = useRef<HTMLInputElement | null>(null);
-
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-
-  const [profileSaveState, profileSave] = useSave();
-  const [passwordSaveState, passwordSave] = useSave();
-
-  // Sync when metadata arrives after initial render
-  useEffect(() => {
-    if (metadata.first_name !== undefined) setFirstName(metadata.first_name);
-    if (metadata.last_name !== undefined) setLastName(metadata.last_name);
-    if (metadata.display_name !== undefined) setDisplayName(metadata.display_name);
-  }, [metadata.first_name, metadata.last_name, metadata.display_name]);
-
-  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setAvatarUrl(url);
-  }
-
-  function handleSaveProfile() {
-    profileSave(async () => {
-      const { error } = await supabase.auth.updateUser({
-        data: { first_name: firstName, last_name: lastName, display_name: displayName },
-      });
-      if (error) throw error;
-    });
-  }
-
-  function handleSavePassword() {
-    setPasswordError(null);
-    if (newPassword.length < 8) { setPasswordError("New password must be at least 8 characters."); return; }
-    if (newPassword !== confirmPassword) { setPasswordError("Passwords don't match."); return; }
-    passwordSave(async () => {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
-      setNewPassword("");
-      setConfirmPassword("");
-    });
-  }
-
-  const initials = (firstName.charAt(0) || userEmail.charAt(0) || "?").toUpperCase();
+export function ProfileSection({ userEmail, metadata, onMetadataChange }: ProfileSectionProps) {
+  const {
+    firstName, setFirstName,
+    lastName, setLastName,
+    displayName, setDisplayName,
+    avatarUrl,
+    photoInputRef,
+    newPassword, setNewPassword,
+    confirmPassword, setConfirmPassword,
+    passwordError,
+    profileSaveState,
+    passwordSaveState,
+    handlePhotoChange,
+    handleSaveProfile,
+    handleSavePassword,
+    initials,
+  } = useProfileSection({ userEmail, metadata, onMetadataChange });
 
   return (
     <div>
@@ -125,7 +53,7 @@ export function ProfileSection({ userEmail, metadata }: ProfileSectionProps) {
               className="h-16 w-16 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-900 text-xl font-semibold text-white">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1e3a8a] text-xl font-semibold text-white">
               {initials}
             </div>
           )}
@@ -255,7 +183,7 @@ export function BusinessSection({ metadata, onStudioNameChange }: BusinessSectio
           <select
             value={country}
             onChange={(e) => setCountry(e.target.value)}
-            className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none focus:border-neutral-400"
+            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
           >
             <option value="">Select a country</option>
             {COUNTRIES.map((c) => <option key={c}>{c}</option>)}
@@ -329,7 +257,7 @@ export function SecuritySection({ metadata }: SecuritySectionProps) {
           Download my data <span className="text-xs">(coming soon)</span>
         </div>
         <div className="w-full rounded-xl border border-red-100 px-4 py-3 text-sm text-red-400">
-          Delete account — contact <span className="font-medium">support@sherpa.app</span>
+          To delete your account, email <span className="font-medium">support@sherpa.app</span>
         </div>
       </div>
     </div>
@@ -425,9 +353,11 @@ export function NotificationsSection({ metadata }: NotificationsSectionProps) {
 
 type SessionsSectionProps = {
   userDisplayName: string;
+  userAvatarUrl?: string | null;
+  userInitial: string;
 };
 
-export function SessionsSection({ userDisplayName }: SessionsSectionProps) {
+export function SessionsSection({ userDisplayName, userAvatarUrl, userInitial }: SessionsSectionProps) {
   return (
     <div>
       <SectionHeader title="Session history" description="Your active sessions and recent account activity." />
@@ -435,6 +365,17 @@ export function SessionsSection({ userDisplayName }: SessionsSectionProps) {
       <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Active sessions</div>
       <div className="mb-6 rounded-xl border border-neutral-200 px-4 py-3">
         <div className="flex items-center gap-3">
+          {userAvatarUrl ? (
+            <img
+              src={userAvatarUrl}
+              alt={userDisplayName || "Profile photo"}
+              className="h-8 w-8 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1e3a8a] text-xs font-semibold text-white">
+              {userInitial}
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-neutral-900">Current browser session</span>
@@ -459,23 +400,33 @@ export function SessionsSection({ userDisplayName }: SessionsSectionProps) {
 type TeamSectionProps = {
   userDisplayName: string;
   userEmail: string;
+  userAvatarUrl?: string | null;
+  userInitial: string;
 };
 
-export function TeamSection({ userDisplayName, userEmail }: TeamSectionProps) {
+export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userInitial }: TeamSectionProps) {
   return (
     <div>
       <SectionHeader title="Team & access" description="Invite collaborators and manage their permissions." />
 
       <div className="mb-4 rounded-2xl border border-neutral-200 overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
-            {(userDisplayName.charAt(0) || "?").toUpperCase()}
-          </div>
+          {userAvatarUrl ? (
+            <img
+              src={userAvatarUrl}
+              alt={userDisplayName || "Profile photo"}
+              className="h-8 w-8 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1e3a8a] text-xs font-semibold text-white">
+              {userInitial}
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <div className="text-sm font-medium text-neutral-900">{userDisplayName}</div>
             <div className="text-xs text-neutral-400">{userEmail}</div>
           </div>
-          <span className="rounded-full bg-neutral-900 px-2.5 py-1 text-[10px] font-semibold text-white">Admin</span>
+          <span className="rounded-full bg-[#3B82F6] px-2.5 py-1 text-[10px] font-semibold text-white">Admin</span>
         </div>
       </div>
 
@@ -532,7 +483,7 @@ export function LanguageSection({ metadata }: LanguageSectionProps) {
         <select
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
-          className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none focus:border-neutral-400"
+          className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
         >
           {LANGUAGE_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -540,7 +491,7 @@ export function LanguageSection({ metadata }: LanguageSectionProps) {
         </select>
       </FieldRow>
       <p className="mt-3 text-xs text-neutral-400">
-        This setting affects the authoring tool only — not the language options in your published experiences.
+        This only changes the language of the authoring tool. It does not affect your published experience.
       </p>
       <div className="mt-6">
         <SaveButton onSave={handleSave} saveState={saveState} label="Save" />

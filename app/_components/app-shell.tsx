@@ -5,6 +5,7 @@ import { MobileLanding } from "@/app/_components/mobile-landing";
 import { LoginScreen } from "@/app/_components/login-screen";
 import { useAuth } from "@/app/_hooks/useAuth";
 import { useMobileDetect } from "@/app/_hooks/useMobileDetect";
+import { UserMetadata } from "@/app/_lib/user-profile";
 
 const AuthoringStudio = dynamic(
   () => import("@/app/_components/authoring-studio").then((m) => ({ default: m.AuthoringStudio })),
@@ -38,5 +39,11 @@ export function AppShell() {
   if (isMobile) return <MobileLanding />;
   if (!user) return <LoginScreen />;
 
-  return <AuthoringStudio userId={user.id} userEmail={user.email ?? ""} />;
+  return (
+    <AuthoringStudio
+      userId={user.id}
+      userEmail={user.email ?? ""}
+      userMetadata={(user.user_metadata as UserMetadata) ?? {}}
+    />
+  );
 }

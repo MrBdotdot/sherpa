@@ -12,12 +12,82 @@ export type SearchHit = {
   matchSnippet: string;
 };
 
+function extractConsentText(value: string): string {
+  try {
+    const parsed = JSON.parse(value) as Record<string, unknown>;
+    return typeof parsed.statement === "string" ? parsed.statement : "";
+  } catch {
+    return "";
+  }
+}
+
+function extractStepRailText(value: string): string {
+  try {
+    const parsed = JSON.parse(value) as { steps?: Array<Record<string, unknown>> };
+    return (parsed.steps ?? [])
+      .map((step) => (typeof step.label === "string" ? step.label : ""))
+      .filter(Boolean)
+      .join(" ");
+  } catch {
+    return "";
+  }
+}
+
 export function extractBlocksText(blocks: ContentBlock[]): string {
   return blocks
-    .filter((b) => !["step-rail", "image", "video", "consent"].includes(b.type))
     .map((b) => {
-      if (b.type === "tabs" || b.type === "carousel") return "";
-      return b.value ?? "";
+      if (b.type === "text" || b.type === "steps" || b.type === "callout" || b.type === "section") {
+        return b.value ?? "";
+      }
+
+      if (b.type === "image") {
+        return [
+          b.imageCaption,
+          ...(b.imageHotspots ?? []).flatMap((hotspot) => [hotspot.label, hotspot.content]),
+        ]
+          .filter(Boolean)
+          .join(" ");
+      }
+
+      if (b.type === "consent") {
+        return extractConsentText(b.value);
+      }
+
+      if (b.type === "step-rail") {
+        return extractStepRailText(b.value);
+      }
+
+      if (b.type === "tabs") {
+        try {
+          const parsed = JSON.parse(b.value) as { sections?: Array<{ label?: string; blocks?: ContentBlock[] }> };
+          return (parsed.sections ?? [])
+            .map((section) =>
+              [section.label ?? "", extractBlocksText(section.blocks ?? [])]
+                .filter(Boolean)
+                .join(" ")
+            )
+            .join(" ");
+        } catch {
+          return "";
+        }
+      }
+
+      if (b.type === "carousel") {
+        try {
+          const parsed = JSON.parse(b.value) as { slides?: Array<{ label?: string; blocks?: ContentBlock[] }> };
+          return (parsed.slides ?? [])
+            .map((slide) =>
+              [slide.label ?? "", extractBlocksText(slide.blocks ?? [])]
+                .filter(Boolean)
+                .join(" ")
+            )
+            .join(" ");
+        } catch {
+          return "";
+        }
+      }
+
+      return "";
     })
     .join(" ");
 }
@@ -37,7 +107,7 @@ export function buildSearchIndex(pages: PageItem[]): SearchIndexEntry[] {
     const mainText = [
       page.title,
       page.summary,
-      extractBlocksText(page.blocks.filter((b) => b.type !== "tabs" && b.type !== "carousel")),
+      extractBlocksText(page.blocks),
     ].filter(Boolean).join(" ");
     if (mainText.trim()) {
       entries.push({ pageId: page.id, breadcrumb: baseCrumb, text: mainText.trim() });

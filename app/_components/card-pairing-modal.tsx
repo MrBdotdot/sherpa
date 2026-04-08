@@ -42,14 +42,14 @@ export function CardPairingModal({
           <button
             type="button"
             onClick={onAddButton}
-            className="flex-1 rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-neutral-700"
+            className="flex-1 rounded-full bg-[#3B82F6] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2563EB]"
           >
             Add button
           </button>
           <button
             type="button"
             onClick={onSkip}
-            className="rounded-2xl border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-600 transition hover:bg-neutral-50"
+            className="rounded-full border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-600 transition hover:bg-neutral-50"
           >
             Skip
           </button>

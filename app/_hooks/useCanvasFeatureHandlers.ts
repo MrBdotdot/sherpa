@@ -6,9 +6,11 @@ import {
   CanvasFeature,
   CanvasFeatureField,
   CanvasFeatureType,
+  LayoutMode,
   PageItem,
   SystemSettings,
 } from "@/app/_lib/authoring-types";
+import { createResponsiveCanvasFeature, setFeatureVisibilityForLayout } from "@/app/_lib/responsive-board";
 import { uploadImage } from "@/app/_lib/supabase-storage";
 
 interface UseCanvasFeatureHandlersProps {
@@ -18,6 +20,7 @@ interface UseCanvasFeatureHandlersProps {
   updateSelectedPage: (updater: (page: PageItem) => PageItem) => void;
   setSystemSettings: Dispatch<SetStateAction<SystemSettings>>;
   setShowLayoutHelp: (v: boolean) => void;
+  layoutMode: LayoutMode;
   userId: string;
   gameId: string;
 }
@@ -29,6 +32,7 @@ export function useCanvasFeatureHandlers({
   updateSelectedPage,
   setSystemSettings,
   setShowLayoutHelp,
+  layoutMode,
   userId,
   gameId,
 }: UseCanvasFeatureHandlersProps) {
@@ -37,7 +41,10 @@ export function useCanvasFeatureHandlers({
     setShowLayoutHelp(false);
     updateSelectedPage((page) => ({
       ...page,
-      canvasFeatures: [...page.canvasFeatures, createCanvasFeature(type)],
+      canvasFeatures: [
+        ...page.canvasFeatures,
+        createResponsiveCanvasFeature(createCanvasFeature(type), layoutMode),
+      ],
     }));
   };
 
@@ -84,11 +91,42 @@ export function useCanvasFeatureHandlers({
     }
   };
 
+  const handleGameIconUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const localUrl = URL.createObjectURL(file);
+    setSystemSettings((prev) => ({ ...prev, gameIcon: localUrl }));
+
+    try {
+      const remoteUrl = await uploadImage(file, userId, gameId);
+      setSystemSettings((prev) => ({ ...prev, gameIcon: remoteUrl }));
+    } catch {
+      // Local blob URL stays in place until refresh if upload fails.
+    }
+  };
+
   const handleRemoveCanvasFeature = (featureId: string) => {
     pushPagesHistory();
     updateSelectedPage((page) => ({
       ...page,
       canvasFeatures: page.canvasFeatures.filter((feature) => feature.id !== featureId),
+    }));
+  };
+
+  const handleCanvasFeatureVisibilityChange = (
+    featureId: string,
+    targetLayout: "mobile-landscape" | "mobile-portrait",
+    visible: boolean
+  ) => {
+    pushPagesHistory();
+    updateSelectedPage((page) => ({
+      ...page,
+      canvasFeatures: page.canvasFeatures.map((feature) =>
+        feature.id === featureId
+          ? setFeatureVisibilityForLayout(feature, targetLayout, visible)
+          : feature
+      ),
     }));
   };
 
@@ -116,7 +154,9 @@ export function useCanvasFeatureHandlers({
     handleAddCanvasFeature,
     handleCanvasFeatureChange,
     handleCanvasFeatureImageUpload,
+    handleGameIconUpload,
     handleRemoveCanvasFeature,
+    handleCanvasFeatureVisibilityChange,
     handleAddPageButton,
     handleSystemSettingChange,
   };

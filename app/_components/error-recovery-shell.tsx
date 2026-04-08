@@ -46,7 +46,7 @@ export function ErrorRecoveryShell({
             </button>
             <Link
               href="/"
-              className="rounded-2xl border border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
+              className="rounded-2xl border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
             >
               Back to Sherpa
             </Link>

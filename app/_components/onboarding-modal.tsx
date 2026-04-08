@@ -31,7 +31,7 @@ const STEPS = [
     ),
     title: "Main Page",
     description:
-      "Your game's background image or 3D model. This is what players see first — set the scene with box art or a board photo.",
+      "Your game's background image or 3D model. This is the first thing players see. Start with box art or a photo of the board.",
   },
   {
     icon: (
@@ -44,7 +44,7 @@ const STEPS = [
     ),
     title: "Cards",
     description:
-      "Each card holds rules content — text, images, videos, steps. Cards pop up when players tap a hotspot or button on the Main Page.",
+      "Each card holds rules content: text, images, videos, and steps. Cards open when players tap a hotspot or button on the Main Page.",
   },
   {
     icon: (
@@ -105,7 +105,7 @@ export function OnboardingModal({
         <button
           type="button"
           onClick={onClose}
-          className="w-full rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-neutral-700"
+          className="w-full rounded-full bg-[#3B82F6] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2563EB]"
         >
           Get started
         </button>

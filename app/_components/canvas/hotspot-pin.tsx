@@ -3,6 +3,7 @@
 import React from "react";
 import { PageItem } from "@/app/_lib/authoring-types";
 import { DEFAULT_HOTSPOT_BLOCK_TEXT } from "@/app/_lib/authoring-utils";
+import { CanvasDragBadge } from "@/app/_components/canvas/canvas-drag-badge";
 
 function isHotspotEmpty(page: PageItem): boolean {
   const hasRealSummary = page.summary.trim().length > 0;
@@ -19,6 +20,7 @@ export function HotspotPin({
   isLayoutEditMode,
   isPreviewMode,
   accentColor,
+  fontThemeClass,
   hotspotContainerSize,
   hotspotDotSize,
   hotspotLabelSize,
@@ -35,6 +37,7 @@ export function HotspotPin({
   isLayoutEditMode: boolean;
   isPreviewMode: boolean;
   accentColor: string;
+  fontThemeClass: string;
   hotspotContainerSize: string;
   hotspotDotSize: string;
   hotspotLabelSize: string;
@@ -77,21 +80,29 @@ export function HotspotPin({
         <button
           type="button"
           draggable={false}
-          onPointerDown={(e) => onHotspotPointerDown(e, page)}
           onDragStart={(e) => e.preventDefault()}
           onClick={(e) => { e.stopPropagation(); if (!dragThresholdRef?.current) onSelectPage(page.id); }}
-          className={`relative cursor-grab rounded-full border px-3 py-1.5 text-xs font-semibold shadow transition active:cursor-grabbing ${
+          className={`relative rounded-full px-3 py-1.5 text-xs font-semibold shadow transition ${fontThemeClass} ${
             isSelected
-              ? "border-black bg-black text-white"
-              : "border-white bg-white/90 text-neutral-900 hover:bg-white"
+              ? "bg-[#3B82F6] text-white"
+              : "bg-white/90 text-neutral-900 hover:bg-white"
           }`}
           style={{
             touchAction: "none",
             ...(isSelected && accentColor ? accentActiveStyle : {}),
             ...(isSelected && accentColor ? accentRingStyle : {}),
           }}
-          aria-label={`Select and drag hotspot: ${title}`}
+          aria-label={`Select hotspot: ${title}`}
         >
+          <CanvasDragBadge
+            label="Hotspot"
+            showMove
+            preferBelow={(page.y ?? 50) <= 12}
+            onMovePointerDown={(e) => {
+              e.stopPropagation();
+              onHotspotPointerDown(e as unknown as React.PointerEvent<HTMLButtonElement>, page);
+            }}
+          />
           {title}
         </button>
       ) : (
@@ -101,7 +112,7 @@ export function HotspotPin({
           onPointerDown={(e) => onHotspotPointerDown(e, page)}
           onDragStart={(e) => e.preventDefault()}
           onClick={(e) => { e.stopPropagation(); if (!dragThresholdRef?.current) onSelectPage(page.id); }}
-          className="group flex flex-col items-center gap-1"
+          className={`group flex flex-col items-center gap-1 ${fontThemeClass}`}
           style={{ touchAction: "none" }}
           aria-label={title}
         >

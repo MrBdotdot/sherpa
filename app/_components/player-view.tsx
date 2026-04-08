@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PageItem, SystemSettings } from "@/app/_lib/authoring-types";
+import { getLocaleFeature, localizePages, parseLocaleLanguages } from "@/app/_lib/localization";
+import { getFontThemeClass } from "@/app/_lib/font-theme";
 import { CanvasBackground } from "@/app/_components/canvas/canvas-background";
 import { HotspotPin } from "@/app/_components/canvas/hotspot-pin";
 import { ContentModule } from "@/app/_components/canvas/content-module";
@@ -23,26 +25,50 @@ export function PlayerView({
   );
   const [introVisible, setIntroVisible] = useState(introEnabled);
   const [selectedPageId, setSelectedPageId] = useState("");
+  const localeFeature = useMemo(() => getLocaleFeature(pages), [pages]);
+  const localeLanguages = useMemo(() => parseLocaleLanguages(localeFeature), [localeFeature]);
+  const defaultLanguageCode = localeLanguages[0]?.code ?? "EN";
+  const [activeLanguageCode, setActiveLanguageCode] = useState(defaultLanguageCode);
   const [modulePage, setModulePage] = useState<PageItem | null>(null);
   const [isModuleExiting, setIsModuleExiting] = useState(false);
   const modulePageRef = useRef<PageItem | null>(null);
   const isModuleExitingRef = useRef(false);
+  const previousDefaultLanguageRef = useRef(defaultLanguageCode);
+  const localizedPages = useMemo(
+    () => localizePages(pages, systemSettings.translations, activeLanguageCode, defaultLanguageCode),
+    [activeLanguageCode, defaultLanguageCode, pages, systemSettings.translations]
+  );
 
   const homePage = useMemo(
     () =>
-      pages.find((p) => p.kind === "home" && p.publishStatus === "published") ?? null,
-    [pages]
+      localizedPages.find((p) => p.kind === "home" && p.publishStatus === "published") ?? null,
+    [localizedPages]
   );
 
   const hotspotPages = useMemo(
-    () => pages.filter((p) => p.kind !== "home" && p.publishStatus === "published"),
-    [pages]
+    () => localizedPages.filter((p) => p.kind !== "home" && p.publishStatus === "published"),
+    [localizedPages]
   );
   const features = useMemo(() => homePage?.canvasFeatures ?? [], [homePage]);
   const resolvedSelectedPageId =
-    selectedPageId && pages.some((page) => page.id === selectedPageId)
+    selectedPageId && localizedPages.some((page) => page.id === selectedPageId)
       ? selectedPageId
       : (homePage?.id ?? "");
+
+  useEffect(() => {
+    const availableCodes = new Set(localeLanguages.map((language) => language.code));
+    const previousDefaultCode = previousDefaultLanguageRef.current;
+
+    if (
+      !activeLanguageCode ||
+      !availableCodes.has(activeLanguageCode) ||
+      activeLanguageCode === previousDefaultCode
+    ) {
+      setActiveLanguageCode(defaultLanguageCode);
+    }
+
+    previousDefaultLanguageRef.current = defaultLanguageCode;
+  }, [activeLanguageCode, defaultLanguageCode, localeLanguages]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -56,6 +82,14 @@ export function PlayerView({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  useEffect(() => {
+    if (!modulePageRef.current || isModuleExitingRef.current) return;
+    const nextModulePage = localizedPages.find((page) => page.id === modulePageRef.current?.id);
+    if (!nextModulePage) return;
+    modulePageRef.current = nextModulePage;
+    setModulePage(nextModulePage);
+  }, [localizedPages]);
 
   if (!homePage) {
     return (
@@ -71,7 +105,7 @@ export function PlayerView({
   }
 
   function handleSelectPage(id: string) {
-    const page = pages.find((p) => p.id === id);
+    const page = localizedPages.find((p) => p.id === id);
     if (!page || page.kind === "home") {
       handleDismissContent();
       return;
@@ -98,6 +132,7 @@ export function PlayerView({
   }
 
   const accentColor = systemSettings.accentColor || "";
+  const fontThemeClass = getFontThemeClass(systemSettings.fontTheme);
   const surfaceStyleClass =
     systemSettings.surfaceStyle === "solid"
       ? "border-neutral-300 bg-white shadow-xl"
@@ -123,7 +158,7 @@ export function PlayerView({
     return (
       <IntroScreen
         youtubeUrl={systemSettings.introScreen.youtubeUrl}
-        pages={pages}
+        pages={localizedPages}
         onStart={() => setIntroVisible(false)}
       />
     );
@@ -149,9 +184,15 @@ export function PlayerView({
           features={features}
           isLayoutEditMode={false}
           accentColor={accentColor}
+          fontThemeClass={fontThemeClass}
           surfaceStyleClass={surfaceStyleClass}
-          pages={pages}
+          pages={localizedPages}
+          activeLanguageCode={activeLanguageCode}
+          availableLanguages={localeLanguages}
+          isPreviewMode
           onCanvasFeaturePointerDown={NOOP_PTR}
+          onSelectCanvasFeature={NOOP}
+          onLanguageChange={setActiveLanguageCode}
           onSelectPage={handleSelectPage}
         />
       </div>
@@ -166,6 +207,7 @@ export function PlayerView({
           isLayoutEditMode={false}
           isPreviewMode={true}
           accentColor={accentColor}
+          fontThemeClass={fontThemeClass}
           hotspotContainerSize={hotspotContainerSize}
           hotspotDotSize={hotspotDotSize}
           hotspotLabelSize={hotspotLabelSize}
@@ -181,7 +223,7 @@ export function PlayerView({
       {modulePage && (
         <ContentModule
           page={modulePage}
-          pages={pages}
+          pages={localizedPages}
           isExiting={isModuleExiting}
           onExitEnd={handleModuleExitEnd}
           systemSettings={systemSettings}

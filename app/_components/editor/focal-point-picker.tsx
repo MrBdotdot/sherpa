@@ -27,7 +27,7 @@ export function FocalPointPicker({
   return (
     <div>
       <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
-        Focal point — drag to reposition
+        Drag to set the focal point
       </div>
       <div
         ref={containerRef}

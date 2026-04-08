@@ -2,7 +2,7 @@
 
 import React, { useRef } from "react";
 import { createHotspotPage, DEFAULT_HERO, getHomePageId } from "@/app/_lib/authoring-utils";
-import { LayoutMode, PageItem } from "@/app/_lib/authoring-types";
+import { InspectorTab, LayoutMode, PageItem } from "@/app/_lib/authoring-types";
 import { useHotspotDrag } from "@/app/_hooks/useHotspotDrag";
 import { useFeatureDrag } from "@/app/_hooks/useFeatureDrag";
 import { useContentDrag } from "@/app/_hooks/useContentDrag";
@@ -15,11 +15,14 @@ interface UseDragProps {
   isPreviewMode: boolean;
   setIsPreviewMode: React.Dispatch<React.SetStateAction<boolean>>;
   setIsContentModalOpen: (v: boolean) => void;
-  setInspectorTab: (tab: "surface" | "content" | "setup") => void;
+  setInspectorTab: (tab: InspectorTab) => void;
   pushPagesHistory: () => void;
   selectedFeatureId: string | null;
   setSelectedFeatureId: (id: string | null) => void;
   layoutMode: LayoutMode;
+  onCollapseSidebar?: () => void;
+  onCollapseInspector?: () => void;
+  onCollapseHeader?: () => void;
 }
 
 
@@ -36,6 +39,9 @@ export function useDrag({
   selectedFeatureId,
   setSelectedFeatureId,
   layoutMode,
+  onCollapseSidebar,
+  onCollapseInspector,
+  onCollapseHeader,
 }: UseDragProps) {
   const isPortraitMode = layoutMode === "mobile-portrait";
   const canvasRef = useRef<HTMLDivElement | null>(null);
@@ -58,20 +64,26 @@ export function useDrag({
     isPortraitMode,
     pages,
     setPages,
-    setSelectedPageId,
+    onCollapseSidebar,
+    onCollapseInspector,
+    onCollapseHeader,
   });
 
-  const { featureDragState, handleCanvasFeaturePointerDown } = useFeatureDrag({
+  const { featureDragState, handleCanvasFeaturePointerDown, handleSelectCanvasFeature } = useFeatureDrag({
     canvasRef,
     imageStripRef,
     contentZoneRef,
-    isPortraitMode,
+    dragThresholdRef,
+    layoutMode,
     isPreviewMode,
     pages,
     setPages,
     setSelectedPageId,
     setSelectedFeatureId,
     setInspectorTab,
+    onCollapseSidebar,
+    onCollapseInspector,
+    onCollapseHeader,
   });
 
   const { contentDragState, handleContentCardPointerDown } = useContentDrag({
@@ -81,6 +93,9 @@ export function useDrag({
     pages,
     setPages,
     selectedPageId,
+    onCollapseSidebar,
+    onCollapseInspector,
+    onCollapseHeader,
   });
 
   const handleCanvasClick = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -169,6 +184,7 @@ export function useDrag({
     contentDragState,
     handleHotspotPointerDown,
     handleCanvasFeaturePointerDown,
+    handleSelectCanvasFeature,
     handleContentCardPointerDown,
     handleCanvasClick,
     handle3dHotspotPlace,

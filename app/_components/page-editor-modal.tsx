@@ -1,28 +1,31 @@
 "use client";
 
-import { ChangeEvent } from "react";
+import { ChangeEvent, useEffect, useRef } from "react";
 
 import { PreviewCanvas } from "@/app/_components/preview-canvas";
+import { OverviewTab } from "@/app/_components/editor/overview-tab";
 import { SurfaceTab } from "@/app/_components/editor/surface-tab";
 import { ContentTab } from "@/app/_components/editor/content-tab";
-import { SetupTab } from "@/app/_components/editor/setup-tab";
+import { ExperienceTab } from "@/app/_components/editor/experience-tab";
 import {
+  CanvasFeature,
   CanvasFeatureField,
   CanvasFeatureType,
   ContentBlock,
   ContentBlockType,
   DisplayStyleKey,
+  InspectorTab,
   ImageFit,
+  LayoutMode,
   PageButtonPlacement,
   PageItem,
   PublishStatus,
   SystemSettings,
   TemplateId,
 } from "@/app/_lib/authoring-types";
+import { LocaleLanguage } from "@/app/_lib/localization";
 import { getPageRoleDescription } from "@/app/_lib/label-utils";
 import { useFocusTrap } from "@/app/_hooks/useFocusTrap";
-
-type InspectorTab = "surface" | "content" | "setup";
 
 type PageEditorModalProps = {
   activePreviewPage: PageItem;
@@ -43,6 +46,19 @@ type PageEditorModalProps = {
     featureId: string,
     event: ChangeEvent<HTMLInputElement>
   ) => void;
+  onCanvasFeatureVisibilityChange: (
+    featureId: string,
+    layoutMode: "mobile-landscape" | "mobile-portrait",
+    visible: boolean
+  ) => void;
+  onLocaleLanguagesChange: (featureId: string, languages: LocaleLanguage[]) => void;
+  onLocalePromoteLanguageToDefault: (
+    featureId: string,
+    languageCode: string,
+    nextLanguages?: LocaleLanguage[]
+  ) => void;
+  onLocaleSourceTextChange: (key: string, value: string) => void;
+  onLocaleTranslationChange: (key: string, languageCode: string, value: string) => void;
   onBlockChange: (blockId: string, value: string) => void;
   onBlockFitChange: (blockId: string, fit: ImageFit) => void;
   onBlockImageUpload: (blockId: string, event: ChangeEvent<HTMLInputElement>) => void;
@@ -52,6 +68,7 @@ type PageEditorModalProps = {
   onCreatePageForButton: () => string;
   onDeleteRequest: () => void;
   onHeroUpload: (event: ChangeEvent<HTMLInputElement>) => void;
+  onGameIconUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onHotspotPointerDown: (
     event: React.PointerEvent<HTMLButtonElement>,
     page: PageItem
@@ -90,23 +107,31 @@ type PageEditorModalProps = {
   onBggImport: (data: { name: string; complexity: number; bggId: string }) => void;
   onTitleChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onOpenPage: (id: string) => void;
+  onLanguageChange?: (languageCode: string) => void;
   selectedFeatureId: string | null;
   selectedPage: PageItem | null;
   selectedPageId: string;
   scrollToBlockId?: string | null;
   showCloseButton?: boolean;
   showPreview?: boolean;
+  previewPages?: PageItem[];
+  activeLanguageCode?: string;
+  availableLanguages?: LocaleLanguage[];
+  currentGameName: string;
+  layoutMode: LayoutMode;
+  localeFeature: CanvasFeature | null;
   surfacePreviewPage: PageItem;
   systemSettings: SystemSettings;
   pages: PageItem[];
   studioDarkMode?: boolean;
 };
 
-const TAB_LABELS: Record<InspectorTab, string> = {
-  surface: "Board",
-  content: "Card",
-  setup: "Settings",
-};
+function getTabLabel(tab: InspectorTab, pageKind: PageItem["kind"]): string {
+  if (tab === "overview") return pageKind === "home" ? "Board" : "Card";
+  if (tab === "board") return "Hotspots";
+  if (tab === "experience") return "Game";
+  return "Content";
+}
 
 export function PageEditorModal({
   activePreviewPage,
@@ -119,6 +144,11 @@ export function PageEditorModal({
   onAddSocialLink,
   onCanvasFeatureChange,
   onCanvasFeatureImageUpload,
+  onCanvasFeatureVisibilityChange,
+  onLocaleLanguagesChange,
+  onLocalePromoteLanguageToDefault,
+  onLocaleSourceTextChange,
+  onLocaleTranslationChange,
   onBlockChange,
   onBlockFitChange,
   onBlockImageUpload,
@@ -128,6 +158,7 @@ export function PageEditorModal({
   onCreatePageForButton,
   onDeleteRequest,
   onHeroUpload,
+  onGameIconUpload,
   onHotspotPointerDown,
   onDisplayStyleChange,
   onInspectorTabChange,
@@ -157,18 +188,30 @@ export function PageEditorModal({
   onTitleChange,
   isPortraitMode,
   onOpenPage,
+  onLanguageChange,
   selectedFeatureId,
   selectedPage,
   selectedPageId,
   scrollToBlockId,
   showCloseButton = true,
   showPreview = true,
+  previewPages,
+  activeLanguageCode,
+  availableLanguages,
+  currentGameName,
+  layoutMode,
+  localeFeature,
   surfacePreviewPage,
   systemSettings,
   pages,
   studioDarkMode = false,
 }: PageEditorModalProps) {
   const dk = studioDarkMode;
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [selectedFeatureId]);
   const panelBg   = dk ? "bg-neutral-900"    : "bg-[#fcfaf7]";
   const panelBord = dk ? "border-neutral-700" : "border-[#e7dfd2]";
   const dialogRef = useFocusTrap<HTMLDivElement>(isOpen && isOverlay);
@@ -181,13 +224,12 @@ export function PageEditorModal({
   }
 
   const titleId = `editor-title-${selectedPage.id}`;
-  const surfaceBadge = selectedPage.canvasFeatures.length;
+  const boardBadge = selectedPage.canvasFeatures.length;
   const contentBadge = selectedPage.blocks.length + selectedPage.socialLinks.length;
-  // Content → Canvas → Settings for all pages; home page disables Content (no content blocks on landing)
-  const visibleTabs: InspectorTab[] = ["content", "surface", "setup"];
-  // If the home page is selected and the content tab is somehow active, fall back to surface
+  const experienceBadge = availableLanguages?.length ?? 0;
+  const visibleTabs: InspectorTab[] = ["overview", "content", "board", "experience"];
   const activeTab: InspectorTab =
-    selectedPage.kind === "home" && inspectorTab === "content" ? "surface" : inspectorTab;
+    selectedPage.kind === "home" && inspectorTab === "content" ? "overview" : inspectorTab;
 
   const panelContent = (
     <div
@@ -202,11 +244,15 @@ export function PageEditorModal({
       }`}
     >
       {/* Tabs */}
-      <div className={`border-b px-5 py-3 ${isOverlay ? `border-neutral-200 bg-white` : `${panelBord} ${panelBg}`}`}>
-        <div role="tablist" aria-label="Inspector tabs" className="flex justify-center"><div className="inline-flex rounded-2xl border border-neutral-200 bg-white p-1">
+      <div className={`border-b ${isOverlay ? `border-neutral-200 bg-white` : `${panelBord} ${panelBg}`}`}>
+        <div role="tablist" aria-label="Inspector tabs" className="flex px-1">
           {visibleTabs.map((tab) => {
             const isDisabled = selectedPage.kind === "home" && tab === "content";
-            const badge = tab === "surface" ? surfaceBadge : tab === "content" ? contentBadge : 0;
+            const badge =
+              tab === "board" ? boardBadge
+              : tab === "content" ? contentBadge
+              : tab === "experience" ? experienceBadge
+              : 0;
             const panelId = `inspector-panel-${tab}`;
             if (isDisabled) {
               return (
@@ -214,10 +260,10 @@ export function PageEditorModal({
                   key={tab}
                   type="button"
                   disabled
-                  title="The main page doesn't use content blocks — use hotspots or card buttons to link players to other cards instead."
-                  className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium text-neutral-300 cursor-not-allowed select-none"
+                  title="The board does not use content blocks. Add hotspots or card buttons to link players to cards."
+                  className="-mb-px flex items-center gap-1.5 border-b-2 border-transparent px-4 py-3 text-xs font-medium text-neutral-300 cursor-not-allowed select-none"
                 >
-                  {TAB_LABELS[tab]}
+                  {getTabLabel(tab, selectedPage.kind)}
                 </button>
               );
             }
@@ -230,20 +276,22 @@ export function PageEditorModal({
                 aria-controls={panelId}
                 type="button"
                 onClick={() => onInspectorTabChange(tab)}
-                className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium transition ${
+                className={`-mb-px flex items-center gap-1.5 border-b-2 px-4 py-3 text-xs font-medium transition ${
                   activeTab === tab
-                    ? "bg-neutral-900 text-white shadow-sm"
-                    : "text-neutral-600 hover:bg-neutral-100"
+                    ? "border-[#3B82F6] text-[#3B82F6]"
+                    : dk
+                    ? "border-transparent text-neutral-400 hover:text-neutral-200"
+                    : "border-transparent text-neutral-500 hover:text-neutral-800"
                 }`}
               >
-                {TAB_LABELS[tab]}
+                {getTabLabel(tab, selectedPage.kind)}
                 {badge > 0 ? (
                   <span
                     aria-label={`${badge} item${badge !== 1 ? "s" : ""}`}
                     className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none ${
-                      inspectorTab === tab
-                        ? "bg-white/20 text-white"
-                        : "bg-neutral-200 text-neutral-500"
+                      activeTab === tab
+                        ? "bg-[#3B82F6]/10 text-[#3B82F6]"
+                        : "bg-neutral-100 text-neutral-500"
                     }`}
                   >
                     {badge}
@@ -252,7 +300,7 @@ export function PageEditorModal({
               </button>
             );
           })}
-        </div></div>
+        </div>
       </div>
 
       {/* Header */}
@@ -270,7 +318,7 @@ export function PageEditorModal({
               value={selectedPage.title}
               onChange={onTitleChange}
               placeholder="Card name"
-              className="min-w-0 flex-1 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 outline-none focus:border-black"
+              className="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
             />
             {selectedPage.kind !== "home" ? (
               <button
@@ -295,7 +343,7 @@ export function PageEditorModal({
             type="button"
             onClick={onClose}
             aria-label="Close editor"
-            className="shrink-0 rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
+            className="shrink-0 rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
           >
             Close
           </button>
@@ -305,6 +353,7 @@ export function PageEditorModal({
       {/* Body */}
       <div className={`grid min-h-0 flex-1 gap-0 ${showPreview ? "lg:grid-cols-[1.15fr_0.85fr]" : ""}`}>
         <div
+          ref={scrollRef}
           key={selectedPage.id}
           role="tabpanel"
           id={`inspector-panel-${activeTab}`}
@@ -313,11 +362,25 @@ export function PageEditorModal({
             isOverlay ? "bg-neutral-50" : panelBg
           } ${showPreview ? `border-r ${panelBord}` : ""}`}
         >
-          {activeTab === "surface" ? (
+          {activeTab === "overview" ? (
+            <OverviewTab
+              onContentTintChange={onContentTintChange}
+              onDisplayStyleChange={onDisplayStyleChange}
+              onHeroUpload={onHeroUpload}
+              onPageButtonPlacementChange={onPageButtonPlacementChange}
+              onPageHeroUrlChange={onPageHeroUrlChange}
+              onResetPagePosition={onResetPagePosition}
+              onSystemSettingChange={onSystemSettingChange}
+              selectedPage={selectedPage}
+              systemSettings={systemSettings}
+            />
+          ) : activeTab === "board" ? (
             <SurfaceTab
+              layoutMode={layoutMode}
               onAddCanvasFeature={onAddCanvasFeature}
               onCanvasFeatureChange={onCanvasFeatureChange}
               onCanvasFeatureImageUpload={onCanvasFeatureImageUpload}
+              onCanvasFeatureVisibilityChange={onCanvasFeatureVisibilityChange}
               onCreatePageForButton={onCreatePageForButton}
               onOpenPage={onOpenPage}
               onRemoveCanvasFeature={onRemoveCanvasFeature}
@@ -354,15 +417,17 @@ export function PageEditorModal({
               selectedPage={selectedPage}
             />
           ) : (
-            <SetupTab
-              onCreatePageWithConfig={onCreatePageWithConfig}
-              onHeroUpload={onHeroUpload}
-              onPageButtonPlacementChange={onPageButtonPlacementChange}
-              onPageHeroUrlChange={onPageHeroUrlChange}
-              onResetPagePosition={onResetPagePosition}
+            <ExperienceTab
+              currentGameName={currentGameName}
+              localeFeature={localeFeature}
+              onGameIconUpload={onGameIconUpload}
+              onLocaleLanguagesChange={onLocaleLanguagesChange}
+              onLocalePromoteLanguageToDefault={onLocalePromoteLanguageToDefault}
+              onLocaleSourceTextChange={onLocaleSourceTextChange}
+              onLocaleTranslationChange={onLocaleTranslationChange}
               onSystemSettingChange={onSystemSettingChange}
               onBggImport={onBggImport}
-              selectedPage={selectedPage}
+              pages={pages}
               systemSettings={systemSettings}
             />
           )}
@@ -375,22 +440,27 @@ export function PageEditorModal({
               <PreviewCanvas
                 activePage={activePreviewPage}
                 surfacePage={surfacePreviewPage}
+                pages={previewPages}
                 contentDragState={null}
                 featureDragState={null}
                 hotspotPages={hotspotPages}
-                layoutMode="desktop"
+                layoutMode={layoutMode}
                 systemSettings={systemSettings}
+                activeLanguageCode={activeLanguageCode}
+                availableLanguages={availableLanguages}
                 showLayoutHelp={false}
                 isPreviewMode={false}
                 experienceStatus="draft"
                 onExperienceStatusChange={() => {}}
                 onCanvasClick={() => {}}
                 onCanvasFeaturePointerDown={() => {}}
+                onSelectCanvasFeature={() => {}}
                 onContentCardPointerDown={() => {}}
                 onDeleteHotspot={() => {}}
                 onDismissContent={() => {}}
                 onDismissLayoutHelp={() => {}}
                 onHotspotPointerDown={onHotspotPointerDown}
+                onLanguageChange={onLanguageChange}
                 onSelectPage={onSelectPage}
                 onSetLayoutMode={() => {}}
                 onTogglePreviewMode={() => {}}
@@ -410,9 +480,6 @@ export function PageEditorModal({
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-4"
-      role="button"
-      tabIndex={0}
-      aria-label="Close editor overlay"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
     >

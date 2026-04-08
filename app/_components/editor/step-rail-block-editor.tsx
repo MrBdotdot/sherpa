@@ -89,7 +89,7 @@ export function StepRailBlockEditor({
                 aria-pressed={data.orientation === o}
                 className={`flex-1 rounded-xl border py-2 text-xs font-medium capitalize transition ${
                   data.orientation === o
-                    ? "border-neutral-900 bg-neutral-900 text-white"
+                    ? "border-[#3B82F6] bg-[#3B82F6] text-white"
                     : "border-neutral-300 text-neutral-600 hover:bg-neutral-50"
                 }`}
               >
@@ -110,7 +110,7 @@ export function StepRailBlockEditor({
                 aria-pressed={data.iconShape === s.value}
                 className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium transition ${
                   data.iconShape === s.value
-                    ? "border-neutral-900 bg-neutral-900 text-white"
+                    ? "border-[#3B82F6] bg-[#3B82F6] text-white"
                     : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
                 }`}
               >
@@ -224,7 +224,7 @@ export function StepRailBlockEditor({
                   value={step.iconImageUrl}
                   onChange={(e) => updateStep(i, { iconImageUrl: e.target.value })}
                   placeholder="Image URL"
-                  className="min-w-0 flex-1 rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs outline-none transition focus:border-black"
+                  className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
                 />
                 {step.iconImageUrl && (
                   <button
@@ -248,9 +248,9 @@ export function StepRailBlockEditor({
                 <select
                   value={step.sectionBlockId}
                   onChange={(e) => updateStep(i, { sectionBlockId: e.target.value })}
-                  className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-black"
+                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
                 >
-                  <option value="">— None —</option>
+                  <option value="">None</option>
                   {sectionBlocks.map((sb) => (
                     <option key={sb.id} value={sb.id}>
                       {sb.value.trim() || `Section (${sb.id.slice(-6)})`}
@@ -259,7 +259,7 @@ export function StepRailBlockEditor({
                 </select>
               ) : (
                 <div className="rounded-xl border border-dashed border-neutral-200 px-3 py-2 text-xs text-neutral-400">
-                  No Section blocks on this page yet — add a Section block first.
+                  No sections yet. Add a section block first.
                 </div>
               )}
             </div>

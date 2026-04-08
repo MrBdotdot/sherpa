@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createInitialPages } from "@/app/_lib/authoring-utils";
+import { KNOWN_LANGUAGES } from "@/app/_lib/localization";
+import { getGameIconFallback, getGameIconUrl } from "@/app/_lib/game-icon";
+import { SystemSettings } from "@/app/_lib/authoring-types";
 import { supabase } from "@/app/_lib/supabase";
-import { deleteGame } from "@/app/_lib/supabase-game";
+import { deleteGame, saveGame } from "@/app/_lib/supabase-game";
 import { ConfirmGameDeleteModal } from "@/app/_components/confirm-game-delete-modal";
+import { useFocusTrap } from "@/app/_hooks/useFocusTrap";
 
-export type GameEntry = { id: string; title: string };
+export type GameEntry = { id: string; title: string; gameIcon?: string };
 
 type CreateWizardProps = {
   userId: string;
@@ -16,8 +21,13 @@ type CreateWizardProps = {
 
 function CreateWizard({ userId, onBack, onDone }: CreateWizardProps) {
   const [name, setName] = useState("");
+  const [defaultLanguageCode, setDefaultLanguageCode] = useState("EN");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const selectedLanguage = useMemo(
+    () => KNOWN_LANGUAGES.find((language) => language.code === defaultLanguageCode),
+    [defaultLanguageCode]
+  );
 
   async function handleCreate() {
     const trimmed = name.trim();
@@ -27,22 +37,24 @@ function CreateWizard({ userId, onBack, onDone }: CreateWizardProps) {
     setError(null);
 
     const id = crypto.randomUUID();
-    const { error } = await supabase.from("games").insert({
-      id,
-      user_id: userId,
-      title: trimmed,
-      card_order: [],
-      system_settings: {
+    try {
+      const systemSettings: SystemSettings = {
         fontTheme: "modern",
         surfaceStyle: "glass",
         accentColor: "",
+        defaultLanguageCode,
+        gameIcon: "",
         hotspotSize: "medium",
         modelEnvironment: "studio",
-      },
-    });
+      };
+      const starterPages = createInitialPages({
+        defaultLanguageCode,
+        gameName: trimmed,
+      });
 
-    if (error) {
-      setError(error.message);
+      await saveGame(id, userId, trimmed, starterPages, systemSettings);
+    } catch (createError) {
+      setError(getErrorMessage(createError));
       setCreating(false);
       return;
     }
@@ -69,7 +81,7 @@ function CreateWizard({ userId, onBack, onDone }: CreateWizardProps) {
       </div>
 
       <div className="px-5 py-4">
-        <label htmlFor="create-game-name" className="mb-1.5 block text-xs font-medium text-neutral-500">Rules experience name</label>
+        <label htmlFor="create-game-name" className="mb-1.5 block text-xs font-medium text-neutral-500">Game name</label>
         <input
           id="create-game-name"
           type="text"
@@ -77,8 +89,27 @@ function CreateWizard({ userId, onBack, onDone }: CreateWizardProps) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); }}
-          className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400 focus:bg-white"
+          className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none placeholder:text-neutral-400 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 focus:bg-white"
         />
+        <label htmlFor="create-default-language" className="mb-1.5 mt-4 block text-xs font-medium text-neutral-500">
+          Default language
+        </label>
+        <select
+          id="create-default-language"
+          value={defaultLanguageCode}
+          onChange={(event) => setDefaultLanguageCode(event.target.value)}
+          className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 focus:bg-white"
+          aria-describedby="create-default-language-help"
+        >
+          {KNOWN_LANGUAGES.map((language) => (
+            <option key={language.code} value={language.code}>
+              {language.label} ({language.code})
+            </option>
+          ))}
+        </select>
+        <p id="create-default-language-help" className="mt-2 text-xs leading-5 text-neutral-500">
+          The first translation column will use {selectedLanguage?.label ?? "this language"} as the source text.
+        </p>
         {error && (
           <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{error}</div>
         )}
@@ -89,7 +120,7 @@ function CreateWizard({ userId, onBack, onDone }: CreateWizardProps) {
           type="button"
           onClick={handleCreate}
           disabled={!name.trim() || creating}
-          className="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-40"
+          className="rounded-full bg-[#3B82F6] px-4 py-2 text-sm font-medium text-white hover:bg-[#2563EB] disabled:opacity-40"
         >
           {creating ? "Creating..." : "Create"}
         </button>
@@ -120,6 +151,7 @@ export function GameSwitcherModal({
   onDeleteCurrentGame,
 }: GameSwitcherModalProps) {
   const router = useRouter();
+  const dialogRef = useFocusTrap<HTMLDivElement>(isOpen);
   const [games, setGames] = useState<GameEntry[] | null>(null);
   const [expandedGameId, setExpandedGameId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -133,11 +165,23 @@ export function GameSwitcherModal({
 
     supabase
       .from("games")
-      .select("id, title")
+      .select("id, title, system_settings")
       .eq("user_id", userId)
       .order("updated_at", { ascending: false })
       .then(({ data }) => {
-        setGames(data ?? []);
+        type GameRow = {
+          id: string;
+          title: string;
+          system_settings: SystemSettings | null;
+        };
+
+        setGames(
+          ((data ?? []) as GameRow[]).map((game) => ({
+            id: game.id,
+            title: game.title,
+            gameIcon: game.system_settings?.gameIcon ?? "",
+          }))
+        );
       });
   }, [isOpen, userId]);
 
@@ -204,14 +248,17 @@ export function GameSwitcherModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
       onKeyDown={(e) => {
-        if (e.target !== e.currentTarget) return;
-        if (e.key === "Escape" || e.key === "Enter" || e.key === " ") handleClose();
+        if (e.key === "Escape") handleClose();
       }}
-      role="button"
-      tabIndex={0}
-      aria-label="Close game switcher"
+      aria-hidden="true"
     >
-      <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="game-switcher-title"
+        className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
+      >
         {showWizard ? (
           <CreateWizard
             userId={userId}
@@ -222,10 +269,10 @@ export function GameSwitcherModal({
             }}
           />
         ) : (
-          <>
-            <div className="border-b border-neutral-200 px-5 py-4">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-semibold text-neutral-900">Switch game</div>
+            <>
+              <div className="border-b border-neutral-200 px-5 py-4">
+                <div className="flex items-center justify-between">
+                <div id="game-switcher-title" className="text-sm font-semibold text-neutral-900">Your games</div>
                 <button
                   type="button"
                   onClick={handleClose}
@@ -243,7 +290,7 @@ export function GameSwitcherModal({
                   placeholder="Search games..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400 focus:bg-white"
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none placeholder:text-neutral-400 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 focus:bg-white"
                 />
               </div>
             </div>
@@ -259,6 +306,8 @@ export function GameSwitcherModal({
                 filteredGames.map((game) => {
                   const isCurrent = game.id === currentGameId;
                   const isExpanded = expandedGameId === game.id;
+                  const gameIconUrl = getGameIconUrl(game.gameIcon);
+                  const gameIconFallback = getGameIconFallback(game.title);
 
                   return (
                     <div key={game.id}>
@@ -270,18 +319,26 @@ export function GameSwitcherModal({
                         }}
                         className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition ${
                           isExpanded
-                            ? "bg-neutral-900 text-white"
+                            ? "bg-[#1e3a8a] text-white"
                             : isCurrent
                             ? "bg-neutral-50 ring-1 ring-neutral-200 hover:bg-neutral-100"
                             : "hover:bg-neutral-50"
                         }`}
                       >
                         <div
-                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold ${
-                            isExpanded ? "bg-white/15 text-white" : "bg-neutral-900 text-white"
+                          className={`flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl text-sm font-bold ${
+                            isExpanded ? "bg-white/15 text-white" : "bg-[#1e3a8a] text-white"
                           }`}
                         >
-                          {game.title[0]?.toUpperCase() ?? "?"}
+                          {gameIconUrl ? (
+                            <img
+                              src={gameIconUrl}
+                              alt={`${game.title} icon`}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            gameIconFallback
+                          )}
                         </div>
 
                         <div className="min-w-0 flex-1">
@@ -294,7 +351,7 @@ export function GameSwitcherModal({
                               {game.title}
                             </span>
                             {isCurrent && !isExpanded && (
-                              <span className="shrink-0 rounded-full bg-neutral-900 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
+                              <span className="shrink-0 rounded-full bg-[#3B82F6] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
                                 Current
                               </span>
                             )}
@@ -334,7 +391,7 @@ export function GameSwitcherModal({
                             </div>
                             <div>
                               <div className="text-sm font-medium text-neutral-900">Edit rules</div>
-                              <div className="text-xs text-neutral-400">Open the authoring studio</div>
+                              <div className="text-xs text-neutral-400">Open this game in the editor</div>
                             </div>
                           </button>
 
@@ -375,7 +432,7 @@ export function GameSwitcherModal({
                             </div>
                             <div>
                               <div className="text-sm font-medium text-red-600">Delete game</div>
-                              <div className="text-xs text-neutral-400">Permanently remove this rules experience</div>
+                              <div className="text-xs text-neutral-400">Delete all cards and content. This cannot be undone.</div>
                             </div>
                           </button>
                         </div>

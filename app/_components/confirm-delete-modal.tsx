@@ -35,26 +35,26 @@ export function ConfirmDeleteModal({
         className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
       >
         <h2 id="delete-dialog-title" className="text-lg font-semibold text-neutral-900">
-          Delete page?
+          Delete card?
         </h2>
         <p className="mt-2 text-sm leading-6 text-neutral-600">
-          This will permanently remove <span className="font-medium">{pageTitle}</span>.
+          <span className="font-medium">{pageTitle}</span> will be permanently deleted. This cannot be undone.
         </p>
 
         <div className="mt-6 flex gap-3">
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 rounded-2xl border border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+            className="flex-1 rounded-full border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
           >
-            Cancel
+            Keep it
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="flex-1 rounded-2xl border border-red-300 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50"
+            className="flex-1 rounded-full border border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-100"
           >
-            Delete
+            Delete card
           </button>
         </div>
       </div>

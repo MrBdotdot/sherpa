@@ -4,6 +4,7 @@ import { ChangeEvent, Dispatch, SetStateAction } from "react";
 import { applyDisplayStyle } from "@/app/_lib/display-style";
 import {
   DisplayStyleKey,
+  InspectorTab,
   InteractionType,
   PageButtonPlacement,
   PageItem,
@@ -20,7 +21,7 @@ interface UsePageHandlersProps {
   pushPagesHistory: () => void;
   updateSelectedPage: (updater: (page: PageItem) => PageItem) => void;
   setIsContentModalOpen: (v: boolean) => void;
-  setInspectorTab: (tab: "surface" | "content" | "setup") => void;
+  setInspectorTab: (tab: InspectorTab) => void;
   setSelectedFeatureId: (id: string | null) => void;
   setShowDeleteModal: (v: boolean) => void;
   userId: string;
@@ -68,7 +69,7 @@ export function usePageHandlers({
     setSelectedPageId(pageId);
     setSelectedFeatureId(featureId);
     setIsContentModalOpen(true);
-    setInspectorTab("surface");
+    setInspectorTab("board");
   };
 
   // ── Page styling ──────────────────────────────────────────────

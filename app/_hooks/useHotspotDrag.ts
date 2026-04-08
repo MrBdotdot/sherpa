@@ -4,6 +4,11 @@ import React, { useEffect, useState } from "react";
 import { clamp } from "@/app/_lib/authoring-utils";
 import { DragState, PageButtonPlacement, PageItem } from "@/app/_lib/authoring-types";
 
+const PANEL_COLLAPSE_PROXIMITY = 120;
+const SIDEBAR_WIDTH_PX = 300;
+const INSPECTOR_WIDTH_PX = 380;
+const HEADER_HEIGHT_PX = 80;
+
 type UseHotspotDragProps = {
   canvasRef: React.RefObject<HTMLDivElement | null>;
   imageStripRef: React.RefObject<HTMLDivElement | null>;
@@ -11,7 +16,9 @@ type UseHotspotDragProps = {
   isPortraitMode: boolean;
   pages: PageItem[];
   setPages: React.Dispatch<React.SetStateAction<PageItem[]>>;
-  setSelectedPageId: (id: string) => void;
+  onCollapseSidebar?: () => void;
+  onCollapseInspector?: () => void;
+  onCollapseHeader?: () => void;
 };
 
 export function useHotspotDrag({
@@ -21,7 +28,9 @@ export function useHotspotDrag({
   isPortraitMode,
   pages,
   setPages,
-  setSelectedPageId,
+  onCollapseSidebar,
+  onCollapseInspector,
+  onCollapseHeader,
 }: UseHotspotDragProps) {
   const [dragState, setDragState] = useState<DragState | null>(null);
 
@@ -61,7 +70,6 @@ export function useHotspotDrag({
     const hotspotPixelX = (startX / 100) * rect.width;
     const hotspotPixelY = (startY / 100) * rect.height;
 
-    setSelectedPageId(page.id);
     setDragState({
       id: page.id,
       pointerOffsetX: event.clientX - (rect.left + hotspotPixelX),
@@ -71,6 +79,10 @@ export function useHotspotDrag({
 
   useEffect(() => {
     if (!dragState) return;
+
+    let sidebarCollapsed = false;
+    let inspectorCollapsed = false;
+    let headerCollapsed = false;
 
     const handlePointerMove = (event: PointerEvent) => {
       const el = getCoordEl();
@@ -83,6 +95,19 @@ export function useHotspotDrag({
       const y = clamp((rawY / rect.height) * 100, 0, 100);
 
       (dragThresholdRef as React.MutableRefObject<boolean>).current = true;
+
+      if (!sidebarCollapsed && onCollapseSidebar && event.clientX < SIDEBAR_WIDTH_PX + PANEL_COLLAPSE_PROXIMITY) {
+        sidebarCollapsed = true;
+        onCollapseSidebar();
+      }
+      if (!inspectorCollapsed && onCollapseInspector && event.clientX > window.innerWidth - INSPECTOR_WIDTH_PX - PANEL_COLLAPSE_PROXIMITY) {
+        inspectorCollapsed = true;
+        onCollapseInspector();
+      }
+      if (!headerCollapsed && onCollapseHeader && event.clientY < HEADER_HEIGHT_PX + PANEL_COLLAPSE_PROXIMITY) {
+        headerCollapsed = true;
+        onCollapseHeader();
+      }
 
       setPages((prev) =>
         prev.map((page) =>

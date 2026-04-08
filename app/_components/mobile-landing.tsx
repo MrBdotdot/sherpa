@@ -27,7 +27,7 @@ export function MobileLanding() {
         </h1>
 
         <p className="mt-4 text-base leading-relaxed text-white/60">
-          Sherpa turns your rulebook into a hotspot-driven digital experience — linked pages, visual references, and contextual explanations players can explore mid-game.
+          Sherpa turns your rulebook into a digital experience. Players tap hotspots on the board to see rules, images, and explanations right when they need them.
         </p>
 
         {/* Desktop CTA */}
@@ -52,7 +52,7 @@ export function MobileLanding() {
                 Explore rules experiences built with Sherpa.
               </p>
             </div>
-            <span className="ml-4 shrink-0 text-white/40" aria-hidden="true">→</span>
+            <svg className="ml-4 h-4 w-4 shrink-0 text-white/40" aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
           </Link>
         </div>
       </main>

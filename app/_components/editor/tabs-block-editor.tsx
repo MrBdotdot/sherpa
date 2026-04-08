@@ -138,7 +138,7 @@ export function TabsBlockEditor({
                 ))
               ) : (
                 <div className="rounded-xl border border-dashed border-neutral-200 px-3 py-3 text-xs text-neutral-400">
-                  No blocks yet — add one below.
+                  No blocks yet. Add one below.
                 </div>
               )}
 

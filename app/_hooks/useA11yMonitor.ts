@@ -36,7 +36,7 @@ export function useA11yMonitor(containerRef: RefObject<HTMLElement | null>) {
   const prevKeysRef = useRef<Set<string>>(new Set());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const a11yEnabled = false; // temporarily disabled
+  const a11yEnabled = process.env.NODE_ENV !== "production";
   useEffect(() => {
     if (!a11yEnabled || process.env.NODE_ENV === "production") return;
     if (!containerRef.current) return;

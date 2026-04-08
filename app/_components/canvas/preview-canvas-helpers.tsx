@@ -2,6 +2,8 @@ import { memo } from "react";
 import { CanvasFeature, PageItem } from "@/app/_lib/authoring-types";
 import { getFeatureTypeLabel } from "@/app/_lib/label-utils";
 import { CanvasFeatureCard } from "@/app/_components/canvas/canvas-feature-card";
+import { CanvasDragBadge } from "@/app/_components/canvas/canvas-drag-badge";
+import { LocaleLanguage } from "@/app/_lib/localization";
 
 export type FeatureDragState = {
   id: string;
@@ -84,17 +86,31 @@ export const FeaturePlacer = memo(function FeaturePlacer({
   features,
   isLayoutEditMode,
   accentColor,
+  fontThemeClass,
   surfaceStyleClass,
   pages,
+  activeLanguageCode,
+  availableLanguages,
+  isPreviewMode,
+  dragThresholdRef,
   onCanvasFeaturePointerDown,
+  onSelectCanvasFeature,
+  onLanguageChange,
   onSelectPage,
 }: {
   features: CanvasFeature[];
   isLayoutEditMode: boolean;
   accentColor: string;
+  fontThemeClass: string;
   surfaceStyleClass: string;
   pages?: PageItem[];
+  activeLanguageCode?: string;
+  availableLanguages?: LocaleLanguage[];
+  isPreviewMode: boolean;
+  dragThresholdRef?: React.RefObject<boolean>;
   onCanvasFeaturePointerDown: (event: React.PointerEvent<HTMLDivElement>, featureId: string) => void;
+  onSelectCanvasFeature: (featureId: string) => void;
+  onLanguageChange?: (languageCode: string) => void;
   onSelectPage: (id: string) => void;
 }) {
   return (
@@ -104,24 +120,39 @@ export const FeaturePlacer = memo(function FeaturePlacer({
           key={feature.id}
           data-a11y-id={feature.id}
           data-a11y-type="feature"
-          className={`absolute z-20 ${isLayoutEditMode ? "cursor-grab active:cursor-grabbing" : ""}`}
+          className="absolute z-20"
           style={{ left: `${feature.x}%`, top: `${feature.y}%`, transform: "translate3d(-50%, -50%, 0)", touchAction: "none" }}
-          onPointerDown={(event) => onCanvasFeaturePointerDown(event, feature.id)}
-          onPointerDownCapture={(event) => event.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (dragThresholdRef?.current) { dragThresholdRef.current = false; return; }
+            if (isLayoutEditMode) onSelectCanvasFeature(feature.id);
+          }}
         >
           {isLayoutEditMode ? (
-            <div className="absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap flex items-center gap-2 rounded-full bg-black/75 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-              <span>{getFeatureTypeLabel(feature.type)}</span>
-              <span className="opacity-60">Move</span>
-            </div>
+            <CanvasDragBadge
+              label={getFeatureTypeLabel(feature.type)}
+              showMove
+              preferBelow={feature.y <= 12}
+              onMovePointerDown={(e) => {
+                onCanvasFeaturePointerDown(e as unknown as React.PointerEvent<HTMLDivElement>, feature.id);
+              }}
+            />
           ) : null}
-          <CanvasFeatureCard
-            accentColor={accentColor}
-            feature={feature}
-            pages={pages}
-            onNavigate={onSelectPage}
-            surfaceStyleClass={surfaceStyleClass}
-          />
+          <div className={isLayoutEditMode ? "pointer-events-none" : ""}>
+            <CanvasFeatureCard
+              accentColor={accentColor}
+              feature={feature}
+              pages={pages}
+              activeLanguageCode={activeLanguageCode}
+              availableLanguages={availableLanguages}
+              fontThemeClass={fontThemeClass}
+              isInteractive={isPreviewMode}
+              onNavigate={onSelectPage}
+              onLanguageChange={onLanguageChange}
+              surfaceStyleClass={surfaceStyleClass}
+            />
+          </div>
         </div>
       ))}
     </>

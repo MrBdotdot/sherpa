@@ -45,7 +45,7 @@ export function ImageHotspotEditor({
       <div
         ref={containerRef}
         onClick={block.value ? placeHotspot : undefined}
-        className={`relative h-32 w-full overflow-hidden rounded-xl border border-neutral-300 select-none ${block.value ? "cursor-crosshair" : "flex items-center justify-center bg-neutral-50"}`}
+        className={`relative h-32 w-full overflow-hidden rounded-lg border border-neutral-200 select-none ${block.value ? "cursor-crosshair" : "flex items-center justify-center bg-neutral-50"}`}
         style={block.value ? { backgroundImage: `url(${block.value})`, backgroundSize: "cover", backgroundPosition: "50% 50%" } : undefined}
       >
         {!block.value && (
@@ -72,7 +72,7 @@ export function ImageHotspotEditor({
         <div key={h.id} className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-neutral-600">
-              Hotspot {i + 1} <span className="font-normal text-neutral-400">— {h.x}%, {h.y}%</span>
+              Hotspot {i + 1} <span className="font-normal text-neutral-400">at {h.x}%, {h.y}%</span>
             </span>
             <button
               type="button"
@@ -87,20 +87,20 @@ export function ImageHotspotEditor({
             value={h.label}
             onChange={(e) => updateHotspot(h.id, { label: e.target.value })}
             placeholder="Label (e.g. Start Zone)"
-            className="w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm outline-none focus:border-black"
+            className="w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
           />
           <textarea
             value={h.content}
             onChange={(e) => updateHotspot(h.id, { content: e.target.value })}
             placeholder="Description shown when tapped"
             rows={2}
-            className="w-full resize-none rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm outline-none focus:border-black"
+            className="w-full resize-none rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
           />
         </div>
       ))}
 
       {hotspots.length === 0 && block.value && (
-        <p className="text-xs text-neutral-400">No hotspots yet — click the image above to place one.</p>
+        <p className="text-xs text-neutral-400">No hotspots yet. Click the image to place one.</p>
       )}
     </div>
   );

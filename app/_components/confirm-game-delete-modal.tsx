@@ -29,13 +29,7 @@ export function ConfirmGameDeleteModal({
     <div
       className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 p-4"
       onClick={(e) => { if (e.target === e.currentTarget && !isDeleting) onCancel(); }}
-      onKeyDown={(e) => {
-        if (e.target !== e.currentTarget || isDeleting) return;
-        if (e.key === "Escape" || e.key === "Enter" || e.key === " ") onCancel();
-      }}
-      role="button"
-      tabIndex={0}
-      aria-label="Close delete game dialog"
+      onKeyDown={(e) => { if (e.key === "Escape" && !isDeleting) onCancel(); }}
     >
       <div
         ref={dialogRef}
@@ -48,11 +42,11 @@ export function ConfirmGameDeleteModal({
           Delete game?
         </h2>
         <p className="mt-2 text-sm leading-6 text-neutral-600">
-          This will permanently remove <span className="font-medium text-neutral-900">{gameTitle}</span> and every page, hotspot, and published view attached to it.
+          This will delete <span className="font-medium text-neutral-900">{gameTitle}</span> and all of its cards, content, and settings. This cannot be undone.
         </p>
         {isCurrentGame && (
           <p className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
-            You are deleting the game currently open in the studio. Sherpa will move you into another game, or a fresh workspace if this is your last one.
+            This is the game you have open right now. After deleting, Sherpa will open your next game, or start fresh if this is your only one.
           </p>
         )}
         {error && (
@@ -66,15 +60,15 @@ export function ConfirmGameDeleteModal({
             type="button"
             onClick={onCancel}
             disabled={isDeleting}
-            className="flex-1 rounded-2xl border border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
+            className="flex-1 rounded-full border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
           >
-            Cancel
+            Keep it
           </button>
           <button
             type="button"
             onClick={onConfirm}
             disabled={isDeleting}
-            className="flex-1 rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"
+            className="flex-1 rounded-full border border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"
           >
             {isDeleting ? "Deleting..." : "Delete game"}
           </button>

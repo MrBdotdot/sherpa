@@ -38,9 +38,11 @@ export function ChangelogModal({
             type="button"
             onClick={onClose}
             aria-label="Close changelog"
-            className="rounded-xl border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-50"
+            className="rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
           >
-            Close
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+            </svg>
           </button>
         </div>
 
@@ -49,7 +51,7 @@ export function ChangelogModal({
             {PATCH_NOTES.map((release) => (
               <div key={release.version}>
                 <div className="mb-3 flex items-baseline gap-2.5">
-                  <span className="rounded-full bg-neutral-900 px-2.5 py-0.5 text-[11px] font-semibold text-white">
+                  <span className="rounded-full bg-[#3B82F6] px-2.5 py-0.5 text-[11px] font-semibold text-white">
                     {release.version}
                   </span>
                   <span className="text-xs text-neutral-400">{release.date}</span>

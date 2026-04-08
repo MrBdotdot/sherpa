@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { APP_VERSION } from "@/app/_lib/authoring-utils";
+import { getGameIconFallback, getGameIconUrl } from "@/app/_lib/game-icon";
 import { getFeatureTypeLabel } from "@/app/_lib/label-utils";
-import { CanvasFeature, ContentBlock, PageItem, PublishStatus } from "@/app/_lib/authoring-types";
-import { getUserNameParts } from "@/app/_lib/user-display";
+import { CanvasFeature, ContentBlock, ExperienceStatus, PageItem, PublishStatus } from "@/app/_lib/authoring-types";
+import { UserMetadata, getUserProfile } from "@/app/_lib/user-profile";
+import { getBlockPreview, getTabSections } from "@/app/_lib/sidebar-icon-utils";
+import { SidebarItemIcon } from "@/app/_components/sidebar-item-icon";
 
 type PageSidebarProps = {
   onAddPage: () => void;
@@ -16,9 +19,11 @@ type PageSidebarProps = {
   selectedFeatureId: string | null;
   selectedPageId: string;
   currentGameName?: string;
-  currentStudioName?: string;
+  currentGameIcon?: string;
   currentGameId?: string;
+  experienceStatus?: ExperienceStatus;
   userEmail?: string;
+  userMetadata?: UserMetadata;
   onOpenChangelog?: () => void;
   onOpenAccount?: () => void;
   onOpenGameSwitcher?: () => void;
@@ -47,6 +52,24 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
   );
 }
 
+function HotspotPinIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+      <circle cx="6.5" cy="5.5" r="2.25" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M6.5 11.5C6.5 11.5 2 7.5 2 5.5a4.5 4.5 0 019 0c0 2-4.5 6-4.5 6z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CardPageIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+      <rect x="1.5" y="1.5" width="10" height="10" rx="1.75" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M4 4.5h5M4 6.5h3.5M4 8.5h4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function SidebarPageButton({
   isSelected,
   onOpenPage,
@@ -61,22 +84,21 @@ function SidebarPageButton({
       type="button"
       onClick={() => onOpenPage(page.id)}
       aria-current={isSelected ? "page" : undefined}
-      className={`flex w-full items-center rounded-2xl border px-3 py-3 text-left transition ${
-        isSelected
-          ? "border-black bg-black text-white shadow-lg shadow-black/10 ring-2 ring-black/15"
-          : "border-neutral-200 bg-neutral-50 text-neutral-800 hover:bg-white"
+      data-selected={isSelected ? "true" : undefined}
+      className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition ${
+        isSelected ? "bg-[#3B82F6]/10" : "hover:bg-neutral-50"
       }`}
     >
-      <div className="min-w-0">
-        <div className="truncate text-sm font-medium">
-          {page.title || "Untitled page"}
-        </div>
-        {page.kind === "hotspot" && page.x !== null && page.y !== null ? (
-          <div className={`mt-0.5 text-xs ${isSelected ? "text-neutral-300" : "text-neutral-400"}`}>
-            {Math.round(page.x)}%, {Math.round(page.y)}%
-          </div>
-        ) : null}
+      <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${
+        isSelected
+          ? "border-[#3B82F6]/30 bg-[#3B82F6]/10 text-[#3B82F6]"
+          : "border-neutral-200 bg-white text-neutral-400"
+      }`}>
+        {page.kind === "hotspot" ? <HotspotPinIcon /> : <CardPageIcon />}
       </div>
+      <span className={`truncate text-xs font-medium ${isSelected ? "text-[#3B82F6]" : "text-neutral-700"}`}>
+        {page.title || (page.kind === "hotspot" ? "Untitled hotspot" : "Untitled card")}
+      </span>
     </button>
   );
 }
@@ -94,50 +116,23 @@ function SidebarFeatureItem({
     <button
       type="button"
       onClick={onSelect}
-      className={`flex w-full items-center gap-2 rounded-xl border px-2.5 py-2 text-left text-xs transition ${
+      data-selected={isSelected ? "true" : undefined}
+      className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition ${
         isSelected
-          ? "border-black bg-black text-white"
-          : "border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-white hover:text-neutral-900"
+          ? "bg-[#3B82F6]/10"
+          : "hover:bg-neutral-50"
       }`}
     >
-      <span
-        className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${
-          isSelected ? "bg-white/20 text-white" : "bg-neutral-200 text-neutral-500"
-        }`}
-      >
-        {getFeatureTypeLabel(feature.type)}
+      <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${
+        isSelected ? "border-[#3B82F6]/30 bg-[#3B82F6]/10 text-[#3B82F6]" : "border-neutral-200 bg-white text-neutral-400"
+      }`}>
+        <SidebarItemIcon type={feature.type} />
+      </div>
+      <span className={`truncate text-xs font-medium ${isSelected ? "text-[#3B82F6]" : "text-neutral-700"}`}>
+        {feature.label || getFeatureTypeLabel(feature.type)}
       </span>
-      <span className="truncate font-medium">{feature.label || "Unnamed"}</span>
     </button>
   );
-}
-
-function getTabSections(blocks: ContentBlock[]) {
-  const result: Array<{ blockId: string; tabId: string; label: string }> = [];
-  for (const block of blocks) {
-    if (block.type === "tabs") {
-      try {
-        const data = JSON.parse(block.value);
-        const sections: Array<{ id: string; label: string }> = data.sections ?? [];
-        sections.forEach((s, i) => {
-          result.push({ blockId: block.id, tabId: s.id, label: s.label || `Tab ${i + 1}` });
-        });
-      } catch { /* ignore */ }
-    }
-  }
-  return result;
-}
-
-const BLOCK_LABELS: Record<string, string> = {
-  text: "Text", callout: "Callout", image: "Image", tabs: "Tabs",
-  section: "Section", "step-rail": "Step Rail", carousel: "Carousel", consent: "Consent",
-};
-
-function getBlockPreview(block: ContentBlock): string {
-  if (block.type === "text" || block.type === "callout" || block.type === "section") {
-    return block.value.split("\n")[0].slice(0, 48) || (BLOCK_LABELS[block.type] ?? block.type);
-  }
-  return BLOCK_LABELS[block.type] ?? block.type;
 }
 
 function SidebarBlockItem({
@@ -171,23 +166,25 @@ function SidebarBlockItem({
       onDrop={(e) => { e.preventDefault(); onDrop(index); }}
     >
       {showDropLine && (
-        <div className="pointer-events-none absolute -top-1.5 inset-x-0 z-20 h-0.5 rounded-full bg-blue-500" />
+        <div className="pointer-events-none absolute -top-1.5 inset-x-0 z-20 h-0.5 rounded-full bg-[#3B82F6]" />
       )}
       <div
         draggable
         onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(index); }}
         onDragEnd={onDragEnd}
-        className="flex w-full cursor-grab items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 py-2 active:cursor-grabbing"
+        className="group flex w-full cursor-grab items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-neutral-50 active:cursor-grabbing"
       >
+        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-white text-neutral-400">
+          <SidebarItemIcon type={block.type} />
+        </div>
         <button
           type="button"
           onClick={onOpen}
-          className="flex min-w-0 flex-1 items-center gap-2 text-left text-xs text-neutral-700 hover:text-neutral-900 transition"
+          className="flex min-w-0 flex-1 items-start gap-2 text-left transition"
         >
-          <span className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-neutral-200 text-neutral-500">
-            {BLOCK_LABELS[block.type] ?? block.type}
+          <span className="truncate text-xs font-medium text-neutral-700 group-hover:text-neutral-900">
+            {getBlockPreview(block)}
           </span>
-          <span className="truncate font-medium">{getBlockPreview(block)}</span>
         </button>
       </div>
     </div>
@@ -199,12 +196,16 @@ function SidebarTabItem({ label, onOpen }: { label: string; onOpen: () => void }
     <button
       type="button"
       onClick={onOpen}
-      className="flex w-full items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-left text-xs text-neutral-700 hover:bg-white hover:text-neutral-900 transition"
+      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition hover:bg-neutral-50"
     >
-      <span className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide bg-neutral-200 text-neutral-500">
-        Tab
-      </span>
-      <span className="truncate font-medium">{label}</span>
+      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-white text-neutral-400">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+          <rect x="1" y="5" width="11" height="7.5" rx="1.25" stroke="currentColor" strokeWidth="1.2"/>
+          <rect x="1" y="1.5" width="4" height="3.75" rx="1" fill="currentColor"/>
+          <rect x="6" y="1.5" width="3.5" height="3.75" rx="1" stroke="currentColor" strokeWidth="1.1"/>
+        </svg>
+      </div>
+      <span className="truncate text-xs font-medium text-neutral-700">{label}</span>
     </button>
   );
 }
@@ -272,17 +273,28 @@ export function PageSidebar({
   selectedFeatureId,
   selectedPageId,
   currentGameName = "Ugly Pickle",
-  currentStudioName = "Bee Studio",
+  currentGameIcon = "",
   currentGameId,
+  experienceStatus = "draft",
   userEmail = "",
+  userMetadata = {},
   onOpenChangelog,
   onOpenAccount,
   onOpenGameSwitcher,
   darkMode = false,
 }: PageSidebarProps) {
   const dk = darkMode;
-  const { displayName, initial } = getUserNameParts(userEmail);
+  const isLive = experienceStatus === "published";
+  const { displayName, initial, avatarUrl } = getUserProfile(userEmail, userMetadata);
+  const gameIconUrl = getGameIconUrl(currentGameIcon);
+  const gameIconFallback = getGameIconFallback(currentGameName);
   const [blockDrag, setBlockDrag] = useState<{ pageId: string; dragIndex: number; dropIndex: number } | null>(null);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = containerRef.current?.querySelector('[data-selected="true"]');
+    el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [selectedPageId, selectedFeatureId]);
 
   function makeBlockDragHandlers(pageId: string) {
     return {
@@ -328,7 +340,7 @@ export function PageSidebar({
 
   return (
     <aside className={`flex h-full flex-col ${dk ? "bg-neutral-900 text-neutral-100" : "border-r border-neutral-200/60 bg-white/60"}`}>
-      <div className="min-h-0 flex-1 overflow-y-auto p-5">
+      <div ref={containerRef} className="min-h-0 flex-1 overflow-y-auto p-5">
         <div className="mb-6 flex items-center gap-2.5">
           <img src="/sherpa-icon.svg" alt="Sherpa" className="h-11 w-11 rounded-lg" draggable={false} />
           <div className="flex items-baseline gap-2">
@@ -357,7 +369,7 @@ export function PageSidebar({
                     open={openSections.has("elements")}
                     onToggle={() => toggleSection("elements")}
                     isEmpty={elements.length === 0}
-                    emptyText="No board elements added yet."
+                    emptyText="No elements yet. Add one from the Hotspots tab."
                     count={elements.length}
                   >
                     {elements.map((feature) => (
@@ -377,7 +389,7 @@ export function PageSidebar({
                     open={openSections.has("hotspots")}
                     onToggle={() => toggleSection("hotspots")}
                     isEmpty={hotspotItems.length === 0}
-                    emptyText="No hotspots placed yet."
+                    emptyText="No hotspots yet. Click the board to place one."
                     count={hotspotItems.length}
                   >
                     {hotspotItems.map((hotspot) => {
@@ -402,7 +414,7 @@ export function PageSidebar({
                                 aria-expanded={isExpanded}
                                 aria-controls={expandId}
                                 aria-label={`${isExpanded ? "Collapse" : "Expand"} contents of ${hotspot.title || "this hotspot"}`}
-                                className="flex shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-2 text-neutral-400 transition hover:bg-white hover:text-neutral-700"
+                                className="flex shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-neutral-400 transition hover:bg-white hover:text-neutral-700"
                               >
                                 <ChevronIcon expanded={isExpanded} />
                               </button>
@@ -472,7 +484,7 @@ export function PageSidebar({
                     open={openSections.has("page-buttons")}
                     onToggle={() => toggleSection("page-buttons")}
                     isEmpty={pageButtons.length === 0}
-                    emptyText="No board buttons yet."
+                    emptyText="No card buttons yet."
                     count={pageButtons.length}
                   >
                     {pageButtons.map((feature) => (
@@ -498,7 +510,7 @@ export function PageSidebar({
             open={openSections.has("pages")}
             onToggle={() => toggleSection("pages")}
             isEmpty={navPages.length === 0}
-            emptyText="No cards yet — click + New card to add one."
+            emptyText="No cards yet. Click + New card to add one."
             count={navPages.length}
             action={
               <button
@@ -537,7 +549,7 @@ export function PageSidebar({
                         aria-expanded={isExpanded}
                         aria-controls={expandId}
                         aria-label={`${isExpanded ? "Collapse" : "Expand"} contents of ${page.title || "this card"}`}
-                        className="flex shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-2 text-neutral-400 transition hover:bg-white hover:text-neutral-700"
+                        className="flex shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-neutral-400 transition hover:bg-white hover:text-neutral-700"
                       >
                         <ChevronIcon expanded={isExpanded} />
                       </button>
@@ -633,13 +645,34 @@ export function PageSidebar({
           onClick={() => onOpenGameSwitcher?.()}
           className={`mb-2 flex w-full items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition ${dk ? "border-neutral-700 bg-neutral-800 hover:bg-neutral-700" : "border-neutral-200 bg-neutral-50 hover:bg-white"}`}
         >
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-900 text-xs font-bold text-white">
-            {currentGameName[0]?.toUpperCase() ?? "?"}
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#1e3a8a] text-xs font-bold text-white">
+            {gameIconUrl ? (
+              <img
+                src={gameIconUrl}
+                alt={`${currentGameName} icon`}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              gameIconFallback
+            )}
           </div>
           <div className="min-w-0 flex-1">
-            <div className={`truncate text-xs font-semibold ${dk ? "text-neutral-200" : "text-neutral-800"}`}>{currentStudioName} / {currentGameName}</div>
+            <div className={`truncate text-xs font-semibold ${dk ? "text-neutral-200" : "text-neutral-800"}`}>
+              {currentGameName}
+            </div>
             <div className="text-[10px] text-neutral-400">Switch game</div>
           </div>
+          {isLive ? (
+            <span
+              className={`shrink-0 self-center rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${
+                dk
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-700"
+              }`}
+            >
+              Live
+            </span>
+          ) : null}
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`shrink-0 ${dk ? "text-neutral-500" : "text-neutral-300"}`}>
             <path d="M3 4.5L6 1.5L9 4.5M3 7.5L6 10.5L9 7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -651,9 +684,17 @@ export function PageSidebar({
           onClick={() => onOpenAccount?.()}
           className={`flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left transition ${dk ? "hover:bg-neutral-800" : "hover:bg-neutral-100"}`}
         >
-          <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${dk ? "bg-neutral-700 text-neutral-300" : "bg-neutral-200 text-neutral-600"}`}>
-            {initial}
-          </div>
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={displayName || "Profile photo"}
+              className="h-7 w-7 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${dk ? "bg-neutral-700 text-neutral-300" : "bg-neutral-200 text-neutral-600"}`}>
+              {initial}
+            </div>
+          )}
           <div className="min-w-0">
             <div className={`truncate text-xs font-medium ${dk ? "text-neutral-200" : "text-neutral-700"}`}>{displayName}</div>
             <div className="truncate text-[10px] text-neutral-400">

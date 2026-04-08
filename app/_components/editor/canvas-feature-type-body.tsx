@@ -1,154 +1,36 @@
 "use client";
 
 import { ChangeEvent } from "react";
-import { CanvasFeature, CanvasFeatureField, PageItem } from "@/app/_lib/authoring-types";
-
-type DropdownItem = { label: string; linkType: "none" | "external" | "page"; url: string };
-
-function parseDropdownItems(text: string): DropdownItem[] {
-  return text.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
-    const pipeIdx = l.indexOf("|");
-    if (pipeIdx === -1) return { label: l, linkType: "none" as const, url: "" };
-    const label = l.slice(0, pipeIdx).trim();
-    const url = l.slice(pipeIdx + 1).trim();
-    if (url.startsWith("page:")) return { label, linkType: "page" as const, url: url.slice(5) };
-    return { label, linkType: "external" as const, url };
-  });
-}
-
-function serializeDropdownItems(items: DropdownItem[]): string {
-  return items.map((item) => {
-    if (item.linkType === "external" && item.url) return `${item.label}|${item.url}`;
-    if (item.linkType === "page" && item.url) return `${item.label}|page:${item.url}`;
-    return item.label;
-  }).join("\n");
-}
-
-function DropdownItemsEditor({
-  feature,
-  pages,
-  onCanvasFeatureChange,
-}: {
-  feature: CanvasFeature;
-  pages: PageItem[];
-  onCanvasFeatureChange: (featureId: string, field: CanvasFeatureField, value: string) => void;
-}) {
-  const items = parseDropdownItems(feature.optionsText);
-
-  const update = (index: number, patch: Partial<DropdownItem>) => {
-    const next = items.map((item, i) => (i === index ? { ...item, ...patch } : item));
-    onCanvasFeatureChange(feature.id, "optionsText", serializeDropdownItems(next));
-  };
-
-  const add = () => {
-    const next = [...items, { label: "New item", linkType: "none" as const, url: "" }];
-    onCanvasFeatureChange(feature.id, "optionsText", serializeDropdownItems(next));
-  };
-
-  const remove = (index: number) => {
-    const next = items.filter((_, i) => i !== index);
-    onCanvasFeatureChange(feature.id, "optionsText", serializeDropdownItems(next));
-  };
-
-  return (
-    <div className="space-y-2">
-      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Items</div>
-      {items.map((item, i) => (
-        <div key={i} className="space-y-2 rounded-xl border border-neutral-200 p-3">
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={item.label}
-              onChange={(e) => update(i, { label: e.target.value })}
-              placeholder="Item label"
-              aria-label={`Item ${i + 1} label`}
-              className="min-w-0 flex-1 rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs outline-none focus:border-black"
-            />
-            <button
-              type="button"
-              onClick={() => remove(i)}
-              aria-label={`Remove item ${i + 1}`}
-              className="shrink-0 text-xs text-neutral-400 hover:text-red-500"
-            >
-              ✕
-            </button>
-          </div>
-          <div className="flex items-center rounded-lg border border-neutral-200 bg-neutral-100 p-0.5">
-            {(["none", "external", "page"] as const).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => update(i, { linkType: mode, url: "" })}
-                aria-pressed={item.linkType === mode}
-                className={`flex-1 rounded-md py-1 text-[11px] font-medium transition-all ${
-                  item.linkType === mode
-                    ? "bg-white text-neutral-900 shadow-sm"
-                    : "text-neutral-400 hover:text-neutral-600"
-                }`}
-              >
-                {mode === "none" ? "No link" : mode === "external" ? "External" : "Page"}
-              </button>
-            ))}
-          </div>
-          {item.linkType === "external" ? (
-            <input
-              type="text"
-              value={item.url}
-              onChange={(e) => update(i, { url: e.target.value })}
-              placeholder="https://..."
-              aria-label={`Item ${i + 1} URL`}
-              className="w-full rounded-lg border border-neutral-300 px-2.5 py-1.5 font-mono text-xs outline-none focus:border-black"
-            />
-          ) : item.linkType === "page" ? (
-            <select
-              value={item.url}
-              onChange={(e) => update(i, { url: e.target.value })}
-              aria-label={`Item ${i + 1} page`}
-              className="w-full rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs outline-none focus:border-black"
-            >
-              <option value="">— Select a page —</option>
-              {pages.filter((p) => p.kind !== "home").map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.title || "Untitled page"}
-                </option>
-              ))}
-            </select>
-          ) : null}
-        </div>
-      ))}
-      <button
-        type="button"
-        onClick={add}
-        className="w-full rounded-xl border border-dashed border-neutral-300 py-2.5 text-xs font-medium text-neutral-500 transition hover:border-neutral-400 hover:text-neutral-700"
-      >
-        + Add item
-      </button>
-    </div>
-  );
-}
+import {
+  CanvasFeature,
+  CanvasFeatureField,
+  PageItem,
+} from "@/app/_lib/authoring-types";
+import { DropdownFeatureEditor } from "@/app/_components/editor/dropdown-feature-editor";
+import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
 
 type Props = {
   feature: CanvasFeature;
   brandColors?: string[];
+  pages: PageItem[];
   onCanvasFeatureChange: (featureId: string, field: CanvasFeatureField, value: string) => void;
   onCanvasFeatureImageUpload: (featureId: string, event: ChangeEvent<HTMLInputElement>) => void;
   onCreatePageForButton: () => string;
   onOpenPage: (id: string) => void;
-  pages: PageItem[];
 };
 
 export function CanvasFeatureTypeBody({
   feature,
   brandColors,
+  pages,
   onCanvasFeatureChange,
   onCanvasFeatureImageUpload,
   onCreatePageForButton,
   onOpenPage,
-  pages,
 }: Props) {
   return (
     <>
-      {feature.type !== "disclaimer" ? (
+      {feature.type !== "disclaimer" && feature.type !== "locale" ? (
         <input
           type="text"
           value={feature.label}
@@ -163,7 +45,7 @@ export function CanvasFeatureTypeBody({
             : feature.type === "search" ? "Placeholder text"
             : "Element label"
           }
-          className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
+          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
         />
       ) : null}
 
@@ -172,7 +54,7 @@ export function CanvasFeatureTypeBody({
         <>
           <div className="space-y-2">
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Image</div>
-            <label className="inline-flex cursor-pointer items-center rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
+            <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
               Upload image
               <input
                 type="file"
@@ -208,7 +90,7 @@ export function CanvasFeatureTypeBody({
               onChange={(e) => onCanvasFeatureChange(feature.id, "logoSize", e.target.value)}
               aria-label="Image size"
               aria-valuetext={`${feature.logoSize ?? 48}px`}
-              className="w-full accent-neutral-900"
+              className="w-full accent-[#3B82F6]"
             />
           </div>
           <div className="space-y-2">
@@ -226,8 +108,8 @@ export function CanvasFeatureTypeBody({
                     aria-pressed={isActive}
                     className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                       isActive
-                        ? "border-neutral-900 bg-neutral-900 text-white"
-                        : "border-neutral-300 text-neutral-600 hover:bg-neutral-50"
+                        ? "border-[#3B82F6] bg-[#3B82F6] text-white"
+                        : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
                     }`}
                   >
                     {mode === "none" ? "None" : mode === "link" ? "Goes to a link" : "Shows link list"}
@@ -243,18 +125,18 @@ export function CanvasFeatureTypeBody({
               onChange={(event) => onCanvasFeatureChange(feature.id, "linkUrl", event.target.value)}
               placeholder="Destination URL"
               aria-label="Destination URL"
-              className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
+              className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
             />
           ) : feature.description === "links" ? (
             <div className="space-y-2">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Links — one per line</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Links, one per line</div>
               <textarea
                 value={feature.optionsText}
                 onChange={(event) => onCanvasFeatureChange(feature.id, "optionsText", event.target.value)}
                 placeholder={"Landing Page|https://...\nInstagram|https://...\n---\nPortfolio|https://...\n~Designed by Name. Open to work."}
                 aria-label="Links, one per line"
                 rows={6}
-                className="w-full resize-none rounded-xl border border-neutral-300 px-3 py-3 font-mono text-xs outline-none focus:border-black"
+                className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 font-mono text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
               />
               <div className="text-xs leading-5 text-neutral-400">
                 Label or Label|URL · Use <code className="rounded bg-neutral-100 px-1">---</code> for a divider · Start a line with <code className="rounded bg-neutral-100 px-1">~</code> for attribution text
@@ -269,7 +151,7 @@ export function CanvasFeatureTypeBody({
         <>
           <div className="space-y-2">
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">QR image</div>
-            <label className="inline-flex cursor-pointer items-center rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
+            <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
               Upload QR image
               <input
                 type="file"
@@ -305,7 +187,7 @@ export function CanvasFeatureTypeBody({
               onChange={(e) => onCanvasFeatureChange(feature.id, "qrSize", e.target.value)}
               aria-label="QR code size"
               aria-valuetext={`${feature.qrSize ?? 120}px`}
-              className="w-full accent-neutral-900"
+              className="w-full accent-[#3B82F6]"
             />
           </div>
           <div className="space-y-2">
@@ -324,7 +206,7 @@ export function CanvasFeatureTypeBody({
                 onChange={(e) => onCanvasFeatureChange(feature.id, "qrBgColor", e.target.value)}
                 placeholder="None"
                 aria-label="QR background color hex"
-                className="w-full rounded-xl border border-neutral-300 px-3 py-2 font-mono text-xs outline-none focus:border-black"
+                className="w-full rounded-lg border border-neutral-200 px-3 py-2 font-mono text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
               />
               {feature.qrBgColor ? (
                 <button
@@ -350,7 +232,7 @@ export function CanvasFeatureTypeBody({
                   value={feature.qrBgOpacity ?? 1}
                   onChange={(e) => onCanvasFeatureChange(feature.id, "qrBgOpacity", e.target.value)}
                   aria-label="QR background opacity"
-                  className="w-full accent-neutral-900"
+                  className="w-full accent-[#3B82F6]"
                 />
               </div>
             ) : null}
@@ -367,7 +249,7 @@ export function CanvasFeatureTypeBody({
             placeholder="Optional subtitle"
             aria-label="Subtitle"
             rows={2}
-            className="w-full resize-none rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
+            className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
           />
           <div className="space-y-2">
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Size</div>
@@ -421,7 +303,7 @@ export function CanvasFeatureTypeBody({
                 onChange={(e) => onCanvasFeatureChange(feature.id, "headingColor", e.target.value)}
                 placeholder="Auto"
                 aria-label="Heading color hex"
-                className="w-full rounded-xl border border-neutral-300 px-3 py-2 font-mono text-xs outline-none focus:border-black"
+                className="w-full rounded-lg border border-neutral-200 px-3 py-2 font-mono text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
               />
               {feature.headingColor ? (
                 <button
@@ -436,7 +318,7 @@ export function CanvasFeatureTypeBody({
           </div>
           <div className="space-y-2">
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
-              Links below heading — one per line
+              Links below heading, one per line
             </div>
             <textarea
               value={feature.optionsText}
@@ -444,7 +326,7 @@ export function CanvasFeatureTypeBody({
               placeholder={"How to Play|/how-to-play\nFull Rules|/rules"}
               aria-label="Links below heading, one per line"
               rows={3}
-              className="w-full resize-none rounded-xl border border-neutral-300 px-3 py-3 font-mono text-xs outline-none focus:border-black"
+              className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 font-mono text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
             />
             <div className="text-xs leading-5 text-neutral-400">Format: Label or Label|URL. Leave empty for heading only.</div>
           </div>
@@ -503,26 +385,32 @@ export function CanvasFeatureTypeBody({
               onChange={(event) => onCanvasFeatureChange(feature.id, "linkUrl", event.target.value)}
               placeholder="https://..."
               aria-label="Button URL"
-              className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
+              className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
             />
           ) : (
             <div className="space-y-2">
               <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Links to container</div>
-              {pages.filter((p) => p.kind !== "home").length > 0 ? (
-                <select
-                  value={feature.linkUrl}
-                  onChange={(e) => onCanvasFeatureChange(feature.id, "linkUrl", e.target.value)}
-                  aria-label="Linked container"
-                  className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
-                >
-                  <option value="">— Select a container —</option>
-                  {pages.filter((p) => p.kind !== "home").map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.title || "Untitled page"}
-                    </option>
-                  ))}
-                </select>
-              ) : null}
+              <div className="overflow-hidden rounded-xl border border-neutral-200">
+                {feature.linkUrl ? (
+                  <div className="flex items-center justify-between px-3 py-2.5">
+                    <span className="text-sm font-medium text-neutral-800">
+                      {pages.find((p) => p.id === feature.linkUrl)?.title || "Untitled"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onCanvasFeatureChange(feature.id, "linkUrl", "")}
+                      className="text-xs text-neutral-400 hover:text-neutral-700"
+                    >
+                      Change
+                    </button>
+                  </div>
+                ) : (
+                  <PageLinkPicker
+                    pages={pages.filter((p) => p.kind !== "home")}
+                    onSelect={(pageId) => onCanvasFeatureChange(feature.id, "linkUrl", pageId)}
+                  />
+                )}
+              </div>
               {feature.linkUrl ? (
                 <button
                   type="button"
@@ -553,18 +441,27 @@ export function CanvasFeatureTypeBody({
           <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
             Links to container
           </div>
-          <select
-            value={feature.linkUrl}
-            onChange={(e) => onCanvasFeatureChange(feature.id, "linkUrl", e.target.value)}
-            aria-label="Linked container"
-            className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
-          >
-            {pages.filter((p) => p.kind !== "home").map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.title || "Untitled page"}
-              </option>
-            ))}
-          </select>
+          <div className="overflow-hidden rounded-xl border border-neutral-200">
+            {feature.linkUrl ? (
+              <div className="flex items-center justify-between px-3 py-2.5">
+                <span className="text-sm font-medium text-neutral-800">
+                  {pages.find((p) => p.id === feature.linkUrl)?.title || "Untitled"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onCanvasFeatureChange(feature.id, "linkUrl", "")}
+                  className="text-xs text-neutral-400 hover:text-neutral-700"
+                >
+                  Change
+                </button>
+              </div>
+            ) : (
+              <PageLinkPicker
+                pages={pages.filter((p) => p.kind !== "home")}
+                onSelect={(pageId) => onCanvasFeatureChange(feature.id, "linkUrl", pageId)}
+              />
+            )}
+          </div>
           {feature.linkUrl ? (
             <button
               type="button"
@@ -579,7 +476,7 @@ export function CanvasFeatureTypeBody({
 
       {/* Dropdown */}
       {feature.type === "dropdown" ? (
-        <DropdownItemsEditor
+        <DropdownFeatureEditor
           feature={feature}
           pages={pages}
           onCanvasFeatureChange={onCanvasFeatureChange}
@@ -601,38 +498,14 @@ export function CanvasFeatureTypeBody({
           placeholder="Legal or event-specific copy"
           aria-label="Disclaimer text"
           rows={3}
-          className="w-full resize-none rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
+          className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
         />
       ) : null}
 
       {/* Locale */}
       {feature.type === "locale" ? (
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Default language code</div>
-            <input
-              type="text"
-              value={feature.label}
-              onChange={(e) => onCanvasFeatureChange(feature.id, "label", e.target.value)}
-              placeholder="EN"
-              aria-label="Default language code"
-              className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-black"
-            />
-          </div>
-          <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Languages — one per line</div>
-            <textarea
-              value={feature.optionsText}
-              onChange={(e) => onCanvasFeatureChange(feature.id, "optionsText", e.target.value)}
-              placeholder={"English|EN\nEspañol|ES\nFrançais|FR"}
-              aria-label="Languages, one per line"
-              rows={5}
-              className="w-full resize-none rounded-xl border border-neutral-300 px-3 py-3 font-mono text-xs outline-none focus:border-black"
-            />
-            <div className="text-xs leading-5 text-neutral-400">
-              Format: <code className="rounded bg-neutral-100 px-1">Display Name|CODE</code> — the code appears on the button
-            </div>
-          </div>
+        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-sm leading-6 text-neutral-500">
+          Translation management now lives in the Game tab. Use this hotspot here to place, move, or remove the language switcher from the canvas.
         </div>
       ) : null}
     </>
