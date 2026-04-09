@@ -102,11 +102,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ hasBranding: true });
   }
 
-  const { data: profile } = await supabaseAdmin
+  const { data: profile, error: profileError } = await supabaseAdmin
     .from("profiles")
     .select("plan, plan_expires_at")
     .eq("id", game.user_id)
     .single();
+
+  if (profileError) {
+    return Response.json({ hasBranding: true }); // conservative default on error
+  }
 
   let hasBranding: boolean;
 
