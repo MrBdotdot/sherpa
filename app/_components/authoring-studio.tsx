@@ -60,7 +60,7 @@ export function AuthoringStudio({
   userEmail: string;
   userMetadata?: UserMetadata;
 }) {
-  const { canPublish } = usePlan();
+  const { canPublish, hasBranding } = usePlan();
   const [showPricingModal, setShowPricingModal] = useState<"upgrade-prompt" | "pricing" | null>(null);
 
   const searchParams = useSearchParams();
@@ -479,6 +479,7 @@ export function AuthoringStudio({
     conventionMode,
     onStartConventionMode: handleStartConventionMode,
     onStopConventionMode: handleStopConventionMode,
+    hasBranding: hasBranding || conventionMode,
     studioChrome: {
       headerOpen: panels.isHeaderOpen,
       leftInset: panels.headerLeftInset,

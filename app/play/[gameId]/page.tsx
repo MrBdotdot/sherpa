@@ -11,6 +11,7 @@ export default function PlayPage() {
   const [pages, setPages] = useState<PageItem[] | null>(null);
   const [systemSettings, setSystemSettings] = useState<SystemSettings | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [hasBranding, setHasBranding] = useState(true); // conservative default
 
   useEffect(() => {
     if (!gameId) return;
@@ -24,6 +25,20 @@ export default function PlayPage() {
         }
       })
       .catch(() => setNotFound(true));
+  }, [gameId]);
+
+  useEffect(() => {
+    if (!gameId) return;
+    fetch("/api/stripe/entitlement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gameId }),
+    })
+      .then((r) => r.json())
+      .then((data: { hasBranding?: boolean }) => {
+        setHasBranding(data.hasBranding ?? true);
+      })
+      .catch(() => setHasBranding(true));
   }, [gameId]);
 
   if (notFound) {
@@ -53,5 +68,5 @@ export default function PlayPage() {
     );
   }
 
-  return <PlayerView pages={pages} systemSettings={systemSettings} />;
+  return <PlayerView pages={pages} systemSettings={systemSettings} hasBranding={hasBranding} />;
 }

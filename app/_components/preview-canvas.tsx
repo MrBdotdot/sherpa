@@ -82,6 +82,7 @@ type PreviewCanvasProps = {
   conventionMode?: boolean;
   onStartConventionMode?: () => void;
   onStopConventionMode?: () => void;
+  hasBranding?: boolean;
   /** When true the canvas stretches to fill its parent height instead of using a fixed min-height.
    *  Use in the main studio layout; leave false (default) for modal/sidebar previews. */
   fillHeight?: boolean;
@@ -146,6 +147,7 @@ export function PreviewCanvas({
   conventionMode = false,
   onStartConventionMode,
   onStopConventionMode,
+  hasBranding = false,
 }: PreviewCanvasProps) {
   const { canPublish } = usePlan();
   const {
@@ -1040,6 +1042,23 @@ export function PreviewCanvas({
                 Convention mode — session ends when you close this tab
               </div>
             </div>
+          </div>
+        )}
+        {isPreviewMode && hasBranding && (
+          <div className="pointer-events-none absolute bottom-4 left-1/2 z-50 -translate-x-1/2">
+            <a
+              href="https://sherpa.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-white/20 bg-black/60 px-3 py-1.5 text-xs font-medium text-white/80 backdrop-blur-sm transition hover:bg-black/75"
+              aria-label="Built with Sherpa"
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" opacity="0.7" />
+                <path d="M6 3v3l2 1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+              </svg>
+              Built with Sherpa
+            </a>
           </div>
         )}
       </div>
