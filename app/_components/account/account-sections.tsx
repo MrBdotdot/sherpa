@@ -502,19 +502,7 @@ export function LanguageSection({ metadata }: LanguageSectionProps) {
 
 // ── Billing ────────────────────────────────────────────────────
 
-export function BillingSection() {
-  return (
-    <div>
-      <SectionHeader title="Billing" description="Manage your subscription and payment details." />
-      <div className="rounded-xl border border-neutral-100 bg-neutral-50 px-5 py-10 text-center">
-        <div className="text-sm font-medium text-neutral-600">Billing management is coming soon.</div>
-        <p className="mt-1.5 text-xs text-neutral-400">
-          Subscription plans, invoices, and payment methods will appear here.
-        </p>
-      </div>
-    </div>
-  );
-}
+export { BillingSection } from "@/app/_components/account/billing-section";
 
 // ── Terms ──────────────────────────────────────────────────────
 

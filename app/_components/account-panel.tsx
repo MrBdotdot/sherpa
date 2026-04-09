@@ -40,6 +40,7 @@ type AccountPanelProps = {
   onStudioNameChange?: (name: string) => void;
   studioDarkMode?: boolean;
   onStudioDarkModeChange?: (v: boolean) => void;
+  onOpenPricingModal?: () => void;
 };
 
 const NAV_GROUPS: {
@@ -199,6 +200,7 @@ export function AccountPanel({
   onStudioNameChange,
   studioDarkMode = false,
   onStudioDarkModeChange,
+  onOpenPricingModal,
 }: AccountPanelProps) {
   const [activeSection, setActiveSection] = useState<AccountSection>("profile");
   const [metadata, setMetadata] = useState<UserMetadata>(userMetadata);
@@ -258,7 +260,7 @@ export function AccountPanel({
       sectionContent = <LanguageSection metadata={metadata} />;
       break;
     case "billing":
-      sectionContent = <BillingSection />;
+      sectionContent = <BillingSection onOpenPricingModal={onOpenPricingModal ?? (() => {})} />;
       break;
     case "terms":
       sectionContent = <TermsSection />;
