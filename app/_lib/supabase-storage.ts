@@ -212,8 +212,63 @@ export async function compressImage(
     return file;
   }
 
-  // PNG and all other image types handled in subsequent tasks.
-  return file;
+  const loadImage = (src: string): Promise<HTMLImageElement> =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    if (type === "image/png") {
+      const img = await loadImage(objectUrl);
+
+      // Sample alpha channel to detect transparency.
+      const sampleCanvas = document.createElement("canvas");
+      sampleCanvas.width = img.naturalWidth;
+      sampleCanvas.height = img.naturalHeight;
+      const sampleCtx = sampleCanvas.getContext("2d");
+      if (!sampleCtx) return file; // can't inspect — return unchanged
+
+      sampleCtx.drawImage(img, 0, 0);
+      const { data } = sampleCtx.getImageData(
+        0,
+        0,
+        img.naturalWidth,
+        img.naturalHeight
+      );
+
+      // data is a flat RGBA array: [r,g,b,a, r,g,b,a, ...]
+      // Alpha is every 4th byte starting at index 3.
+      let hasTransparency = false;
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i] < 255) {
+          hasTransparency = true;
+          break;
+        }
+      }
+
+      if (hasTransparency) {
+        // Preserve logos, company marks, etc.
+        return file;
+      }
+
+      // Opaque PNG — compress to JPEG.
+      const blob = await drawToJpeg(img, 1 /* no EXIF rotation for PNG */);
+      return new File([blob], file.name, { type: "image/jpeg" });
+    }
+
+    // JPEG, WEBP, and all other image types:
+    // Read EXIF orientation, apply correction, resize if needed, export JPEG.
+    const orientation = await readExifOrientation(file);
+    const img = await loadImage(objectUrl);
+    const blob = await drawToJpeg(img, orientation);
+    return new File([blob], file.name, { type: "image/jpeg" });
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
 }
 
 export async function uploadImage(
