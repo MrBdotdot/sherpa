@@ -1,4 +1,5 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePlan } from "@/app/_hooks/usePlan";
 import dynamic from "next/dynamic";
 import { IntroScreen } from "@/app/_components/canvas/intro-screen";
 import { CanvasBackground } from "@/app/_components/canvas/canvas-background";
@@ -78,6 +79,9 @@ type PreviewCanvasProps = {
   studioName?: string;
   onRenameGame?: (name: string) => void;
   liveViewHref?: string | null;
+  conventionMode?: boolean;
+  onStartConventionMode?: () => void;
+  onStopConventionMode?: () => void;
   /** When true the canvas stretches to fill its parent height instead of using a fixed min-height.
    *  Use in the main studio layout; leave false (default) for modal/sidebar previews. */
   fillHeight?: boolean;
@@ -139,7 +143,11 @@ export function PreviewCanvas({
   liveViewHref,
   fillHeight = false,
   studioChrome,
+  conventionMode = false,
+  onStartConventionMode,
+  onStopConventionMode,
 }: PreviewCanvasProps) {
+  const { canPublish } = usePlan();
   const {
     editingName,
     nameInput,
@@ -405,7 +413,7 @@ export function PreviewCanvas({
       ? "text-neutral-400 hover:bg-neutral-700 hover:text-neutral-100"
       : "text-neutral-500 hover:bg-[#f7f3ea] hover:text-neutral-900";
 
-    return (
+    const publishToggle = canPublish ? (
       <div
         role="group"
         aria-label="Publish status"
@@ -434,6 +442,51 @@ export function PreviewCanvas({
           );
         })}
       </div>
+    ) : (
+      <button
+        type="button"
+        onClick={() => onExperienceStatusChange("published")}
+        className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-500 shadow-sm"
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path d="M8.5 5V3.5a2.5 2.5 0 00-5 0V5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+          <rect x="1.5" y="5" width="9" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+        </svg>
+        Publish (Pro)
+      </button>
+    );
+
+    const conventionButton = conventionMode ? (
+      <button
+        type="button"
+        onClick={onStopConventionMode}
+        className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 shadow-sm"
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+        Convention mode — Exit
+      </button>
+    ) : (
+      <button
+        type="button"
+        onClick={onStartConventionMode}
+        className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium shadow-sm transition ${
+          dark
+            ? "border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+            : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50"
+        }`}
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <polygon points="2,1 11,6 2,11" fill="currentColor" opacity="0.8" />
+        </svg>
+        Convention
+      </button>
+    );
+
+    return (
+      <>
+        {publishToggle}
+        {conventionButton}
+      </>
     );
   }
 
@@ -975,6 +1028,14 @@ export function PreviewCanvas({
         {isMobileFrame && !isPreviewMode ? (
           <div className="mt-3 h-1.5 w-28 rounded-full bg-neutral-600" />
         ) : null}
+        {conventionMode && (
+          <div className="pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2">
+            <div className="flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 shadow-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+              Convention mode — session ends when you close this tab
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

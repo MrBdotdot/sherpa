@@ -74,6 +74,7 @@ export function AuthoringStudio({
   const [systemSettings, setSystemSettings] = useState<SystemSettings>(DEFAULT_SYSTEM_SETTINGS);
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("desktop");
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [conventionMode, setConventionMode] = useState(false);
   const [showLayoutHelp, setShowLayoutHelp] = useState(true);
   const [, setIsContentModalOpen] = useState(false);
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>("overview");
@@ -332,6 +333,16 @@ export function AuthoringStudio({
     );
   }, [pushPagesHistory, canPublish]);
 
+  const handleStartConventionMode = useCallback(() => {
+    setIsPreviewMode(true);
+    setConventionMode(true);
+  }, []);
+
+  const handleStopConventionMode = useCallback(() => {
+    setConventionMode(false);
+    setIsPreviewMode(false);
+  }, []);
+
   if (!activePreviewPage || !previewSurfacePage) return null;
 
   // Chrome style derivations
@@ -465,6 +476,9 @@ export function AuthoringStudio({
     studioName: currentStudioName,
     liveViewHref,
     onRenameGame,
+    conventionMode,
+    onStartConventionMode: handleStartConventionMode,
+    onStopConventionMode: handleStopConventionMode,
     studioChrome: {
       headerOpen: panels.isHeaderOpen,
       leftInset: panels.headerLeftInset,
