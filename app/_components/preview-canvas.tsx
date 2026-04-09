@@ -446,7 +446,11 @@ export function PreviewCanvas({
       <button
         type="button"
         onClick={() => onExperienceStatusChange("published")}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-500 shadow-sm"
+        className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium shadow-sm ${
+          dark
+            ? "border-neutral-700 bg-neutral-800 text-neutral-400"
+            : "border-neutral-200 bg-white text-neutral-500"
+        }`}
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
           <path d="M8.5 5V3.5a2.5 2.5 0 00-5 0V5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
@@ -1029,10 +1033,12 @@ export function PreviewCanvas({
           <div className="mt-3 h-1.5 w-28 rounded-full bg-neutral-600" />
         ) : null}
         {conventionMode && (
-          <div className="pointer-events-none absolute left-1/2 top-4 z-20 -translate-x-1/2">
-            <div className="flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-              Convention mode — session ends when you close this tab
+          <div className="pointer-events-none relative">
+            <div className="absolute left-1/2 top-4 z-20 -translate-x-1/2">
+              <div className="flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 shadow-sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                Convention mode — session ends when you close this tab
+              </div>
             </div>
           </div>
         )}
