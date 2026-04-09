@@ -15,6 +15,13 @@ function cookiesFromRequest(request: Request) {
   });
 }
 
+function toRelativePath(url: unknown): string {
+  if (typeof url !== "string") return "/";
+  // Only allow paths starting with / but not protocol-relative (//)
+  if (url.startsWith("/") && !url.startsWith("//")) return url;
+  return "/";
+}
+
 // Maps planKey strings to the corresponding env var price ID.
 // Resolving server-side prevents clients from passing raw Stripe price IDs.
 const PLAN_KEY_MAP: Record<string, string | undefined> = {
@@ -102,18 +109,21 @@ export async function POST(request: Request) {
     const customer = await stripe.customers.create({ email: user.email });
     customerId = customer.id;
 
-    await supabaseAdmin
+    const { error: updateError } = await supabaseAdmin
       .from("profiles")
       .update({ stripe_customer_id: customerId })
       .eq("id", user.id);
+
+    if (updateError) {
+      console.error("[stripe/checkout] failed to save customer id:", updateError);
+      return NextResponse.json({ error: "Failed to initialize billing account" }, { status: 500 });
+    }
   }
 
   // 5. Create Checkout session
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-  const resolvedSuccessUrl =
-    typeof successUrl === "string" ? successUrl : "/";
-  const resolvedCancelUrl =
-    typeof cancelUrl === "string" ? cancelUrl : "/";
+  const resolvedSuccessUrl = toRelativePath(successUrl);
+  const resolvedCancelUrl = toRelativePath(cancelUrl);
 
   const session = await stripe.checkout.sessions.create({
     mode: planKey === "lifetime" ? "payment" : "subscription",
