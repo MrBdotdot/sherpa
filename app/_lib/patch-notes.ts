@@ -6,6 +6,18 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.19.0",
+    date: "2026-04-09",
+    changes: [
+      "Subscription billing via Stripe — Pro, Studio, and Lifetime plans",
+      "Billing section in account settings: plan badge, manage subscription, and upgrade flow",
+      "Publish is now gated on a Pro or higher plan — free users see an upgrade prompt",
+      "Convention mode: start a device-local player session from the studio toolbar",
+      "'Built with Sherpa' badge shown in player view for Free accounts",
+      "Stripe webhooks keep plan state in sync; plan_expires_at acts as a safety net",
+    ],
+  },
+  {
     version: "v0.18.0",
     date: "2026-04-09",
     changes: [
