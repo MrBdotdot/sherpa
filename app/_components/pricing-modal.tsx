@@ -173,6 +173,7 @@ export function PricingModal({ mode, onClose }: PricingModalProps) {
               ].map((feature) => (
                 <li key={feature} className="flex items-start gap-2 text-sm text-neutral-600">
                   <svg
+                    aria-hidden="true"
                     className="mt-0.5 shrink-0 text-neutral-400"
                     width="14"
                     height="14"
@@ -233,6 +234,7 @@ export function PricingModal({ mode, onClose }: PricingModalProps) {
               ].map((feature) => (
                 <li key={feature} className="flex items-start gap-2 text-sm text-neutral-600">
                   <svg
+                    aria-hidden="true"
                     className="mt-0.5 shrink-0 text-[#1e3a8a]"
                     width="14"
                     height="14"
