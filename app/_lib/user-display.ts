@@ -11,14 +11,14 @@ export function getUserNameParts(email: string) {
     .filter(Boolean)
     .map(capitalize);
 
-  const firstName = tokens[0] ?? "Account";
-  const lastName = tokens.length > 1 ? tokens.slice(1).join(" ") : "Owner";
+  const firstName = tokens[0] ?? "";
+  const lastName = tokens.length > 1 ? tokens.slice(1).join(" ") : "";
   const displayName = [firstName, lastName].filter(Boolean).join(" ").trim();
 
   return {
     firstName,
     lastName,
-    displayName: displayName || "Account Owner",
+    displayName,
     initial: (firstName.charAt(0) || email.charAt(0) || "?").toUpperCase(),
   };
 }
