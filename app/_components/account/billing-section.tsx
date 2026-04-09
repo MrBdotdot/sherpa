@@ -5,7 +5,7 @@ import { SectionHeader } from "@/app/_components/account/account-form-ui";
 import { usePlan, Plan } from "@/app/_hooks/usePlan";
 
 export type BillingSectionProps = {
-  onOpenPricingModal: () => void;
+  onOpenPricingModal?: () => void;
 };
 
 async function openPortal(setLoading: (v: boolean) => void): Promise<void> {
@@ -18,7 +18,11 @@ async function openPortal(setLoading: (v: boolean) => void): Promise<void> {
       return;
     }
     const { url } = await res.json();
-    if (url) window.location.href = url;
+    if (url) {
+      window.location.href = url;
+    } else {
+      alert("Could not open billing portal. Please try again.");
+    }
   } finally {
     setLoading(false);
   }
@@ -94,7 +98,7 @@ export function BillingSection({ onOpenPricingModal }: BillingSectionProps) {
             <span className="flex-1 text-sm text-neutral-600">You are on the Free plan.</span>
             <button
               type="button"
-              onClick={onOpenPricingModal}
+              onClick={() => onOpenPricingModal?.()}
               className="rounded-full bg-[#1e3a8a] px-4 py-2 text-sm font-medium text-white hover:bg-[#1e3a8a]/90 transition"
             >
               Upgrade

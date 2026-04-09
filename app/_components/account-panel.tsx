@@ -260,7 +260,7 @@ export function AccountPanel({
       sectionContent = <LanguageSection metadata={metadata} />;
       break;
     case "billing":
-      sectionContent = <BillingSection onOpenPricingModal={onOpenPricingModal ?? (() => {})} />;
+      sectionContent = <BillingSection onOpenPricingModal={onOpenPricingModal} />;
       break;
     case "terms":
       sectionContent = <TermsSection />;
