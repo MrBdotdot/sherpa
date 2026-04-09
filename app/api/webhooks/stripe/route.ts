@@ -5,6 +5,11 @@ import { supabaseAdmin } from "@/app/_lib/supabase-admin";
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? "";
 const NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
+// Validate webhook secret at startup
+if (!process.env.STRIPE_WEBHOOK_SECRET) {
+  throw new Error("STRIPE_WEBHOOK_SECRET is not configured");
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -68,7 +73,11 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     subscriptionId = subscriptionIdRaw;
     const sub = await stripe.subscriptions.retrieve(subscriptionId);
     const item = sub.items.data[0];
-    const priceId = item?.price?.id ?? "";
+    if (!item) {
+      console.error("[stripe/webhook] subscription has no items, skipping");
+      return;
+    }
+    const priceId = item.price.id;
     plan = priceIdToPlan(priceId);
     planExpiresAt = new Date(item.current_period_end * 1000).toISOString();
   }
@@ -97,7 +106,11 @@ async function handleSubscriptionUpdated(sub: Stripe.Subscription) {
   if (!profile) return;
 
   const item = sub.items.data[0];
-  const priceId = item?.price?.id ?? "";
+  if (!item) {
+    console.error("[stripe/webhook] subscription has no items, skipping");
+    return;
+  }
+  const priceId = item.price.id;
   const plan = priceIdToPlan(priceId);
   if (!plan) {
     console.error("[stripe/webhook] customer.subscription.updated: could not resolve plan from price id");
@@ -186,22 +199,31 @@ export async function POST(request: Request) {
     return new Response(`Webhook signature verification failed: ${message}`, { status: 400 });
   }
 
-  switch (event.type) {
-    case "checkout.session.completed":
-      await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
-      break;
-    case "customer.subscription.updated":
-      await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
-      break;
-    case "customer.subscription.deleted":
-      await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
-      break;
-    case "invoice.payment_failed":
-      await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
-      break;
-    default:
-      // Return 200 for all unhandled event types so Stripe stops retrying.
-      break;
+  try {
+    switch (event.type) {
+      case "checkout.session.completed":
+        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
+        break;
+      case "customer.subscription.updated":
+        await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
+        break;
+      case "customer.subscription.deleted":
+        await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+        break;
+      case "invoice.payment_failed":
+        await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
+        break;
+      default:
+        // Return 200 for all unhandled event types so Stripe stops retrying.
+        break;
+    }
+  } catch (err) {
+    console.error("[stripe/webhook] unhandled error processing event:", event.type, err);
+    // Return 200 to stop Stripe retrying — the error is logged for investigation.
+    return new Response(JSON.stringify({ received: true, error: "handler_error" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   return new Response(JSON.stringify({ received: true }), {
