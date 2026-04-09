@@ -45,11 +45,19 @@ export async function POST(request: Request) {
   }
 
   // 2. Look up Stripe customer for this user
-  const { data: profile } = await supabaseAdmin
+  const { data: profile, error: profileError } = await supabaseAdmin
     .from("profiles")
     .select("stripe_customer_id")
     .eq("id", user.id)
     .single();
+
+  if (profileError) {
+    console.error("[stripe/portal] profile query error:", profileError);
+    return NextResponse.json(
+      { error: "Failed to retrieve billing information" },
+      { status: 500 }
+    );
+  }
 
   const customerId = profile?.stripe_customer_id ?? null;
 
@@ -63,10 +71,19 @@ export async function POST(request: Request) {
   // 3. Create Billing Portal session
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
-  const session = await stripe.billingPortal.sessions.create({
-    customer: customerId,
-    return_url: `${appUrl}/`,
-  });
+  let session;
+  try {
+    session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${appUrl}/`,
+    });
+  } catch (err) {
+    console.error("[stripe/portal] portal session creation failed:", err);
+    return NextResponse.json(
+      { error: "Failed to open billing portal" },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({ url: session.url });
 }
