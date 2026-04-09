@@ -31,6 +31,8 @@ import { useContentHandlers } from "@/app/_hooks/useContentHandlers";
 import { useCanvasFeatureHandlers } from "@/app/_hooks/useCanvasFeatureHandlers";
 import { useA11yMonitor } from "@/app/_hooks/useA11yMonitor";
 import { usePaletteEntries } from "@/app/_hooks/usePaletteEntries";
+import { usePlan } from "@/app/_hooks/usePlan";
+import { PricingModal } from "@/app/_components/pricing-modal";
 
 const SIDEBAR_WIDTH = 300;
 const INSPECTOR_WIDTH = 380;
@@ -58,6 +60,9 @@ export function AuthoringStudio({
   userEmail: string;
   userMetadata?: UserMetadata;
 }) {
+  const { canPublish } = usePlan();
+  const [showPricingModal, setShowPricingModal] = useState<"upgrade-prompt" | "pricing" | null>(null);
+
   const searchParams = useSearchParams();
   const gameIdFromUrl = searchParams.get("game");
 
@@ -315,13 +320,17 @@ export function AuthoringStudio({
     : null;
 
   const handleExperienceStatusChange = useCallback((status: ExperienceStatus) => {
+    if (status === "published" && !canPublish) {
+      setShowPricingModal("upgrade-prompt");
+      return;
+    }
     pushPagesHistory();
     setPages((prev) =>
       prev.map((page) =>
         page.publishStatus === status ? page : { ...page, publishStatus: status }
       )
     );
-  }, [pushPagesHistory]);
+  }, [pushPagesHistory, canPublish]);
 
   if (!activePreviewPage || !previewSurfacePage) return null;
 
@@ -678,6 +687,7 @@ export function AuthoringStudio({
         onStudioNameChange={setCurrentStudioName}
         studioDarkMode={panels.studioDarkMode}
         onStudioDarkModeChange={panels.setStudioDarkMode}
+        onOpenPricingModal={() => setShowPricingModal("pricing")}
       />
 
       <GameSwitcherModal
@@ -694,6 +704,12 @@ export function AuthoringStudio({
           openFreshWorkspace();
         }}
       />
+      {showPricingModal && (
+        <PricingModal
+          mode={showPricingModal}
+          onClose={() => setShowPricingModal(null)}
+        />
+      )}
     </main>
   );
 }
