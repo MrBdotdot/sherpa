@@ -83,6 +83,109 @@ async function readExifOrientation(file: File): Promise<number> {
 }
 
 /**
+ * EXIF orientation → canvas transform mapping.
+ *
+ * Each orientation describes how the stored pixels must be transformed to
+ * produce the visually correct (upright) image.  We apply the inverse
+ * transform on the canvas so the output pixels ARE already upright.
+ *
+ * References:
+ *   https://sirv.com/help/articles/rotate-images-to-be-upright/
+ *   https://www.daveperrett.com/articles/2012/07/28/exif-orientation-handling-is-a-ghetto/
+ *
+ *   1 = 0°   normal
+ *   2 = flip horizontal
+ *   3 = 180°
+ *   4 = flip vertical
+ *   5 = 90° CW + flip horizontal
+ *   6 = 90° CW
+ *   7 = 90° CCW + flip horizontal
+ *   8 = 90° CCW
+ */
+async function drawToJpeg(img: HTMLImageElement, orientation: number): Promise<Blob> {
+  const srcW = img.naturalWidth;
+  const srcH = img.naturalHeight;
+
+  // For orientations 5–8 the canvas width/height are swapped (portrait ↔ landscape).
+  const swapDimensions = orientation >= 5;
+  const longSide = Math.max(srcW, srcH);
+  const scale = longSide > MAX_DIMENSION ? MAX_DIMENSION / longSide : 1;
+
+  // Dimensions of the output canvas (after potential rotation swap)
+  const outW = swapDimensions
+    ? Math.round(srcH * scale)
+    : Math.round(srcW * scale);
+  const outH = swapDimensions
+    ? Math.round(srcW * scale)
+    : Math.round(srcH * scale);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = outW;
+  canvas.height = outH;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not get 2d canvas context");
+
+  // Apply EXIF orientation transform before drawing.
+  ctx.save();
+  switch (orientation) {
+    case 1: // No transform
+      break;
+    case 2: // Flip horizontal
+      ctx.translate(outW, 0);
+      ctx.scale(-1, 1);
+      break;
+    case 3: // 180°
+      ctx.translate(outW, outH);
+      ctx.rotate(Math.PI);
+      break;
+    case 4: // Flip vertical
+      ctx.translate(0, outH);
+      ctx.scale(1, -1);
+      break;
+    case 5: // 90° CW + flip horizontal
+      ctx.rotate(Math.PI / 2);
+      ctx.scale(1, -1);
+      break;
+    case 6: // 90° CW
+      ctx.translate(outW, 0);
+      ctx.rotate(Math.PI / 2);
+      break;
+    case 7: // 90° CCW + flip horizontal
+      ctx.translate(outW, outH);
+      ctx.rotate(Math.PI / 2);
+      ctx.scale(-1, 1);
+      break;
+    case 8: // 90° CCW
+      ctx.translate(0, outH);
+      ctx.rotate(-Math.PI / 2);
+      break;
+    default:
+      break;
+  }
+
+  // Draw the source image scaled to fit within MAX_DIMENSION.
+  // For swapped orientations, drawImage receives the original srcW×srcH
+  // because the transform has already rotated the coordinate system.
+  if (swapDimensions) {
+    ctx.drawImage(img, 0, 0, srcW * scale, srcH * scale);
+  } else {
+    ctx.drawImage(img, 0, 0, outW, outH);
+  }
+  ctx.restore();
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("canvas.toBlob returned null"));
+      },
+      "image/jpeg",
+      COMPRESSION_QUALITY
+    );
+  });
+}
+
+/**
  * Compress an image file before upload.
  * - GIF / SVG: returned unchanged (animated GIF frames would be lost on canvas).
  * - PNG with transparency: returned unchanged (preserves logos and marks).
