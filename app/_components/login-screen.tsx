@@ -94,8 +94,23 @@ export function LoginScreen() {
       if (error) setError(error.message);
     } else {
       const { error } = await supabase.auth.signUp({ email, password });
-      if (error) setError(error.message);
-      else setConfirm(true);
+      if (error) {
+        setError(error.message);
+      } else {
+        setConfirm(true);
+        // Fire-and-forget welcome email — do not await so sign-up flow is not blocked
+        void fetch("/api/email/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            template: "welcome",
+            to: email,
+            props: {},
+          }),
+        }).catch(() => {
+          // Intentionally ignored — welcome email failure must not affect sign-up UX
+        });
+      }
     }
 
     setLoading(false);

@@ -6,6 +6,17 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.18.0",
+    date: "2026-04-09",
+    changes: [
+      "Transactional email via Resend: confirmation, password reset, and welcome emails",
+      "Branded React Email templates with Sherpa logo and footer",
+      "POST /api/email/send route for all outbound email",
+      "Welcome email fires automatically on new account sign-up",
+      "Billing email stub returns 501 until Stripe integration lands",
+    ],
+  },
+  {
     version: "v0.17.10",
     date: "2026-04-06",
     changes: [
