@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { ErrorRecoveryShell } from "@/app/_components/error-recovery-shell";
 
 export default function Error({
@@ -11,7 +12,9 @@ export default function Error({
   unstable_retry: () => void;
 }) {
   useEffect(() => {
-    console.error(error);
+    Sentry.captureException(error, {
+      extra: { digest: error.digest },
+    });
   }, [error]);
 
   return (
