@@ -10,6 +10,7 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
 export type Plan = "free" | "pro" | "studio" | "lifetime";
 
 export function priceIdToPlan(priceId: string): Plan | null {
+  if (!priceId) return null;  // Reject empty strings (unset env var fallback)
   const map: Record<string, Plan> = {
     [process.env.STRIPE_PRICE_PRO_MONTHLY ?? ""]:    "pro",
     [process.env.STRIPE_PRICE_PRO_ANNUAL ?? ""]:     "pro",
