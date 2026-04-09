@@ -22,7 +22,21 @@ export async function compressImage(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _context?: string
 ): Promise<File> {
-  return file; // stub — replaced in subsequent tasks
+  const { type } = file;
+
+  // GIF: animated frames are not preserved by canvas — pass through unchanged.
+  // SVG: vector format, canvas rasterisation would destroy scalability.
+  // Non-image: unexpected MIME type — pass through unchanged.
+  if (
+    type === "image/gif" ||
+    type === "image/svg+xml" ||
+    !type.startsWith("image/")
+  ) {
+    return file;
+  }
+
+  // PNG and all other image types handled in subsequent tasks.
+  return file;
 }
 
 export async function uploadImage(
