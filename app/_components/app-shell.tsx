@@ -5,6 +5,7 @@ import { MobileLanding } from "@/app/_components/mobile-landing";
 import { LoginScreen } from "@/app/_components/login-screen";
 import { useAuth } from "@/app/_hooks/useAuth";
 import { useMobileDetect } from "@/app/_hooks/useMobileDetect";
+import { PlanProvider } from "@/app/_hooks/usePlan";
 import { UserMetadata } from "@/app/_lib/user-profile";
 
 const AuthoringStudio = dynamic(
@@ -40,10 +41,12 @@ export function AppShell() {
   if (!user) return <LoginScreen />;
 
   return (
-    <AuthoringStudio
-      userId={user.id}
-      userEmail={user.email ?? ""}
-      userMetadata={(user.user_metadata as UserMetadata) ?? {}}
-    />
+    <PlanProvider>
+      <AuthoringStudio
+        userId={user.id}
+        userEmail={user.email ?? ""}
+        userMetadata={(user.user_metadata as UserMetadata) ?? {}}
+      />
+    </PlanProvider>
   );
 }
