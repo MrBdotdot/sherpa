@@ -1,6 +1,7 @@
 import { render } from "@react-email/components";
 import { Resend } from "resend";
 import * as React from "react";
+import { BillingEvent } from "@/app/_lib/email/billing-event";
 import { ConfirmEmail } from "@/app/_lib/email/confirm-email";
 import { PasswordReset } from "@/app/_lib/email/password-reset";
 import { Welcome } from "@/app/_lib/email/welcome";
@@ -37,11 +38,6 @@ export async function POST(request: Request) {
     );
   }
 
-  // 4. Billing stub — return 501 immediately
-  if (template === "billing-event") {
-    return Response.json({ error: "Billing emails not yet implemented" }, { status: 501 });
-  }
-
   if (typeof to !== "string" || !to.includes("@")) {
     return Response.json({ error: "Missing or invalid 'to' email address" }, { status: 400 });
   }
@@ -52,7 +48,11 @@ export async function POST(request: Request) {
   let subject: string;
   let emailElement: React.ReactElement;
 
-  if (template === "confirm-email") {
+  if (template === "billing-event") {
+    const event = "payment_failed" as const;
+    subject = "Payment failed — action required";
+    emailElement = <BillingEvent event={event} />;
+  } else if (template === "confirm-email") {
     const confirmUrl = typeof p.confirmUrl === "string" ? p.confirmUrl : "";
     subject = "Confirm your Sherpa email";
     emailElement = <ConfirmEmail confirmUrl={confirmUrl} />;
