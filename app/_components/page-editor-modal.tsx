@@ -14,7 +14,6 @@ import {
   ContentBlock,
   ContentBlockType,
   DisplayStyleKey,
-  ExperienceStatus,
   InspectorTab,
   ImageFit,
   LayoutMode,
@@ -81,7 +80,6 @@ type PageEditorModalProps = {
   onPageButtonPlacementChange: (value: PageButtonPlacement) => void;
   onPageHeroUrlChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onPublicUrlChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  onPublishStatusChange?: (value: ExperienceStatus) => void;
   onContentTintChange: (color: string, opacity: number) => void;
   onBlockWidthChange: (blockId: string, width: "full" | "half") => void;
   onBlockTextAlignChange: (blockId: string, align: "left" | "center" | "right") => void;
@@ -168,7 +166,6 @@ export function PageEditorModal({
   onPageButtonPlacementChange,
   onPageHeroUrlChange,
   onPublicUrlChange: _onPublicUrlChange,
-  onPublishStatusChange: _onPublishStatusChange,
   onContentTintChange,
   onBlockWidthChange,
   onBlockTextAlignChange,
@@ -216,7 +213,6 @@ export function PageEditorModal({
   const panelBord = dk ? "border-neutral-700" : "border-[#e7dfd2]";
   const dialogRef = useFocusTrap<HTMLDivElement>(isOpen && isOverlay);
   void _onPublicUrlChange;
-  void _onPublishStatusChange;
   void _onQrToggle;
 
   if (!isOpen || !selectedPage) {

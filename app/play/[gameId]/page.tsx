@@ -17,7 +17,7 @@ export default function PlayPage() {
     if (!gameId) return;
     loadGame(gameId)
       .then((data) => {
-        if (data) {
+        if (data && data.pages.some((p) => p.kind === "home")) {
           setPages(data.pages);
           setSystemSettings(data.systemSettings);
         } else {

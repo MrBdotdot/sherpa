@@ -12,7 +12,6 @@ import { SidebarItemIcon } from "@/app/_components/sidebar-item-icon";
 type PageSidebarProps = {
   onAddPage: () => void;
   onOpenPage: (id: string, blockId?: string) => void;
-  onPublishStatusChange?: (pageId: string, status: ExperienceStatus) => void;
   onReorderBlocks: (pageId: string, fromIndex: number, toIndex: number) => void;
   onSelectFeature: (pageId: string, featureId: string) => void;
   pages: PageItem[];
@@ -266,7 +265,6 @@ function CollapsibleSection({
 export function PageSidebar({
   onAddPage,
   onOpenPage,
-  onPublishStatusChange: _onPublishStatusChange,
   onReorderBlocks,
   onSelectFeature,
   pages,
@@ -677,6 +675,25 @@ export function PageSidebar({
             <path d="M3 4.5L6 1.5L9 4.5M3 7.5L6 10.5L9 7.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
+
+        {/* Feedback row */}
+        <a
+          href={`mailto:will@wbeestudio.com?subject=${encodeURIComponent("Sherpa feedback")}&body=${encodeURIComponent("What happened:\n\nWhat I expected:\n\nMy email: " + (userEmail || ""))}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left transition ${dk ? "hover:bg-neutral-800" : "hover:bg-neutral-100"}`}
+        >
+          <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${dk ? "bg-neutral-800 text-neutral-400" : "bg-neutral-100 text-neutral-500"}`}>
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+              <path d="M1 2.5h11v7a1 1 0 01-1 1H2a1 1 0 01-1-1v-7z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+              <path d="M1 2.5l5.5 4.5L12 2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div className="min-w-0">
+            <div className={`truncate text-xs font-medium ${dk ? "text-neutral-200" : "text-neutral-700"}`}>Send feedback</div>
+            <div className="truncate text-[10px] text-neutral-400">Report a bug or share ideas</div>
+          </div>
+        </a>
 
         {/* Account row */}
         <button
