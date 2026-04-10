@@ -6,6 +6,15 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.19.1",
+    date: "2026-04-09",
+    changes: [
+      "Publish state is now per-game — one toggle publishes or unpublishes the entire experience",
+      "Feedback link in the sidebar: send bugs or ideas directly from the authoring tool",
+      "RLS policies updated: game access is gated on games.publish_status, not per-card",
+    ],
+  },
+  {
     version: "v0.19.0",
     date: "2026-04-09",
     changes: [
