@@ -7,7 +7,6 @@ interface UsePaletteEntriesOptions {
   selectedFeatureId: string | null;
   selectedPage: PageItem | null;
   handleSystemSettingChange: (key: string, value: unknown) => void;
-  handlePublishStatusChange?: (status: "published" | "draft") => void;
   pushPagesHistory: () => void;
   setPages: React.Dispatch<React.SetStateAction<PageItem[]>>;
   setSelectedFeatureId: (id: string | null) => void;
@@ -23,7 +22,6 @@ export function usePaletteEntries({
   selectedFeatureId,
   selectedPage,
   handleSystemSettingChange,
-  handlePublishStatusChange,
   pushPagesHistory,
   setPages,
   setSelectedFeatureId,
@@ -95,14 +93,6 @@ export function usePaletteEntries({
     }
 
     if (selectedPage && selectedPage.kind !== "home") {
-      const isPublished = selectedPage.publishStatus === "published";
-      entries.push({
-        id: "page-publish-toggle",
-        label: isPublished ? "Unpublish current page" : "Publish current page",
-        group: "Current page",
-        alwaysShow: true,
-        onRun: () => handlePublishStatusChange?.(isPublished ? "draft" : "published"),
-      });
       entries.push({
         id: "page-delete",
         label: "Delete current page",
@@ -115,7 +105,7 @@ export function usePaletteEntries({
     return entries;
   }, [ // eslint-disable-line react-hooks/exhaustive-deps
     selectedFeatureId, selectedPage, router,
-    handleSystemSettingChange, handlePublishStatusChange, pushPagesHistory,
+    handleSystemSettingChange, pushPagesHistory,
     setPages, setSelectedFeatureId, handleDismissContent,
   ]);
 }

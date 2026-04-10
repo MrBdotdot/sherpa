@@ -8,7 +8,6 @@ import {
   InteractionType,
   PageButtonPlacement,
   PageItem,
-  PublishStatus,
 } from "@/app/_lib/authoring-types";
 import { usePageCrud } from "@/app/_hooks/usePageCrud";
 import { uploadImage } from "@/app/_lib/supabase-storage";
@@ -114,14 +113,6 @@ export function usePageHandlers({
 
   // ── Publishing ────────────────────────────────────────────────
 
-  const handlePublishStatusChange = (value: PublishStatus) => {
-    updateSelectedPage((page) => ({ ...page, publishStatus: value }));
-  };
-
-  const handleSidebarPublishStatusChange = (pageId: string, status: PublishStatus) => {
-    setPages((prev) => prev.map((p) => (p.id === pageId ? { ...p, publishStatus: status } : p)));
-  };
-
   const handlePublicUrlChange = (event: ChangeEvent<HTMLInputElement>) => {
     updateSelectedPage((page) => ({ ...page, publicUrl: event.target.value }));
   };
@@ -140,8 +131,6 @@ export function usePageHandlers({
     handleInteractionTypeChange,
     handleDisplayStyleChange,
     handlePageButtonPlacementChange,
-    handlePublishStatusChange,
-    handleSidebarPublishStatusChange,
     handlePublicUrlChange,
     handleQrToggle,
     ...crud,
