@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { InspectorTab, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
+import { ExperienceStatus, InspectorTab, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 import {
   createInitialPages,
   getHomePageId,
@@ -65,6 +65,7 @@ export function useGameLoader({
   const [hydrated, setHydrated] = useState(false);
   const [hasLoadedInitialState, setHasLoadedInitialState] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [publishStatus, setPublishStatus] = useState<ExperienceStatus>("draft");
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -105,6 +106,7 @@ export function useGameLoader({
             setSystemSettings({ ...DEFAULT_SYSTEM_SETTINGS, ...remote.systemSettings });
           }
           if (remote.gameTitle) setCurrentGameName(remote.gameTitle);
+          setPublishStatus(remote.publishStatus);
           return;
         } else {
           const persisted = loadPersistedState();
@@ -154,7 +156,7 @@ export function useGameLoader({
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       setSaveState("saving");
-      saveGame(currentGameId, userId, currentGameName, persistablePages, persistableSystemSettings)
+      saveGame(currentGameId, userId, currentGameName, persistablePages, persistableSystemSettings, publishStatus)
         .then(() => {
           setSaveState("saved");
           if (savedResetRef.current) clearTimeout(savedResetRef.current);
@@ -164,7 +166,7 @@ export function useGameLoader({
     }, 2000);
 
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
-  }, [pages, systemSettings, currentGameId, currentGameName, hasLoadedInitialState, userId]);
+  }, [pages, systemSettings, currentGameId, currentGameName, hasLoadedInitialState, userId, publishStatus]);
 
   const switchToGame = useCallback((id: string, name: string, studio?: string) => {
     if (studio) setCurrentStudioName(studio);
@@ -182,11 +184,13 @@ export function useGameLoader({
             });
         setPages(nextPages);
         setSystemSettings({ ...DEFAULT_SYSTEM_SETTINGS, ...(remote.systemSettings ?? {}) });
+        setPublishStatus(remote.publishStatus);
         setSelectedPageId(getHomePageId(nextPages, id));
       } else {
         const nextPages = createInitialPages({ gameName: name });
         setPages(nextPages);
         setSystemSettings(DEFAULT_SYSTEM_SETTINGS);
+        setPublishStatus("draft");
         setSelectedPageId(getHomePageId(nextPages, id));
       }
 
@@ -211,6 +215,7 @@ export function useGameLoader({
     setIsContentModalOpen(false);
     setCurrentGameId(nextGameId);
     setCurrentGameName("Untitled Game");
+    setPublishStatus("draft");
     setSaveState("idle");
   }, [setIsContentModalOpen, setInspectorTab, setPages, setSelectedFeatureId, setSelectedPageId, setSystemSettings]);
 
@@ -227,6 +232,8 @@ export function useGameLoader({
     setCurrentStudioName,
     hasLoadedInitialState,
     saveState,
+    publishStatus,
+    setPublishStatus,
     switchToGame,
     openFreshWorkspace,
     onRenameGame,

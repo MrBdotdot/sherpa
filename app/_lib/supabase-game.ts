@@ -92,6 +92,9 @@ export async function loadGame(
     ...cards.filter((c) => !cardOrder.includes(c.id)),
   ] as ReturnType<typeof cardMap.get>[];
 
+  const publishStatus: ExperienceStatus =
+    game.publish_status === "published" ? "published" : "draft";
+
   const pages: PageItem[] = ordered.map((card) => ({
     id: card!.id,
     kind: card!.kind,
@@ -112,6 +115,7 @@ export async function loadGame(
     publicUrl: card!.public_url,
     showQrCode: card!.show_qr_code,
     interactionType: card!.interaction_type,
+    publishStatus,
     pageButtonPlacement: card!.page_button_placement,
     templateId: card!.template_id,
     cardSize: card!.card_size,
@@ -120,9 +124,6 @@ export async function loadGame(
     worldPosition: card!.world_position,
     worldNormal: card!.world_normal,
   }));
-
-  const publishStatus: ExperienceStatus =
-    game.publish_status === "published" ? "published" : "draft";
 
   return { pages, systemSettings: game.system_settings, gameTitle: game.title ?? "", publishStatus };
 }

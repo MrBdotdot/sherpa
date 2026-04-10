@@ -52,7 +52,7 @@ function CreateWizard({ userId, onBack, onDone }: CreateWizardProps) {
         gameName: trimmed,
       });
 
-      await saveGame(id, userId, trimmed, starterPages, systemSettings);
+      await saveGame(id, userId, trimmed, starterPages, systemSettings, "draft");
     } catch (createError) {
       setError(getErrorMessage(createError));
       setCreating(false);
