@@ -115,7 +115,6 @@ export async function loadGame(
     publicUrl: card!.public_url,
     showQrCode: card!.show_qr_code,
     interactionType: card!.interaction_type,
-    publishStatus,
     pageButtonPlacement: card!.page_button_placement,
     templateId: card!.template_id,
     cardSize: card!.card_size,
