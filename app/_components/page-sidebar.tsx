@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { APP_VERSION } from "@/app/_lib/authoring-utils";
 import { getGameIconFallback, getGameIconUrl } from "@/app/_lib/game-icon";
 import { getFeatureTypeLabel } from "@/app/_lib/label-utils";
-import { CanvasFeature, ContentBlock, ExperienceStatus, PageItem, PublishStatus } from "@/app/_lib/authoring-types";
+import { CanvasFeature, ContentBlock, ExperienceStatus, PageItem } from "@/app/_lib/authoring-types";
 import { UserMetadata, getUserProfile } from "@/app/_lib/user-profile";
 import { getBlockPreview, getTabSections } from "@/app/_lib/sidebar-icon-utils";
 import { SidebarItemIcon } from "@/app/_components/sidebar-item-icon";
@@ -12,7 +12,7 @@ import { SidebarItemIcon } from "@/app/_components/sidebar-item-icon";
 type PageSidebarProps = {
   onAddPage: () => void;
   onOpenPage: (id: string, blockId?: string) => void;
-  onPublishStatusChange?: (pageId: string, status: PublishStatus) => void;
+  onPublishStatusChange?: (pageId: string, status: ExperienceStatus) => void;
   onReorderBlocks: (pageId: string, fromIndex: number, toIndex: number) => void;
   onSelectFeature: (pageId: string, featureId: string) => void;
   pages: PageItem[];

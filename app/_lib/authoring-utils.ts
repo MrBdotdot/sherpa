@@ -8,7 +8,6 @@ import {
   PageButtonPlacement,
   PageItem,
   PageTemplate,
-  PublishStatus,
   SocialLink,
   TemplateId,
 } from "@/app/_lib/authoring-types";
@@ -272,7 +271,6 @@ function createBasePage({
   publicUrl = "",
   showQrCode = false,
   interactionType,
-  publishStatus = "draft",
   pageButtonPlacement = "bottom",
   templateId = "blank",
   cardSize = "medium",
@@ -288,7 +286,6 @@ function createBasePage({
   publicUrl?: string;
   showQrCode?: boolean;
   interactionType: InteractionType;
-  publishStatus?: PublishStatus;
   pageButtonPlacement?: PageButtonPlacement;
   templateId?: TemplateId;
   cardSize?: PageItem["cardSize"];
@@ -310,7 +307,6 @@ function createBasePage({
     publicUrl,
     showQrCode,
     interactionType,
-    publishStatus,
     pageButtonPlacement,
     templateId,
     canvasFeatures: [],
@@ -349,7 +345,6 @@ export function createTemplatePage(templateId: TemplateId, count: number): PageI
     interactionType: template.interactionType,
     pageButtonPlacement: template.pageButtonPlacement,
     templateId: template.id,
-    publishStatus: "draft",
   });
 }
 
@@ -399,7 +394,6 @@ export function createInitialPages({
         publicUrl: "",
         showQrCode: false,
         interactionType: "full-page",
-        publishStatus: "draft",
       }),
       id: createId("home"),
       canvasFeatures: [
@@ -435,7 +429,6 @@ function samplePage(overrides: Partial<PageItem> & Pick<PageItem, "id" | "kind" 
     socialLinks: [],
     publicUrl: "",
     showQrCode: false,
-    publishStatus: "draft",
     pageButtonPlacement: "bottom",
     templateId: "blank",
     canvasFeatures: [],

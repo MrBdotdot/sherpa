@@ -14,12 +14,12 @@ import {
   ContentBlock,
   ContentBlockType,
   DisplayStyleKey,
+  ExperienceStatus,
   InspectorTab,
   ImageFit,
   LayoutMode,
   PageButtonPlacement,
   PageItem,
-  PublishStatus,
   SystemSettings,
   TemplateId,
 } from "@/app/_lib/authoring-types";
@@ -81,7 +81,7 @@ type PageEditorModalProps = {
   onPageButtonPlacementChange: (value: PageButtonPlacement) => void;
   onPageHeroUrlChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onPublicUrlChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  onPublishStatusChange?: (value: PublishStatus) => void;
+  onPublishStatusChange?: (value: ExperienceStatus) => void;
   onContentTintChange: (color: string, opacity: number) => void;
   onBlockWidthChange: (blockId: string, width: "full" | "half") => void;
   onBlockTextAlignChange: (blockId: string, align: "left" | "center" | "right") => void;

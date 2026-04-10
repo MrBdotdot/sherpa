@@ -11,7 +11,6 @@ export type InteractionType =
   | "tooltip"
   | "full-page"
   | "external-link";
-export type PublishStatus = "draft" | "published";
 export type ExperienceStatus = "draft" | "published";
 export type TranslationMap = Record<string, Record<string, string>>;
 export type CanvasFeatureType =
@@ -143,7 +142,6 @@ export type PageItem = {
   publicUrl: string;
   showQrCode: boolean;
   interactionType: InteractionType;
-  publishStatus: PublishStatus;
   pageButtonPlacement: PageButtonPlacement;
   templateId: TemplateId;
   canvasFeatures: CanvasFeature[];

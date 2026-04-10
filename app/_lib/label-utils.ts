@@ -4,7 +4,6 @@ import {
   InteractionType,
   PageButtonPlacement,
   PageItem,
-  PublishStatus,
 } from "@/app/_lib/authoring-types";
 
 export function getQrImageUrl(value: string) {
@@ -67,7 +66,7 @@ export function getExperienceStatusClasses(status: ExperienceStatus) {
     : "bg-amber-100 text-amber-800";
 }
 
-export function getPublishStatusLabel(status: PublishStatus) {
+export function getPublishStatusLabel(status: ExperienceStatus) {
   switch (status) {
     case "draft":
       return "Draft";
@@ -78,7 +77,7 @@ export function getPublishStatusLabel(status: PublishStatus) {
   }
 }
 
-export function getPublishStatusClasses(status: PublishStatus) {
+export function getPublishStatusClasses(status: ExperienceStatus) {
   switch (status) {
     case "draft":
       return "bg-amber-100 text-amber-800";
