@@ -168,6 +168,11 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
     return;
   }
 
+  if (!NEXT_PUBLIC_APP_URL) {
+    console.warn("[stripe/webhook] invoice.payment_failed: NEXT_PUBLIC_APP_URL not set, skipping email");
+    return;
+  }
+
   // Fire-and-forget: do not await
   fetch(`${NEXT_PUBLIC_APP_URL}/api/email/send`, {
     method: "POST",

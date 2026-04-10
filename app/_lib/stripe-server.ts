@@ -11,12 +11,14 @@ export type Plan = "free" | "pro" | "studio" | "lifetime";
 
 export function priceIdToPlan(priceId: string): Plan | null {
   if (!priceId) return null;  // Reject empty strings (unset env var fallback)
-  const map: Record<string, Plan> = {
-    [process.env.STRIPE_PRICE_PRO_MONTHLY ?? ""]:    "pro",
-    [process.env.STRIPE_PRICE_PRO_ANNUAL ?? ""]:     "pro",
-    [process.env.STRIPE_PRICE_STUDIO_MONTHLY ?? ""]: "studio",
-    [process.env.STRIPE_PRICE_STUDIO_ANNUAL ?? ""]:  "studio",
-    [process.env.STRIPE_PRICE_LIFETIME ?? ""]:       "lifetime",
-  };
+  const map: Record<string, Plan> = Object.fromEntries(
+    ([
+      [process.env.STRIPE_PRICE_PRO_MONTHLY,    "pro"],
+      [process.env.STRIPE_PRICE_PRO_ANNUAL,     "pro"],
+      [process.env.STRIPE_PRICE_STUDIO_MONTHLY, "studio"],
+      [process.env.STRIPE_PRICE_STUDIO_ANNUAL,  "studio"],
+      [process.env.STRIPE_PRICE_LIFETIME,       "lifetime"],
+    ] as [string | undefined, Plan][]).filter(([k]) => !!k)
+  ) as Record<string, Plan>;
   return map[priceId] ?? null;
 }
