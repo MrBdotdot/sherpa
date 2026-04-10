@@ -12,7 +12,7 @@ import { SidebarItemIcon } from "@/app/_components/sidebar-item-icon";
 type PageSidebarProps = {
   onAddPage: () => void;
   onOpenPage: (id: string, blockId?: string) => void;
-  onPublishStatusChange: (pageId: string, status: PublishStatus) => void;
+  onPublishStatusChange?: (pageId: string, status: PublishStatus) => void;
   onReorderBlocks: (pageId: string, fromIndex: number, toIndex: number) => void;
   onSelectFeature: (pageId: string, featureId: string) => void;
   pages: PageItem[];

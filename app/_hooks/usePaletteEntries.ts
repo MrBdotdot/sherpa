@@ -7,7 +7,7 @@ interface UsePaletteEntriesOptions {
   selectedFeatureId: string | null;
   selectedPage: PageItem | null;
   handleSystemSettingChange: (key: string, value: unknown) => void;
-  handlePublishStatusChange: (status: "published" | "draft") => void;
+  handlePublishStatusChange?: (status: "published" | "draft") => void;
   pushPagesHistory: () => void;
   setPages: React.Dispatch<React.SetStateAction<PageItem[]>>;
   setSelectedFeatureId: (id: string | null) => void;
@@ -101,7 +101,7 @@ export function usePaletteEntries({
         label: isPublished ? "Unpublish current page" : "Publish current page",
         group: "Current page",
         alwaysShow: true,
-        onRun: () => handlePublishStatusChange(isPublished ? "draft" : "published"),
+        onRun: () => handlePublishStatusChange?.(isPublished ? "draft" : "published"),
       });
       entries.push({
         id: "page-delete",

@@ -125,6 +125,7 @@ export function AuthoringStudio({
   const {
     currentGameId, currentGameName, setCurrentGameName, currentStudioName, setCurrentStudioName,
     saveState, switchToGame, openFreshWorkspace, onRenameGame,
+    publishStatus, setPublishStatus,
   } = useGameLoader({
     pages, setPages, systemSettings, setSystemSettings,
     setSelectedPageId, setSelectedFeatureId, setInspectorTab,
@@ -168,7 +169,6 @@ export function AuthoringStudio({
     handleCreatePageForButton, handleDeleteSelectedPage, handleDeleteHotspot,
     handleResetPagePosition, handlePageHeroUrlChange, handlePageHeroUpload,
     handleTitleChange, handleDisplayStyleChange, handlePageButtonPlacementChange,
-    handlePublishStatusChange, handleSidebarPublishStatusChange,
     handlePublicUrlChange, handleQrToggle,
   } = usePageHandlers({
     pages, setPages, selectedPageId, setSelectedPageId, pushPagesHistory,
@@ -206,7 +206,7 @@ export function AuthoringStudio({
 
   const extraPaletteEntries = usePaletteEntries({
     selectedFeatureId, selectedPage: pages.find((p) => p.id === selectedPageId) ?? null,
-    handleSystemSettingChange, handlePublishStatusChange, pushPagesHistory,
+    handleSystemSettingChange, pushPagesHistory,
     setPages, setSelectedFeatureId, setInspectorTab,
     setShowDeleteModal: modals.setShowDeleteModal,
     setIsGameSwitcherOpen: modals.setIsGameSwitcherOpen,
@@ -310,10 +310,7 @@ export function AuthoringStudio({
     ? activePreviewPage.kind === "home" ? activePreviewPage : localizedHomePage
     : undefined;
 
-  const experienceStatus: ExperienceStatus =
-    pages.length > 0 && pages.every((page) => page.publishStatus === "published")
-      ? "published"
-      : "draft";
+  const experienceStatus: ExperienceStatus = publishStatus;
   const liveViewHref = currentGameId
     ? BASE_DOMAIN
       ? `https://${currentGameId}.${BASE_DOMAIN}`
@@ -325,13 +322,8 @@ export function AuthoringStudio({
       setShowPricingModal("upgrade-prompt");
       return;
     }
-    pushPagesHistory();
-    setPages((prev) =>
-      prev.map((page) =>
-        page.publishStatus === status ? page : { ...page, publishStatus: status }
-      )
-    );
-  }, [pushPagesHistory, canPublish]);
+    setPublishStatus(status);
+  }, [setPublishStatus, canPublish]);
 
   const handleStartConventionMode = useCallback(() => {
     setIsPreviewMode(true);
@@ -391,7 +383,6 @@ export function AuthoringStudio({
     onPageButtonPlacementChange: handlePageButtonPlacementChange,
     onPageHeroUrlChange: handlePageHeroUrlChange,
     onPublicUrlChange: handlePublicUrlChange,
-    onPublishStatusChange: handlePublishStatusChange,
     onQrToggle: handleQrToggle,
     onRemoveCanvasFeature: handleRemoveCanvasFeature,
     onRemoveBlock: handleRemoveBlock,
@@ -555,7 +546,6 @@ export function AuthoringStudio({
                 setScrollToBlock(null);
               }
             }}
-            onPublishStatusChange={handleSidebarPublishStatusChange}
             onSelectFeature={(pageId, featureId) => {
               panels.setIsInspectorOpen(true);
               handleSidebarFeatureClick(pageId, featureId);
