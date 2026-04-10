@@ -42,13 +42,12 @@ export function PlayerView({
   );
 
   const homePage = useMemo(
-    () =>
-      localizedPages.find((p) => p.kind === "home" && p.publishStatus === "published") ?? null,
+    () => localizedPages.find((p) => p.kind === "home") ?? null,
     [localizedPages]
   );
 
   const hotspotPages = useMemo(
-    () => localizedPages.filter((p) => p.kind !== "home" && p.publishStatus === "published"),
+    () => localizedPages.filter((p) => p.kind !== "home"),
     [localizedPages]
   );
   const features = useMemo(() => homePage?.canvasFeatures ?? [], [homePage]);

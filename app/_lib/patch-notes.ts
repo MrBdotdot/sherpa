@@ -18,6 +18,14 @@ export const PATCH_NOTES: PatchNote[] = [
     ],
   },
   {
+    version: "v0.18.1",
+    date: "2026-04-09",
+    changes: [
+      "Publish state is now per-game instead of per-card — one toggle publishes or unpublishes the entire experience",
+      "Feedback link in the left sidebar: opens a pre-filled email to report bugs or share ideas",
+    ],
+  },
+  {
     version: "v0.18.0",
     date: "2026-04-09",
     changes: [

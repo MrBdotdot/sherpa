@@ -1,5 +1,6 @@
 -- Run this in the Supabase Dashboard → SQL Editor
 -- Adds user ownership to games and locks RLS down to the authenticated user.
+-- Run BEFORE add-public-read.sql.
 
 ALTER TABLE games ADD COLUMN IF NOT EXISTS user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE;
 
