@@ -1,5 +1,5 @@
 import { supabase } from "@/app/_lib/supabase";
-import { PageItem, SystemSettings } from "@/app/_lib/authoring-types";
+import { ExperienceStatus, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 
 // ---------- save ----------
 
@@ -8,7 +8,8 @@ export async function saveGame(
   userId: string,
   gameTitle: string,
   pages: PageItem[],
-  systemSettings: SystemSettings
+  systemSettings: SystemSettings,
+  publishStatus: ExperienceStatus,
 ): Promise<void> {
   const cardOrder = pages.map((p) => p.id);
 
@@ -18,6 +19,7 @@ export async function saveGame(
     title: gameTitle,
     system_settings: systemSettings,
     card_order: cardOrder,
+    publish_status: publishStatus,
   });
   if (gameError) throw gameError;
 
@@ -42,7 +44,6 @@ export async function saveGame(
     public_url: page.publicUrl,
     show_qr_code: page.showQrCode,
     interaction_type: page.interactionType,
-    publish_status: page.publishStatus,
     page_button_placement: page.pageButtonPlacement,
     template_id: page.templateId,
     card_size: page.cardSize,
@@ -68,8 +69,7 @@ export async function saveGame(
 
 export async function loadGame(
   gameId: string,
-  options?: { publishedOnly?: boolean }
-): Promise<{ pages: PageItem[]; systemSettings: SystemSettings; gameTitle: string } | null> {
+): Promise<{ pages: PageItem[]; systemSettings: SystemSettings; gameTitle: string; publishStatus: ExperienceStatus } | null> {
   const { data: game, error: gameError } = await supabase
     .from("games")
     .select("*")
@@ -78,16 +78,10 @@ export async function loadGame(
 
   if (gameError || !game) return null;
 
-  let cardsQuery = supabase
+  const { data: cards, error: cardsError } = await supabase
     .from("cards")
     .select("*")
     .eq("game_id", gameId);
-
-  if (options?.publishedOnly) {
-    cardsQuery = cardsQuery.eq("publish_status", "published");
-  }
-
-  const { data: cards, error: cardsError } = await cardsQuery;
 
   if (cardsError || !cards) return null;
 
@@ -118,7 +112,6 @@ export async function loadGame(
     publicUrl: card!.public_url,
     showQrCode: card!.show_qr_code,
     interactionType: card!.interaction_type,
-    publishStatus: card!.publish_status,
     pageButtonPlacement: card!.page_button_placement,
     templateId: card!.template_id,
     cardSize: card!.card_size,
@@ -128,11 +121,10 @@ export async function loadGame(
     worldNormal: card!.world_normal,
   }));
 
-  if (options?.publishedOnly && !pages.some((page) => page.kind === "home")) {
-    return null;
-  }
+  const publishStatus: ExperienceStatus =
+    game.publish_status === "published" ? "published" : "draft";
 
-  return { pages, systemSettings: game.system_settings, gameTitle: game.title ?? "" };
+  return { pages, systemSettings: game.system_settings, gameTitle: game.title ?? "", publishStatus };
 }
 
 export async function deleteGame(gameId: string): Promise<void> {
