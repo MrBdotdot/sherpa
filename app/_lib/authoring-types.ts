@@ -195,6 +195,8 @@ export type SystemSettings = {
   brandColors?: string[];
   /** Dark mode for the player experience */
   darkMode?: boolean;
+  /** Cache the 3D model file on the player's device for offline use */
+  cache3dModels?: boolean;
 };
 
 export type PageTemplate = {
