@@ -7,6 +7,7 @@ export function useStudioModals() {
   const [isGameSwitcherOpen, setIsGameSwitcherOpen] = useState(false);
   const [isCreateContainerOpen, setIsCreateContainerOpen] = useState(false);
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
+  const [isRulebookImportOpen, setIsRulebookImportOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [cardPairingPageId, setCardPairingPageId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -17,6 +18,7 @@ export function useStudioModals() {
     isGameSwitcherOpen, setIsGameSwitcherOpen,
     isCreateContainerOpen, setIsCreateContainerOpen,
     isChangelogOpen, setIsChangelogOpen,
+    isRulebookImportOpen, setIsRulebookImportOpen,
     isAccountOpen, setIsAccountOpen,
     cardPairingPageId, setCardPairingPageId,
     showDeleteModal, setShowDeleteModal,

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createInitialPages } from "@/app/_lib/authoring-utils";
+import { createInitialHomePage } from "@/app/_lib/authoring-utils";
 import { KNOWN_LANGUAGES } from "@/app/_lib/localization";
 import { getGameIconFallback, getGameIconUrl } from "@/app/_lib/game-icon";
 import { SystemSettings } from "@/app/_lib/authoring-types";
@@ -47,12 +47,12 @@ function CreateWizard({ userId, onBack, onDone }: CreateWizardProps) {
         hotspotSize: "medium",
         modelEnvironment: "studio",
       };
-      const starterPages = createInitialPages({
+      const homeOnlyPages = createInitialHomePage({
         defaultLanguageCode,
         gameName: trimmed,
       });
 
-      await saveGame(id, userId, trimmed, starterPages, systemSettings, "draft");
+      await saveGame(id, userId, trimmed, homeOnlyPages, systemSettings, "draft");
     } catch (createError) {
       setError(getErrorMessage(createError));
       setCreating(false);

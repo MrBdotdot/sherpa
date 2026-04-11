@@ -453,6 +453,51 @@ export function createInitialPages({
   ];
 }
 
+/**
+ * Creates an initial pages array with only the home page — no starter card.
+ * Used when creating a new game so the empty-canvas overlay can appear.
+ */
+export function createInitialHomePage({
+  defaultLanguageCode = "EN",
+  gameName = "Untitled Game",
+}: {
+  defaultLanguageCode?: string;
+  gameName?: string;
+} = {}): PageItem[] {
+  const defaultLanguage = getKnownLocaleLanguage(defaultLanguageCode) ?? {
+    code: defaultLanguageCode.trim().toUpperCase() || "EN",
+    label: defaultLanguageCode.trim().toUpperCase() || "EN",
+  };
+  const localeFeature = createCanvasFeature("locale");
+  localeFeature.label = defaultLanguage.code;
+  localeFeature.optionsText = `${defaultLanguage.label}|${defaultLanguage.code}`;
+
+  return [
+    {
+      ...createBasePage({
+        kind: "home",
+        title: "Home",
+        summary: `Welcome to ${gameName}.`,
+        blocks: [],
+        publicUrl: "",
+        showQrCode: false,
+        interactionType: "full-page",
+      }),
+      id: createId("home"),
+      canvasFeatures: [
+        localeFeature,
+        {
+          ...createCanvasFeature("heading"),
+          label: gameName,
+          description: "Import your rulebook or start blank.",
+          x: 20,
+          y: 10,
+        },
+      ],
+    },
+  ];
+}
+
 function samplePage(overrides: Partial<PageItem> & Pick<PageItem, "id" | "kind" | "title" | "interactionType" | "blocks">): PageItem {
   return {
     summary: "",

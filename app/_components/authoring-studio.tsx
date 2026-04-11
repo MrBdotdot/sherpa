@@ -9,6 +9,8 @@ import { PageEditorModal } from "@/app/_components/page-editor-modal";
 import { PageSidebar } from "@/app/_components/page-sidebar";
 import { PreviewCanvas } from "@/app/_components/preview-canvas";
 import { CreateContainerModal } from "@/app/_components/create-container-modal";
+import { RulebookImporterModal } from "@/app/_components/rulebook-importer-modal";
+import { CanvasEmptyOverlay } from "@/app/_components/canvas-empty-overlay";
 import { ChangelogModal } from "@/app/_components/changelog-modal";
 import { AccountPanel } from "@/app/_components/account-panel";
 import { GameSwitcherModal, type GameEntry } from "@/app/_components/game-switcher-modal";
@@ -165,7 +167,8 @@ export function AuthoringStudio({
   });
 
   const {
-    openPageEditor, handleSidebarFeatureClick, handleCreatePageWithConfig,
+    openPageEditor, handleSidebarFeatureClick, handleCreatePage,
+    handleCreatePageWithConfig,
     handleCreatePageForButton, handleDeleteSelectedPage, handleDeleteHotspot,
     handleResetPagePosition, handlePageHeroUrlChange, handlePageHeroUpload,
     handleTitleChange, handleDisplayStyleChange, handlePageButtonPlacementChange,
@@ -305,6 +308,11 @@ export function AuthoringStudio({
     () => localizedPages.find((page) => page.kind === "home") ?? localizedPages[0],
     [localizedPages]
   );
+  const standardPages = useMemo(
+    () => pages.filter((p) => p.kind === "page"),
+    [pages]
+  );
+  const showEmptyOverlay = !isPreviewMode && standardPages.length === 0;
   const activePreviewPage = localizedSelectedPage ?? localizedHomePage ?? localizedPages[0];
   const previewSurfacePage = activePreviewPage
     ? activePreviewPage.kind === "home" ? activePreviewPage : localizedHomePage
@@ -334,6 +342,15 @@ export function AuthoringStudio({
     setConventionMode(false);
     setIsPreviewMode(false);
   }, []);
+
+  const handleCreateBlankCard = useCallback(() => {
+    handleCreatePage();
+  }, [handleCreatePage]);
+
+  const handleImportComplete = useCallback(() => {
+    if (!currentGameId || !currentGameName) return;
+    switchToGame(currentGameId, currentGameName);
+  }, [currentGameId, currentGameName, switchToGame]);
 
   if (!activePreviewPage || !previewSurfacePage) return null;
 
@@ -486,6 +503,12 @@ export function AuthoringStudio({
       {/* Full-screen canvas */}
       <div className="absolute inset-0">
         <PreviewCanvas {...sharedCanvasProps} fillHeight />
+        {showEmptyOverlay && (
+          <CanvasEmptyOverlay
+            onImport={() => modals.setIsRulebookImportOpen(true)}
+            onStartBlank={handleCreateBlankCard}
+          />
+        )}
       </div>
 
       {/* Left panel toggle — visible when sidebar is hidden and not in preview */}
@@ -680,6 +703,13 @@ export function AuthoringStudio({
           handleCreatePageWithConfig(config);
           panels.setIsInspectorOpen(true);
         }}
+      />
+
+      <RulebookImporterModal
+        isOpen={modals.isRulebookImportOpen}
+        gameId={currentGameId ?? ""}
+        onClose={() => modals.setIsRulebookImportOpen(false)}
+        onImportComplete={handleImportComplete}
       />
 
       <AccountPanel
