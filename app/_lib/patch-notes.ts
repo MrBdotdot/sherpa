@@ -6,6 +6,13 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.19.2",
+    date: "2026-04-10",
+    changes: [
+      "Rulebook importer: paste your rules text or upload a PDF on an empty canvas — cards are generated and organized by section, ready to edit",
+    ],
+  },
+  {
     version: "v0.19.1",
     date: "2026-04-09",
     changes: [
