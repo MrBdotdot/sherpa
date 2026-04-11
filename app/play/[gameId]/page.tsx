@@ -34,6 +34,11 @@ export default function PlayPage() {
 
   useEffect(() => {
     if (!gameId) return;
+
+    // Apply stored entitlement immediately for offline use
+    const stored = localStorage.getItem(`sherpa-entitlement-${gameId}`);
+    if (stored !== null) setHasBranding(stored === "true");
+
     fetch("/api/stripe/entitlement", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -41,9 +46,14 @@ export default function PlayPage() {
     })
       .then((r) => r.json())
       .then((data: { hasBranding?: boolean }) => {
-        setHasBranding(data.hasBranding ?? true);
+        const value = data.hasBranding ?? true;
+        setHasBranding(value);
+        localStorage.setItem(`sherpa-entitlement-${gameId}`, String(value));
       })
-      .catch(() => setHasBranding(true));
+      .catch(() => {
+        // Offline: use stored value if available, otherwise conservative default (show branding)
+        if (stored === null) setHasBranding(true);
+      });
   }, [gameId]);
 
   // Warm the SW cache after game data is loaded
