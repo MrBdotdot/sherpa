@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/app/_lib/supabase-admin";
 import { createImportedPage, createBlock } from "@/app/_lib/authoring-utils";
 import { ContentBlockType, InteractionType, PageItem } from "@/app/_lib/authoring-types";
+import { injectInlineLinks } from "./inject-links";
 
 const SYSTEM_PROMPT = `You are a structural parser for board game rulebooks. Your job is to reorganize the publisher's own words into a set of Sherpa cards.
 
@@ -149,8 +150,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No cards could be extracted" }, { status: 422 });
   }
 
-  // 8. Persist: upsert new cards + append to card_order
-  const cardRows = newPages.map((page) => ({
+  // 8a. Inject cross-card inline links
+  const linkedPages = injectInlineLinks(newPages);
+
+  // 8b. Persist: upsert new cards + append to card_order
+  const cardRows = linkedPages.map((page) => ({
     id: page.id,
     game_id: gameId,
     kind: page.kind,
@@ -187,7 +191,7 @@ export async function POST(request: Request) {
   }
 
   const existingOrder: string[] = game.card_order ?? [];
-  const newOrder = [...existingOrder, ...newPages.map((p) => p.id)];
+  const newOrder = [...existingOrder, ...linkedPages.map((p) => p.id)];
   const { error: orderError } = await supabaseAdmin
     .from("games")
     .update({ card_order: newOrder })
