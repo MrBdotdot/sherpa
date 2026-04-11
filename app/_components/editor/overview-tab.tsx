@@ -262,6 +262,42 @@ export function OverviewTab({
                           <p className="text-[11px] leading-4 text-neutral-400">
                             Drag to orbit, scroll to zoom, and right-drag or two-finger to pan.
                           </p>
+                          <div className="flex items-start justify-between gap-3 rounded-lg border border-neutral-200 px-3 py-2.5">
+                            <div className="min-w-0">
+                              <div className="text-xs font-medium text-neutral-700">
+                                Cache model for offline
+                              </div>
+                              <div className="mt-0.5 text-[11px] leading-4 text-neutral-400">
+                                {systemSettings.modelUrl
+                                  ? "Stores the 3D model on the player's device"
+                                  : "Set a model URL above to enable"}
+                              </div>
+                            </div>
+                            <button
+                              role="switch"
+                              aria-checked={systemSettings.cache3dModels ?? false}
+                              disabled={!systemSettings.modelUrl}
+                              onClick={() =>
+                                onSystemSettingChange(
+                                  "cache3dModels",
+                                  !(systemSettings.cache3dModels ?? false)
+                                )
+                              }
+                              className={`relative mt-0.5 h-5 w-9 shrink-0 rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#3B82F6] ${
+                                systemSettings.cache3dModels
+                                  ? "bg-[#3B82F6]"
+                                  : "bg-neutral-200"
+                              } disabled:cursor-not-allowed disabled:opacity-40`}
+                            >
+                              <span
+                                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                                  systemSettings.cache3dModels
+                                    ? "translate-x-4"
+                                    : "translate-x-0.5"
+                                }`}
+                              />
+                            </button>
+                          </div>
                         </>
                       ) : isColor ? (
                         <div className="flex items-center gap-3">
