@@ -361,6 +361,41 @@ export function createHotspotPage(count: number, heroImage: string): PageItem {
   });
 }
 
+/**
+ * Creates a PageItem from structured importer data.
+ * `kind` defaults to "page"; `interactionType` defaults to "modal".
+ */
+export function createImportedPage(
+  title: string,
+  kind: PageItem["kind"] = "page",
+  interactionType: InteractionType = "modal",
+  blocks: ContentBlock[],
+  count: number,
+): PageItem {
+  return {
+    id: createId(kind),
+    kind,
+    title: title || `Page ${count}`,
+    summary: "",
+    heroImage: DEFAULT_HERO,
+    x: null,
+    y: null,
+    contentX: 50,
+    contentY: 50,
+    blocks,
+    socialLinks: [],
+    publicUrl: "",
+    showQrCode: false,
+    interactionType,
+    pageButtonPlacement: "bottom",
+    templateId: "blank",
+    canvasFeatures: [],
+    cardSize: "medium",
+    contentTintColor: "",
+    contentTintOpacity: 85,
+  };
+}
+
 export function createInitialPages({
   defaultLanguageCode = "EN",
   gameName = "Untitled Game",
