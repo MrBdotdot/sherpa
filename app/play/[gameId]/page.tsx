@@ -7,6 +7,7 @@ import { PlayerView } from "@/app/_components/player-view";
 import { PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 import { warmGameCache } from "@/app/_lib/warm-game-cache";
 import { OfflineBadge } from "./_components/OfflineBadge";
+import { InstallPrompt } from "./_components/InstallPrompt";
 
 export default function PlayPage() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -97,6 +98,7 @@ export default function PlayPage() {
     <>
       <PlayerView pages={pages} systemSettings={systemSettings} hasBranding={hasBranding} />
       <OfflineBadge status={cacheStatus} />
+      <InstallPrompt />
     </>
   );
 }
