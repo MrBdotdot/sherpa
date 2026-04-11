@@ -202,5 +202,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to update card order" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, count: newPages.length });
+  return NextResponse.json({ ok: true, count: linkedPages.length });
 }
