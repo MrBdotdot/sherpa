@@ -43,6 +43,9 @@ export type ContentModuleProps = {
   isPreviewMode: boolean;
   onDismissContent: () => void;
   onNavigate?: (pageId: string) => void;
+  onNavigateBack?: () => void;
+  canNavigateBack?: boolean;
+  scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
   onContentCardPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
   /** When true, fills the portrait content zone instead of positioning as a floating card */
   portraitZone?: boolean;
@@ -59,6 +62,9 @@ export function ContentModule({
   isPreviewMode,
   onDismissContent,
   onNavigate,
+  onNavigateBack,
+  canNavigateBack,
+  scrollContainerRef,
   onContentCardPointerDown,
   portraitZone = false,
   moduleRef,
@@ -193,19 +199,37 @@ export function ContentModule({
   // ── Shared inner content ───────────────────────────────────────
   function renderContent(showInlineClose: boolean) {
     const titleNode = (
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div
-          className={`text-sm font-semibold ${
-            systemSettings.surfaceStyle === "contrast" ? "text-white" : "text-neutral-900"
-          }`}
-        >
-          {page.title || "Untitled page"}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-1">
+          {canNavigateBack && onNavigateBack && !isExiting ? (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onNavigateBack(); }}
+              className={`-ml-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition ${
+                systemSettings.surfaceStyle === "contrast"
+                  ? "text-neutral-400 hover:bg-white/10 hover:text-white"
+                  : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+              }`}
+              aria-label="Back"
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                <path d="M6.5 2L3 5l3.5 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          ) : null}
+          <div
+            className={`truncate text-sm font-semibold ${
+              systemSettings.surfaceStyle === "contrast" ? "text-white" : "text-neutral-900"
+            }`}
+          >
+            {page.title || "Untitled page"}
+          </div>
         </div>
         {showInlineClose && !isExiting ? (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onDismissContent(); }}
-            className={`-mr-1 -mt-1 flex h-7 w-7 items-center justify-center rounded-full transition ${
+            className={`-mr-1 -mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition ${
               systemSettings.surfaceStyle === "contrast"
                 ? "text-neutral-400 hover:bg-white/10 hover:text-white"
                 : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
@@ -385,6 +409,7 @@ export function ContentModule({
       : "container-external-link-in";
     return (
       <div
+        ref={scrollContainerRef}
         className={`absolute inset-0 z-30 overflow-y-auto px-5 py-5 ${solidBg} ${fontThemeClass} ${portraitAnimClass}`}
         style={{ ...tintStyle, ...pointerEventsStyle }}
         onClick={(e) => e.stopPropagation()}
@@ -399,6 +424,7 @@ export function ContentModule({
   if (ctype === "bottom-sheet") {
     return (
       <div
+        ref={scrollContainerRef}
         className={`absolute bottom-0 left-0 right-0 z-30 max-h-[65%] overflow-y-auto rounded-t-2xl border-t border-neutral-200 px-5 pb-6 pt-3 ${solidBg} ${fontThemeClass} ${animClass}`}
         style={{ ...tintStyle, ...pointerEventsStyle }}
         onClick={(e) => e.stopPropagation()}
@@ -440,7 +466,7 @@ export function ContentModule({
               </svg>
             </button>
           ) : null}
-          <div className="flex-1 overflow-y-auto px-6 pb-6 pt-4">
+          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-6 pb-6 pt-4">
             <div className="mx-auto w-full max-w-md py-4">
               {renderContent(false)}
             </div>
@@ -451,6 +477,7 @@ export function ContentModule({
 
     return (
       <div
+        ref={scrollContainerRef}
         className={`absolute top-0 right-0 bottom-0 z-30 ${sideSheetWidth} max-w-[calc(100%-3rem)] overflow-y-auto rounded-l-2xl pt-4 pb-6 px-5 ${solidBg} border-l border-neutral-200 ${fontThemeClass} ${animClass}`}
         style={{ ...tintStyle, ...pointerEventsStyle }}
         onClick={(e) => e.stopPropagation()}
@@ -490,6 +517,7 @@ export function ContentModule({
         onAnimationEnd={handleAnimEnd}
       >
         <div
+          ref={scrollContainerRef}
           className={innerCardClass}
           style={ctype === "modal" ? tintStyle : undefined}
           onPointerDown={isContentDraggable ? onContentCardPointerDown : undefined}

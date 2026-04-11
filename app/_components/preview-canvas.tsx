@@ -289,6 +289,41 @@ export function PreviewCanvas({
     handleModuleExitEnd,
   } = useContentModuleTransitions({ activePage });
 
+  // ── Preview-mode navigation history (back button) ─────────────
+  const [navHistory, setNavHistory] = useState<Array<{ pageId: string; scrollTop: number }>>([]);
+  const contentScrollRef = useRef<HTMLDivElement | null>(null);
+  const pendingScrollRestoreRef = useRef<number | null>(null);
+
+  useEffect(() => { setNavHistory([]); }, [isPreviewMode]);
+  useEffect(() => { if (!modulePage) setNavHistory([]); }, [modulePage]);
+
+  useEffect(() => {
+    if (pendingScrollRestoreRef.current === null) return;
+    const target = pendingScrollRestoreRef.current;
+    pendingScrollRestoreRef.current = null;
+    requestAnimationFrame(() => {
+      if (contentScrollRef.current) contentScrollRef.current.scrollTop = target;
+    });
+  }, [modulePage]);
+
+  const handlePreviewNavigate = useCallback((id: string) => {
+    if (isPreviewMode && modulePage && !isModuleExiting) {
+      setNavHistory((prev) => [
+        ...prev,
+        { pageId: modulePage.id, scrollTop: contentScrollRef.current?.scrollTop ?? 0 },
+      ]);
+    }
+    onSelectPage(id);
+  }, [isPreviewMode, modulePage, isModuleExiting, onSelectPage]);
+
+  const handlePreviewBack = useCallback(() => {
+    const prev = navHistory[navHistory.length - 1];
+    if (!prev) return;
+    setNavHistory((h) => h.slice(0, -1));
+    pendingScrollRestoreRef.current = prev.scrollTop;
+    onSelectPage(prev.pageId);
+  }, [navHistory, onSelectPage]);
+
   // ── 3D hotspot: track module position to the orbiting hotspot ─────────────
   const moduleElRef = useRef<HTMLDivElement | null>(null);
   const arrowElRef = useRef<HTMLDivElement | null>(null);
@@ -353,7 +388,10 @@ export function PreviewCanvas({
     isLayoutEditMode: !isPreviewMode,
     isPreviewMode,
     onDismissContent,
-    onNavigate: onSelectPage,
+    onNavigate: isPreviewMode ? handlePreviewNavigate : onSelectPage,
+    onNavigateBack: isPreviewMode ? handlePreviewBack : undefined,
+    canNavigateBack: isPreviewMode && navHistory.length > 0,
+    scrollContainerRef: isPreviewMode ? contentScrollRef : undefined,
     onContentCardPointerDown,
   };
 

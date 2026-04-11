@@ -35,6 +35,9 @@ export function PlayerView({
   const [isModuleExiting, setIsModuleExiting] = useState(false);
   const modulePageRef = useRef<PageItem | null>(null);
   const isModuleExitingRef = useRef(false);
+  const [navHistory, setNavHistory] = useState<Array<{ pageId: string; scrollTop: number }>>([]);
+  const contentScrollRef = useRef<HTMLDivElement | null>(null);
+  const pendingScrollRestoreRef = useRef<number | null>(null);
   const previousDefaultLanguageRef = useRef(defaultLanguageCode);
   const localizedPages = useMemo(
     () => localizePages(pages, systemSettings.translations, activeLanguageCode, defaultLanguageCode),
@@ -92,6 +95,15 @@ export function PlayerView({
     setModulePage(nextModulePage);
   }, [localizedPages]);
 
+  useEffect(() => {
+    if (pendingScrollRestoreRef.current === null) return;
+    const target = pendingScrollRestoreRef.current;
+    pendingScrollRestoreRef.current = null;
+    requestAnimationFrame(() => {
+      if (contentScrollRef.current) contentScrollRef.current.scrollTop = target;
+    });
+  }, [modulePage]);
+
   if (!homePage) {
     return (
       <div className="flex h-screen items-center justify-center bg-neutral-950">
@@ -111,6 +123,12 @@ export function PlayerView({
       handleDismissContent();
       return;
     }
+    if (modulePageRef.current && !isModuleExitingRef.current) {
+      setNavHistory((prev) => [
+        ...prev,
+        { pageId: modulePageRef.current!.id, scrollTop: contentScrollRef.current?.scrollTop ?? 0 },
+      ]);
+    }
     setSelectedPageId(id);
     modulePageRef.current = page;
     isModuleExitingRef.current = false;
@@ -118,10 +136,25 @@ export function PlayerView({
     setIsModuleExiting(false);
   }
 
+  function handleNavigateBack() {
+    const prev = navHistory[navHistory.length - 1];
+    if (!prev) return;
+    const page = localizedPages.find((p) => p.id === prev.pageId);
+    if (!page) { setNavHistory((h) => h.slice(0, -1)); return; }
+    setNavHistory((h) => h.slice(0, -1));
+    pendingScrollRestoreRef.current = prev.scrollTop;
+    modulePageRef.current = page;
+    isModuleExitingRef.current = false;
+    setModulePage(page);
+    setIsModuleExiting(false);
+    setSelectedPageId(prev.pageId);
+  }
+
   function handleDismissContent() {
     if (!modulePageRef.current || isModuleExitingRef.current) return;
     isModuleExitingRef.current = true;
     setIsModuleExiting(true);
+    setNavHistory([]);
   }
 
   function handleModuleExitEnd() {
@@ -233,6 +266,9 @@ export function PlayerView({
           isPreviewMode={true}
           onDismissContent={handleDismissContent}
           onNavigate={handleSelectPage}
+          onNavigateBack={handleNavigateBack}
+          canNavigateBack={navHistory.length > 0}
+          scrollContainerRef={contentScrollRef}
           onContentCardPointerDown={NOOP_PTR}
         />
       )}

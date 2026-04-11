@@ -6,6 +6,13 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.19.3",
+    date: "2026-04-11",
+    changes: [
+      "Back button: navigating into a linked page now shows a back arrow to return to the previous card, restoring your scroll position",
+    ],
+  },
+  {
     version: "v0.19.2",
     date: "2026-04-10",
     changes: [
