@@ -1,8 +1,22 @@
 import Stripe from "stripe";
 
-// Singleton — re-used across invocations in the same Lambda warm instance.
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
-  apiVersion: "2026-03-25.dahlia",
+// Lazy singleton — instantiated on first use so the module can be evaluated
+// at build time even when STRIPE_SECRET_KEY is absent from the build env.
+let _stripe: Stripe | null = null;
+
+function getInstance(): Stripe {
+  if (!_stripe) {
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key) throw new Error("STRIPE_SECRET_KEY is not configured.");
+    _stripe = new Stripe(key, { apiVersion: "2026-03-25.dahlia" });
+  }
+  return _stripe;
+}
+
+export const stripe: Stripe = new Proxy({} as Stripe, {
+  get(_target, prop: string | symbol) {
+    return getInstance()[prop as keyof Stripe];
+  },
 });
 
 // Maps Stripe price IDs (from env vars) to plan strings.
