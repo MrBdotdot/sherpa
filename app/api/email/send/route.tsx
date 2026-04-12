@@ -82,7 +82,7 @@ export async function POST(request: Request) {
   const resend = new Resend(apiKey);
   try {
     await resend.emails.send({
-      from: "Sherpa <hello@sherpa.app>",
+      from: "Sherpa <onboarding@resend.dev>",
       to,
       subject,
       html,
