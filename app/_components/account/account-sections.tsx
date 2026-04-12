@@ -13,6 +13,7 @@ import { supabase } from "@/app/_lib/supabase";
 import { UserMetadata } from "@/app/_lib/user-profile";
 import { useSave } from "@/app/_hooks/useSave";
 import { useProfileSection } from "@/app/_hooks/useProfileSection";
+import { usePlan } from "@/app/_hooks/usePlan";
 
 // ── Profile ────────────────────────────────────────────────────
 
@@ -397,6 +398,11 @@ export function SessionsSection({ userDisplayName, userAvatarUrl, userInitial }:
 
 // ── Team ───────────────────────────────────────────────────────
 
+// ── Team types ─────────────────────────────────────────────────
+type GameSummary = { id: string; title: string };
+type GameMember = { id: string; user_id: string; role: "editor" | "viewer"; email: string; display_name: string | null; joined_at: string };
+type GameInvitation = { id: string; email: string; role: "editor" | "viewer"; expires_at: string; created_at: string };
+
 type TeamSectionProps = {
   userDisplayName: string;
   userEmail: string;
@@ -405,34 +411,333 @@ type TeamSectionProps = {
 };
 
 export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userInitial }: TeamSectionProps) {
-  return (
-    <div>
-      <SectionHeader title="Team & access" description="Invite collaborators and manage their permissions." />
+  const { hasTeamSeats, maxCollaborators } = usePlan();
+  const [games, setGames] = useState<GameSummary[]>([]);
+  const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
+  const [members, setMembers] = useState<GameMember[]>([]);
+  const [invitations, setInvitations] = useState<GameInvitation[]>([]);
+  const [totalCollaborators, setTotalCollaborators] = useState(0);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<"editor" | "viewer">("editor");
+  const [inviting, setInviting] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [transferEmail, setTransferEmail] = useState("");
+  const [transferStaysAsEditor, setTransferStaysAsEditor] = useState(true);
+  const [transferring, setTransferring] = useState(false);
+  const [transferError, setTransferError] = useState<string | null>(null);
 
-      <div className="mb-4 rounded-2xl border border-neutral-200 overflow-hidden">
-        <div className="flex items-center gap-3 px-4 py-3">
-          {userAvatarUrl ? (
-            <img
-              src={userAvatarUrl}
-              alt={userDisplayName || "Profile photo"}
-              className="h-8 w-8 shrink-0 rounded-full object-cover"
-            />
-          ) : (
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1e3a8a] text-xs font-semibold text-white">
-              {userInitial}
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <div className="text-sm font-medium text-neutral-900">{userDisplayName}</div>
-            <div className="text-xs text-neutral-400">{userEmail}</div>
-          </div>
-          <span className="rounded-full bg-[#3B82F6] px-2.5 py-1 text-[10px] font-semibold text-white">Admin</span>
+  // Load owned games
+  useEffect(() => {
+    supabase
+      .from("games")
+      .select("id, title")
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        const list = (data ?? []) as GameSummary[];
+        setGames(list);
+        if (list.length > 0) setSelectedGameId(list[0].id);
+      });
+  }, []);
+
+  // Load members + invitations for selected game
+  useEffect(() => {
+    if (!selectedGameId) return;
+    Promise.all([
+      fetch(`/api/game-members?gameId=${selectedGameId}`).then((r) => r.json()),
+      fetch(`/api/invitations?gameId=${selectedGameId}`).then((r) => r.json()),
+    ]).then(([membersData, invitesData]) => {
+      setMembers((membersData as { members: GameMember[]; totalCollaborators: number }).members ?? []);
+      setTotalCollaborators((membersData as { totalCollaborators: number }).totalCollaborators ?? 0);
+      setInvitations((invitesData as { invitations: GameInvitation[] }).invitations ?? []);
+    });
+  }, [selectedGameId]);
+
+  async function handleInvite(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedGameId || !inviteEmail.trim()) return;
+    setInviting(true);
+    setInviteError(null);
+    const res = await fetch("/api/invitations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gameId: selectedGameId, email: inviteEmail.trim(), role: inviteRole }),
+    });
+    setInviting(false);
+    if (res.ok) {
+      setInviteEmail("");
+      // Refresh
+      const inv = await fetch(`/api/invitations?gameId=${selectedGameId}`).then((r) => r.json()) as { invitations: GameInvitation[] };
+      setInvitations(inv.invitations ?? []);
+    } else {
+      const data = await res.json() as { error?: string };
+      if (data.error === "seat_limit_reached") {
+        setInviteError("You've reached the collaborator limit for your plan. Upgrade to Studio for unlimited seats.");
+      } else if (data.error === "already_member") {
+        setInviteError("This person is already a member of this game.");
+      } else {
+        setInviteError("Failed to send invitation. Please try again.");
+      }
+    }
+  }
+
+  async function handleRoleChange(memberId: string, role: "editor" | "viewer") {
+    await fetch(`/api/game-members/${memberId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role }),
+    });
+    setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, role } : m)));
+  }
+
+  async function handleRemoveMember(memberId: string) {
+    await fetch(`/api/game-members/${memberId}`, { method: "DELETE" });
+    setMembers((prev) => prev.filter((m) => m.id !== memberId));
+  }
+
+  async function handleResendInvitation(invitationId: string) {
+    await fetch(`/api/invitations/${invitationId}`, { method: "PATCH" });
+  }
+
+  async function handleRevokeInvitation(invitationId: string) {
+    await fetch(`/api/invitations/${invitationId}`, { method: "DELETE" });
+    setInvitations((prev) => prev.filter((i) => i.id !== invitationId));
+  }
+
+  async function handleTransfer(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedGameId || !transferEmail.trim()) return;
+    setTransferring(true);
+    setTransferError(null);
+    const res = await fetch(`/api/games/${selectedGameId}/transfer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ newOwnerEmail: transferEmail.trim(), previousOwnerStaysAsEditor: transferStaysAsEditor }),
+    });
+    setTransferring(false);
+    if (res.ok) {
+      // Remove this game from the local list (owner no longer owns it)
+      setGames((prev) => prev.filter((g) => g.id !== selectedGameId));
+      setSelectedGameId(null);
+      setMembers([]);
+      setInvitations([]);
+      setShowTransfer(false);
+      setTransferEmail("");
+    } else {
+      const data = await res.json() as { error?: string };
+      if (data.error === "user_not_found") {
+        setTransferError("No Sherpa account found for that email address.");
+      } else {
+        setTransferError("Transfer failed. Please try again.");
+      }
+    }
+  }
+
+  function memberInitial(member: GameMember) {
+    return (member.display_name?.[0] ?? member.email[0] ?? "?").toUpperCase();
+  }
+
+  function memberLabel(member: GameMember) {
+    return member.display_name ?? member.email;
+  }
+
+  if (!hasTeamSeats) {
+    return (
+      <div>
+        <SectionHeader title="Team & access" description="Invite collaborators and manage their permissions." />
+        <div className="rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-5 text-center">
+          <p className="text-sm font-medium text-neutral-700 mb-1">Team collaboration requires Pro or Studio</p>
+          <p className="text-xs text-neutral-400 mb-4">Pro includes 1 collaborator seat. Studio is unlimited.</p>
+          <button className="rounded-full bg-neutral-900 px-5 py-2 text-xs font-semibold text-white hover:bg-neutral-800">
+            See plans
+          </button>
         </div>
       </div>
+    );
+  }
 
-      <div className="rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-3 text-xs text-neutral-400 leading-5">
-        Multi-user collaboration and team invitations are coming in a future update.
-      </div>
+  return (
+    <div>
+      <SectionHeader title="Team & access" description="Invite collaborators and manage their permissions per game." />
+
+      {/* Game selector */}
+      {games.length === 0 ? (
+        <p className="text-sm text-neutral-400 mb-4">No games yet.</p>
+      ) : (
+        <div className="mb-4">
+          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+            Manage team for
+          </label>
+          <select
+            value={selectedGameId ?? ""}
+            onChange={(e) => setSelectedGameId(e.target.value)}
+            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-300"
+          >
+            {games.map((g) => (
+              <option key={g.id} value={g.id}>{g.title}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {selectedGameId && (
+        <>
+          {/* Member list */}
+          <div className="mb-3 overflow-hidden rounded-xl border border-neutral-200">
+            {/* Owner row */}
+            <div className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3">
+              {userAvatarUrl ? (
+                <img src={userAvatarUrl} alt={userDisplayName} className="h-8 w-8 shrink-0 rounded-full object-cover" />
+              ) : (
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1e3a8a] text-xs font-semibold text-white">
+                  {userInitial}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium text-neutral-900">{userDisplayName || userEmail}</div>
+                <div className="text-xs text-neutral-400">{userEmail}</div>
+              </div>
+              <span className="rounded-full bg-blue-500 px-2.5 py-1 text-[10px] font-semibold text-white">Owner</span>
+            </div>
+
+            {/* Member rows */}
+            {members.map((member) => (
+              <div key={member.id} className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3 last:border-0">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-600">
+                  {memberInitial(member)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium text-neutral-900">{memberLabel(member)}</div>
+                  <div className="text-xs text-neutral-400">{member.email}</div>
+                </div>
+                <select
+                  value={member.role}
+                  onChange={(e) => handleRoleChange(member.id, e.target.value as "editor" | "viewer")}
+                  className="rounded-md border border-neutral-200 px-2 py-1 text-xs text-neutral-700 focus:outline-none"
+                >
+                  <option value="editor">Editor</option>
+                  <option value="viewer">Viewer</option>
+                </select>
+                <button
+                  onClick={() => handleRemoveMember(member.id)}
+                  className="text-xs text-red-500 hover:text-red-700"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+
+            {/* Pending invitations */}
+            {invitations.map((inv) => (
+              <div key={inv.id} className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3 last:border-0">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-semibold text-neutral-400">
+                  ?
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm text-neutral-500 italic">{inv.email}</div>
+                  <div className="text-xs text-neutral-400">Invite pending · {inv.role}</div>
+                </div>
+                <button onClick={() => handleResendInvitation(inv.id)} className="text-xs text-neutral-500 hover:text-neutral-700">
+                  Resend
+                </button>
+                <button onClick={() => handleRevokeInvitation(inv.id)} className="text-xs text-red-500 hover:text-red-700">
+                  Revoke
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Invite form */}
+          <form onSubmit={handleInvite} className="mb-2 flex gap-2">
+            <input
+              type="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="Email address"
+              required
+              className="flex-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-300"
+            />
+            <select
+              value={inviteRole}
+              onChange={(e) => setInviteRole(e.target.value as "editor" | "viewer")}
+              className="rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-700 focus:outline-none"
+            >
+              <option value="editor">Editor</option>
+              <option value="viewer">Viewer</option>
+            </select>
+            <button
+              type="submit"
+              disabled={inviting || !inviteEmail.trim()}
+              className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+            >
+              {inviting ? "Sending…" : "Invite"}
+            </button>
+          </form>
+
+          {inviteError && (
+            <p className="mb-2 text-xs text-red-600">{inviteError}</p>
+          )}
+
+          {/* Seat counter (Pro only) */}
+          {maxCollaborators === 1 && (
+            <p className="mb-4 text-right text-xs text-neutral-400">
+              {totalCollaborators} of 1 collaborator seat used ·{" "}
+              <span className="cursor-pointer text-violet-600 hover:underline">Upgrade to Studio for unlimited</span>
+            </p>
+          )}
+
+          {/* Danger zone */}
+          <div className="mt-6 border-t border-neutral-100 pt-4">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">Danger zone</p>
+            {!showTransfer ? (
+              <button
+                onClick={() => setShowTransfer(true)}
+                className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-100"
+              >
+                Transfer game ownership…
+              </button>
+            ) : (
+              <form onSubmit={handleTransfer} className="rounded-xl border border-red-200 bg-red-50 p-4">
+                <p className="mb-3 text-sm font-medium text-red-800">Transfer ownership of this game</p>
+                <input
+                  type="email"
+                  value={transferEmail}
+                  onChange={(e) => setTransferEmail(e.target.value)}
+                  placeholder="New owner's email address"
+                  required
+                  className="mb-3 w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-400 focus:outline-none"
+                />
+                <label className="mb-3 flex items-center gap-2 text-sm text-neutral-700">
+                  <input
+                    type="checkbox"
+                    checked={transferStaysAsEditor}
+                    onChange={(e) => setTransferStaysAsEditor(e.target.checked)}
+                    className="h-4 w-4 rounded"
+                  />
+                  Keep me as an Editor after transfer
+                </label>
+                {transferError && <p className="mb-2 text-xs text-red-700">{transferError}</p>}
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={transferring || !transferEmail.trim()}
+                    className="rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                  >
+                    {transferring ? "Transferring…" : "Confirm transfer"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowTransfer(false); setTransferEmail(""); setTransferError(null); }}
+                    className="rounded-lg border border-neutral-200 px-4 py-2 text-xs text-neutral-600 hover:bg-neutral-100"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
