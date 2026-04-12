@@ -1,18 +1,10 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/app/_lib/supabase-admin";
+import { getRequestUser } from "@/app/_lib/api-auth";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function cookiesFromRequest(request: Request) {
-  const cookieHeader = request.headers.get("cookie") ?? "";
-  return cookieHeader.split(";").map((c) => {
-    const [name, ...rest] = c.trim().split("=");
-    return { name: name.trim(), value: rest.join("=") };
-  });
-}
 
 function isExpired(planExpiresAt: string | null): boolean {
   if (!planExpiresAt) return false;
@@ -25,25 +17,9 @@ function isExpired(planExpiresAt: string | null): boolean {
 // ---------------------------------------------------------------------------
 
 export async function GET(request: Request) {
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-    {
-      cookies: {
-        getAll: () => cookiesFromRequest(request),
-        setAll: () => {
-          // read-only — we don't need to set cookies in this route
-        },
-      },
-    }
-  );
+  const user = await getRequestUser(request);
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

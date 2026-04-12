@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { apiFetch } from "@/app/_lib/api-fetch";
 
 export type Plan = "free" | "pro" | "studio" | "lifetime";
 
@@ -57,7 +58,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<PlanState>(defaultState);
 
   useEffect(() => {
-    fetch("/api/stripe/entitlement")
+    apiFetch("/api/stripe/entitlement")
       .then((res) => {
         if (!res.ok) throw new Error("Not authenticated");
         return res.json();

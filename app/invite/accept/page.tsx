@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/app/_lib/supabase";
+import { apiFetch } from "@/app/_lib/api-fetch";
 
 type Status = "loading" | "success" | "expired" | "invalid" | "mismatch" | "not_logged_in";
 
@@ -28,7 +29,7 @@ export default function AcceptInvitePage() {
         return;
       }
 
-      const res = await fetch("/api/invitations/accept", {
+      const res = await apiFetch("/api/invitations/accept", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),

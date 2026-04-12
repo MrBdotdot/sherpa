@@ -10,6 +10,7 @@ import {
   SaveButton,
 } from "@/app/_components/account/account-form-ui";
 import { supabase } from "@/app/_lib/supabase";
+import { apiFetch } from "@/app/_lib/api-fetch";
 import { UserMetadata } from "@/app/_lib/user-profile";
 import { useSave } from "@/app/_hooks/useSave";
 import { useProfileSection } from "@/app/_hooks/useProfileSection";
@@ -444,8 +445,8 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
   useEffect(() => {
     if (!selectedGameId) return;
     Promise.all([
-      fetch(`/api/game-members?gameId=${selectedGameId}`).then((r) => r.json()),
-      fetch(`/api/invitations?gameId=${selectedGameId}`).then((r) => r.json()),
+      apiFetch(`/api/game-members?gameId=${selectedGameId}`).then((r) => r.json()),
+      apiFetch(`/api/invitations?gameId=${selectedGameId}`).then((r) => r.json()),
     ]).then(([membersData, invitesData]) => {
       setMembers((membersData as { members: GameMember[]; totalCollaborators: number }).members ?? []);
       setTotalCollaborators((membersData as { totalCollaborators: number }).totalCollaborators ?? 0);
@@ -458,7 +459,7 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
     if (!selectedGameId || !inviteEmail.trim()) return;
     setInviting(true);
     setInviteError(null);
-    const res = await fetch("/api/invitations", {
+    const res = await apiFetch("/api/invitations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ gameId: selectedGameId, email: inviteEmail.trim(), role: inviteRole }),
@@ -467,7 +468,7 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
     if (res.ok) {
       setInviteEmail("");
       // Refresh
-      const inv = await fetch(`/api/invitations?gameId=${selectedGameId}`).then((r) => r.json()) as { invitations: GameInvitation[] };
+      const inv = await apiFetch(`/api/invitations?gameId=${selectedGameId}`).then((r) => r.json()) as { invitations: GameInvitation[] };
       setInvitations(inv.invitations ?? []);
     } else {
       const data = await res.json() as { error?: string };
@@ -482,7 +483,7 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
   }
 
   async function handleRoleChange(memberId: string, role: "editor" | "viewer") {
-    await fetch(`/api/game-members/${memberId}`, {
+    await apiFetch(`/api/game-members/${memberId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ role }),
@@ -491,16 +492,16 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
   }
 
   async function handleRemoveMember(memberId: string) {
-    await fetch(`/api/game-members/${memberId}`, { method: "DELETE" });
+    await apiFetch(`/api/game-members/${memberId}`, { method: "DELETE" });
     setMembers((prev) => prev.filter((m) => m.id !== memberId));
   }
 
   async function handleResendInvitation(invitationId: string) {
-    await fetch(`/api/invitations/${invitationId}`, { method: "PATCH" });
+    await apiFetch(`/api/invitations/${invitationId}`, { method: "PATCH" });
   }
 
   async function handleRevokeInvitation(invitationId: string) {
-    await fetch(`/api/invitations/${invitationId}`, { method: "DELETE" });
+    await apiFetch(`/api/invitations/${invitationId}`, { method: "DELETE" });
     setInvitations((prev) => prev.filter((i) => i.id !== invitationId));
   }
 
@@ -509,7 +510,7 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
     if (!selectedGameId || !transferEmail.trim()) return;
     setTransferring(true);
     setTransferError(null);
-    const res = await fetch(`/api/games/${selectedGameId}/transfer`, {
+    const res = await apiFetch(`/api/games/${selectedGameId}/transfer`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ newOwnerEmail: transferEmail.trim(), previousOwnerStaysAsEditor: transferStaysAsEditor }),
