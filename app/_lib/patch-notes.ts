@@ -6,6 +6,16 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.20.0",
+    date: "2026-04-11",
+    changes: [
+      "Team collaboration: invite editors and viewers to individual games from Account Settings → Team & Access",
+      "Pro plan includes 1 collaborator seat; Studio is unlimited",
+      "Pending invitations expire after 7 days and can be resent or revoked",
+      "Game ownership transfer: hand off a game to another Sherpa user",
+    ],
+  },
+  {
     version: "v0.19.3",
     date: "2026-04-11",
     changes: [
