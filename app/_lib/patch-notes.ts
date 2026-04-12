@@ -6,6 +6,13 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.20.4",
+    date: "2026-04-12",
+    changes: [
+      "Language setting in account settings now correctly shows as coming soon (was saving silently with no effect)",
+    ],
+  },
+  {
     version: "v0.20.3",
     date: "2026-04-12",
     changes: [

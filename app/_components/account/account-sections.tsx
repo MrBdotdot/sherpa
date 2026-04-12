@@ -796,22 +796,25 @@ export function LanguageSection({ metadata }: LanguageSectionProps) {
     <div>
       <SectionHeader title="Language" description="Set the language used throughout the Sherpa authoring interface." />
       <FieldRow label="Interface language">
-        <select
-          value={language}
-          onChange={(e) => setLanguage(e.target.value)}
-          className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
-        >
-          {LANGUAGE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            disabled
+            className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-400 outline-none cursor-not-allowed"
+          >
+            {LANGUAGE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-500">
+            Coming soon
+          </span>
+        </div>
       </FieldRow>
       <p className="mt-3 text-xs text-neutral-400">
-        This only changes the language of the authoring tool. It does not affect your published experience.
+        Multi-language authoring interface support is on the roadmap. Your published experience can already be localized from the canvas editor.
       </p>
-      <div className="mt-6">
-        <SaveButton onSave={handleSave} saveState={saveState} label="Save" />
-      </div>
     </div>
   );
 }
