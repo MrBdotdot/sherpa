@@ -417,6 +417,7 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
   const [members, setMembers] = useState<GameMember[]>([]);
   const [invitations, setInvitations] = useState<GameInvitation[]>([]);
+  const [resendCooldowns, setResendCooldowns] = useState<Record<string, number>>({});
   const [totalCollaborators, setTotalCollaborators] = useState(0);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"editor" | "viewer">("editor");
@@ -497,6 +498,11 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
   }
 
   async function handleResendInvitation(invitationId: string) {
+    const COOLDOWN_MS = 15 * 60 * 1000;
+    const lastSent = resendCooldowns[invitationId] ?? 0;
+    if (Date.now() - lastSent < COOLDOWN_MS) return;
+
+    setResendCooldowns((prev) => ({ ...prev, [invitationId]: Date.now() }));
     await apiFetch(`/api/invitations/${invitationId}`, { method: "PATCH" });
   }
 
@@ -638,7 +644,11 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
                   <div className="text-sm text-neutral-500 italic">{inv.email}</div>
                   <div className="text-xs text-neutral-400">Invite pending · {inv.role}</div>
                 </div>
-                <button onClick={() => handleResendInvitation(inv.id)} className="text-xs text-neutral-500 hover:text-neutral-700">
+                <button
+                  onClick={() => handleResendInvitation(inv.id)}
+                  disabled={Date.now() - (resendCooldowns[inv.id] ?? 0) < 15 * 60 * 1000}
+                  className="text-xs text-neutral-500 hover:text-neutral-700 disabled:cursor-not-allowed disabled:opacity-40"
+                >
                   Resend
                 </button>
                 <button onClick={() => handleRevokeInvitation(inv.id)} className="text-xs text-red-500 hover:text-red-700">

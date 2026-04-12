@@ -6,6 +6,21 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.20.2",
+    date: "2026-04-12",
+    changes: [
+      "Fixed: Resend invitation now actually re-sends the email (previously only reset the expiry)",
+      "Resend button has a 15-minute cooldown to prevent spam",
+    ],
+  },
+  {
+    version: "v0.20.1",
+    date: "2026-04-12",
+    changes: [
+      "Fixed invite accept flow: clicking an invite link now correctly redirects to login and back to the accept page",
+    ],
+  },
+  {
     version: "v0.20.0",
     date: "2026-04-11",
     changes: [

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/app/_lib/supabase";
 
 function Spinner() {
@@ -59,6 +60,8 @@ function LeftPanel() {
 }
 
 export function LoginScreen() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -91,7 +94,12 @@ export function LoginScreen() {
 
     if (mode === "signin") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setError(error.message);
+      if (error) {
+        setError(error.message);
+      } else {
+        const returnUrl = searchParams.get("returnUrl");
+        if (returnUrl) router.push(returnUrl);
+      }
     } else {
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) {
