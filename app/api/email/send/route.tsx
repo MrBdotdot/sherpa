@@ -5,8 +5,9 @@ import { BillingEvent } from "@/app/_lib/email/billing-event";
 import { ConfirmEmail } from "@/app/_lib/email/confirm-email";
 import { PasswordReset } from "@/app/_lib/email/password-reset";
 import { Welcome } from "@/app/_lib/email/welcome";
+import { TeamInvite } from "@/app/_lib/email/team-invite";
 
-const KNOWN_TEMPLATES = ["confirm-email", "password-reset", "welcome", "billing-event"] as const;
+const KNOWN_TEMPLATES = ["confirm-email", "password-reset", "welcome", "billing-event", "team-invite"] as const;
 type TemplateName = (typeof KNOWN_TEMPLATES)[number];
 
 function isKnownTemplate(t: unknown): t is TemplateName {
@@ -60,6 +61,13 @@ export async function POST(request: Request) {
     const resetUrl = typeof p.resetUrl === "string" ? p.resetUrl : "";
     subject = "Reset your Sherpa password";
     emailElement = <PasswordReset resetUrl={resetUrl} />;
+  } else if (template === "team-invite") {
+    const inviterName = typeof p.inviterName === "string" ? p.inviterName : "Someone";
+    const gameTitle = typeof p.gameTitle === "string" ? p.gameTitle : "a game";
+    const role = p.role === "viewer" ? "viewer" : "editor";
+    const acceptUrl = typeof p.acceptUrl === "string" ? p.acceptUrl : "";
+    subject = `You've been invited to collaborate on "${gameTitle}" in Sherpa`;
+    emailElement = <TeamInvite inviterName={inviterName} gameTitle={gameTitle} role={role} acceptUrl={acceptUrl} />;
   } else {
     // welcome
     const firstName = typeof p.firstName === "string" ? p.firstName : undefined;
