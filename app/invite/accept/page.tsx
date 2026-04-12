@@ -1,15 +1,13 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/app/_lib/supabase";
 import { apiFetch } from "@/app/_lib/api-fetch";
 
 type Status = "loading" | "success" | "expired" | "invalid" | "mismatch" | "not_logged_in";
 
-export default function AcceptInvitePage() {
+function AcceptInviteContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
@@ -25,7 +23,6 @@ export default function AcceptInvitePage() {
     async function accept() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        // Redirect to login, then back here
         const returnUrl = encodeURIComponent("/invite/accept?token=" + token);
         router.push("/login?returnUrl=" + returnUrl);
         return;
@@ -41,7 +38,6 @@ export default function AcceptInvitePage() {
         const data: { gameId?: string } = await res.json();
         setGameId(data.gameId ?? null);
         setStatus("success");
-        // Redirect to studio after a brief moment
         setTimeout(() => {
           router.push("/");
         }, 2500);
@@ -120,5 +116,19 @@ export default function AcceptInvitePage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function AcceptInvitePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-neutral-950">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-700 border-t-white" />
+        </div>
+      }
+    >
+      <AcceptInviteContent />
+    </Suspense>
   );
 }
