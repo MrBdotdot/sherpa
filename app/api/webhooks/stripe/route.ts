@@ -5,11 +5,6 @@ import { supabaseAdmin } from "@/app/_lib/supabase-admin";
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? "";
 const NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
-// Validate webhook secret at startup
-if (!process.env.STRIPE_WEBHOOK_SECRET) {
-  throw new Error("STRIPE_WEBHOOK_SECRET is not configured");
-}
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
