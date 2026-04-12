@@ -134,7 +134,7 @@ export async function POST(request: Request) {
     );
     const resend = new Resend(resendKey);
     await resend.emails.send({
-      from: "Sherpa <onboarding@resend.dev>",
+      from: "Sherpa <hello@wbeestudio.com>",
       to: email,
       subject: `You've been invited to collaborate on "${game.title}" in Sherpa`,
       html,
