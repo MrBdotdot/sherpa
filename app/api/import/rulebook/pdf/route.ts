@@ -1,35 +1,17 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { getRequestUser } from "@/app/_lib/api-auth";
 
-// pdf-parse v1.1.1 is CommonJS with a default function export
+// Use the internal lib path to avoid pdf-parse loading a test PDF at module
+// evaluation time (which causes Next.js build to fail with ENOENT).
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse = require("pdf-parse") as (buffer: Buffer) => Promise<{ text: string }>;
+const pdfParse = require("pdf-parse/lib/pdf-parse") as (buffer: Buffer) => Promise<{ text: string }>;
 
 const MAX_PDF_BYTES = 20 * 1024 * 1024; // 20MB
 
-function cookiesFromRequest(request: Request) {
-  const cookieHeader = request.headers.get("cookie") ?? "";
-  return cookieHeader.split(";").map((c) => {
-    const [name, ...rest] = c.trim().split("=");
-    return { name: name.trim(), value: rest.join("=") };
-  });
-}
-
 export async function POST(request: Request) {
   // 1. Auth
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-    {
-      cookies: {
-        getAll: () => cookiesFromRequest(request),
-        setAll: () => {},
-      },
-    }
-  );
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
+  const user = await getRequestUser(request);
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -78,7 +60,9 @@ export async function POST(request: Request) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      cookie: request.headers.get("cookie") ?? "",
+      ...(request.headers.get("Authorization")
+        ? { Authorization: request.headers.get("Authorization")! }
+        : {}),
     },
     body: JSON.stringify({ text, gameId }),
   });

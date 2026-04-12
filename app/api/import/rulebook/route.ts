@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/app/_lib/supabase-admin";
+import { getRequestUser } from "@/app/_lib/api-auth";
 import { createImportedPage, createBlock } from "@/app/_lib/authoring-utils";
 import { ContentBlockType, InteractionType, PageItem } from "@/app/_lib/authoring-types";
 import { injectInlineLinks } from "./inject-links";
@@ -32,14 +32,6 @@ Response format:
 
 const MAX_TEXT_CHARS = 80000;
 
-function cookiesFromRequest(request: Request) {
-  const cookieHeader = request.headers.get("cookie") ?? "";
-  return cookieHeader.split(";").map((c) => {
-    const [name, ...rest] = c.trim().split("=");
-    return { name: name.trim(), value: rest.join("=") };
-  });
-}
-
 type ImportedBlock = { type: string; value: string };
 type ImportedCard = {
   title: string;
@@ -50,19 +42,8 @@ type ImportedCard = {
 
 export async function POST(request: Request) {
   // 1. Auth
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-    {
-      cookies: {
-        getAll: () => cookiesFromRequest(request),
-        setAll: () => {},
-      },
-    }
-  );
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
+  const user = await getRequestUser(request);
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
