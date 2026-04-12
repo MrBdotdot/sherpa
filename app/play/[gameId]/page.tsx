@@ -60,7 +60,10 @@ export default function PlayPage() {
   // Warm the SW cache after game data is loaded
   useEffect(() => {
     if (!gameId || !pages || !systemSettings) return;
-    warmGameCache(gameId, pages, systemSettings).then(setCacheStatus);
+    warmGameCache(gameId, pages, systemSettings).then((status) => {
+      console.log("[warmGameCache] result:", status);
+      setCacheStatus(status);
+    });
   }, [gameId, pages, systemSettings]);
 
   if (notFound) {

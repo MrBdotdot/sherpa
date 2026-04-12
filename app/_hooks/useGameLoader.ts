@@ -162,7 +162,17 @@ export function useGameLoader({
           if (savedResetRef.current) clearTimeout(savedResetRef.current);
           savedResetRef.current = setTimeout(() => setSaveState("idle"), 2000);
         })
-        .catch((err) => { console.error("[saveGame]", err); setSaveState("error"); });
+        .catch((err) => {
+          console.error("[saveGame] error:", {
+            message: err?.message,
+            code: err?.code,
+            details: err?.details,
+            hint: err?.hint,
+            name: err?.name,
+            raw: err,
+          });
+          setSaveState("error");
+        });
     }, 2000);
 
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
