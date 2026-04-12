@@ -6,6 +6,14 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.20.3",
+    date: "2026-04-12",
+    changes: [
+      "Fixed: sign-up confirmation email now links back to the correct deployment instead of studio.sherpa.app",
+      "Invite accept flow preserved through sign-up: confirming your email takes you directly to the accept page",
+    ],
+  },
+  {
     version: "v0.20.2",
     date: "2026-04-12",
     changes: [

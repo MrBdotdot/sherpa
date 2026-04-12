@@ -101,7 +101,16 @@ export function LoginScreen() {
         if (returnUrl) router.push(returnUrl);
       }
     } else {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const returnUrl = searchParams.get("returnUrl");
+      const emailRedirectTo =
+        typeof window !== "undefined"
+          ? window.location.origin + (returnUrl ?? "")
+          : undefined;
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: emailRedirectTo ? { emailRedirectTo } : undefined,
+      });
       if (error) {
         setError(error.message);
       } else {
