@@ -7,9 +7,10 @@ export type Plan = "free" | "pro" | "studio" | "lifetime";
 export type PlanState = {
   plan: Plan;
   planExpiresAt: string | null;
-  canPublish: boolean;    // pro | studio | lifetime (and not expired)
-  hasBranding: boolean;   // free or expired paid plan
-  hasTeamSeats: boolean;  // studio | lifetime
+  canPublish: boolean;
+  hasBranding: boolean;
+  hasTeamSeats: boolean;
+  maxCollaborators: 0 | 1 | "unlimited";
   isLoading: boolean;
 };
 
@@ -19,12 +20,16 @@ const defaultState: PlanState = {
   canPublish: false,
   hasBranding: true,
   hasTeamSeats: false,
+  maxCollaborators: 0,
   isLoading: true,
 };
 
 const PlanContext = createContext<PlanState>(defaultState);
 
-function deriveEntitlements(plan: Plan, planExpiresAt: string | null): Omit<PlanState, "plan" | "planExpiresAt" | "isLoading"> {
+export function deriveEntitlements(
+  plan: Plan,
+  planExpiresAt: string | null
+): Omit<PlanState, "plan" | "planExpiresAt" | "isLoading"> {
   const isExpired =
     planExpiresAt !== null &&
     plan !== "lifetime" &&
@@ -33,9 +38,18 @@ function deriveEntitlements(plan: Plan, planExpiresAt: string | null): Omit<Plan
   const effectivePlan: Plan = isExpired ? "free" : plan;
 
   return {
-    canPublish: effectivePlan === "pro" || effectivePlan === "studio" || effectivePlan === "lifetime",
+    canPublish:
+      effectivePlan === "pro" ||
+      effectivePlan === "studio" ||
+      effectivePlan === "lifetime",
     hasBranding: effectivePlan === "free",
-    hasTeamSeats: effectivePlan === "studio" || effectivePlan === "lifetime",
+    hasTeamSeats: effectivePlan === "pro" || effectivePlan === "studio",
+    maxCollaborators:
+      effectivePlan === "studio"
+        ? "unlimited"
+        : effectivePlan === "pro"
+        ? 1
+        : 0,
   };
 }
 
@@ -57,7 +71,6 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         });
       })
       .catch(() => {
-        // Unauthenticated or fetch failed — default to free
         setState({
           plan: "free",
           planExpiresAt: null,
