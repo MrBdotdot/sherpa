@@ -48,6 +48,7 @@ export function CanvasBackground({
           className={`cursor-pointer rounded-2xl border border-dashed border-neutral-400 bg-white/90 shadow-sm transition hover:border-neutral-500 hover:bg-white ${
             compact ? "px-4 py-3 text-xs" : "px-5 py-4 text-sm"
           } font-medium text-neutral-600`}
+          onClick={(e) => e.stopPropagation()}
         >
           Set background
           <input type="file" accept="image/*" onChange={onHeroUpload} className="hidden" />
