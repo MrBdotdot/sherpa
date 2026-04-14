@@ -126,9 +126,9 @@ type PageEditorModalProps = {
 
 function getTabLabel(tab: InspectorTab, pageKind: PageItem["kind"]): string {
   if (tab === "overview") return pageKind === "home" ? "Board" : "Card";
-  if (tab === "board") return "Hotspots";
-  if (tab === "experience") return "Game";
-  return "Content";
+  if (tab === "board") return "Features";
+  if (tab === "settings") return "Settings";
+  return tab;
 }
 
 export function PageEditorModal({
@@ -218,11 +218,12 @@ export function PageEditorModal({
 
   const titleId = `editor-title-${selectedPage.id}`;
   const boardBadge = selectedPage.canvasFeatures.length;
-  const contentBadge = selectedPage.blocks.length + selectedPage.socialLinks.length;
-  const experienceBadge = availableLanguages?.length ?? 0;
-  const visibleTabs: InspectorTab[] = ["overview", "content", "board", "experience"];
+  const settingsBadge = availableLanguages?.length ?? 0;
+  const visibleTabs: InspectorTab[] = ["overview", "board", "settings"];
   const activeTab: InspectorTab =
-    selectedPage.kind === "home" && inspectorTab === "content" ? "overview" : inspectorTab;
+    inspectorTab === "settings" ? "settings"
+    : inspectorTab === "board" ? "board"
+    : "overview";
 
   const panelContent = (
     <div
@@ -240,26 +241,11 @@ export function PageEditorModal({
       <div className={`border-b ${isOverlay ? `border-neutral-200 bg-white` : `${panelBord} ${panelBg}`}`}>
         <div role="tablist" aria-label="Inspector tabs" className="flex px-1">
           {visibleTabs.map((tab) => {
-            const isDisabled = selectedPage.kind === "home" && tab === "content";
             const badge =
               tab === "board" ? boardBadge
-              : tab === "content" ? contentBadge
-              : tab === "experience" ? experienceBadge
+              : tab === "settings" ? settingsBadge
               : 0;
             const panelId = `inspector-panel-${tab}`;
-            if (isDisabled) {
-              return (
-                <button
-                  key={tab}
-                  type="button"
-                  disabled
-                  title="The board does not use content blocks. Add hotspots or card buttons to link players to cards."
-                  className="-mb-px flex items-center gap-1.5 border-b-2 border-transparent px-4 py-3 text-xs font-medium text-neutral-300 cursor-not-allowed select-none"
-                >
-                  {getTabLabel(tab, selectedPage.kind)}
-                </button>
-              );
-            }
             return (
               <button
                 key={tab}
@@ -356,17 +342,46 @@ export function PageEditorModal({
           } ${showPreview ? `border-r ${panelBord}` : ""}`}
         >
           {activeTab === "overview" ? (
-            <OverviewTab
-              onContentTintChange={onContentTintChange}
-              onDisplayStyleChange={onDisplayStyleChange}
-              onHeroUpload={onHeroUpload}
-              onPageButtonPlacementChange={onPageButtonPlacementChange}
-              onPageHeroUrlChange={onPageHeroUrlChange}
-              onResetPagePosition={onResetPagePosition}
-              onSystemSettingChange={onSystemSettingChange}
-              selectedPage={selectedPage}
-              systemSettings={systemSettings}
-            />
+            <>
+              <OverviewTab
+                onContentTintChange={onContentTintChange}
+                onDisplayStyleChange={onDisplayStyleChange}
+                onHeroUpload={onHeroUpload}
+                onPageButtonPlacementChange={onPageButtonPlacementChange}
+                onPageHeroUrlChange={onPageHeroUrlChange}
+                onResetPagePosition={onResetPagePosition}
+                onSystemSettingChange={onSystemSettingChange}
+                selectedPage={selectedPage}
+                systemSettings={systemSettings}
+              />
+              {selectedPage.kind !== "home" ? (
+                <ContentTab
+                  scrollToBlockId={scrollToBlockId}
+                  onContentTintChange={onContentTintChange}
+                  onBlockWidthChange={onBlockWidthChange}
+                  onBlockTextAlignChange={onBlockTextAlignChange}
+                  onBlockVerticalAlignChange={onBlockVerticalAlignChange}
+                  onBlockFormatChange={onBlockFormatChange}
+                  onAddBlock={onAddBlock}
+                  onAddSocialLink={onAddSocialLink}
+                  onBlockChange={onBlockChange}
+                  onBlockFitChange={onBlockFitChange}
+                  onBlockImagePositionChange={onBlockImagePositionChange}
+                  onBlockPropsChange={onBlockPropsChange}
+                  onBlockImageUpload={onBlockImageUpload}
+                  onBlockVariantChange={onBlockVariantChange}
+                  onDisplayStyleChange={onDisplayStyleChange}
+                  onMoveBlockDown={onMoveBlockDown}
+                  onMoveBlockUp={onMoveBlockUp}
+                  onReorderBlocks={onReorderBlocks}
+                  onRemoveBlock={onRemoveBlock}
+                  onRemoveSocialLink={onRemoveSocialLink}
+                  onSocialLinkChange={onSocialLinkChange}
+                  pages={pages}
+                  selectedPage={selectedPage}
+                />
+              ) : null}
+            </>
           ) : activeTab === "board" ? (
             <SurfaceTab
               layoutMode={layoutMode}
@@ -382,32 +397,6 @@ export function PageEditorModal({
               selectedPage={selectedPage}
               isPortraitMode={isPortraitMode}
               brandColors={systemSettings.brandColors ?? []}
-            />
-          ) : activeTab === "content" ? (
-            <ContentTab
-              scrollToBlockId={scrollToBlockId}
-              onContentTintChange={onContentTintChange}
-              onBlockWidthChange={onBlockWidthChange}
-              onBlockTextAlignChange={onBlockTextAlignChange}
-              onBlockVerticalAlignChange={onBlockVerticalAlignChange}
-              onBlockFormatChange={onBlockFormatChange}
-              onAddBlock={onAddBlock}
-              onAddSocialLink={onAddSocialLink}
-              onBlockChange={onBlockChange}
-              onBlockFitChange={onBlockFitChange}
-              onBlockImagePositionChange={onBlockImagePositionChange}
-              onBlockPropsChange={onBlockPropsChange}
-              onBlockImageUpload={onBlockImageUpload}
-              onBlockVariantChange={onBlockVariantChange}
-              onDisplayStyleChange={onDisplayStyleChange}
-              onMoveBlockDown={onMoveBlockDown}
-              onMoveBlockUp={onMoveBlockUp}
-              onReorderBlocks={onReorderBlocks}
-              onRemoveBlock={onRemoveBlock}
-              onRemoveSocialLink={onRemoveSocialLink}
-              onSocialLinkChange={onSocialLinkChange}
-              pages={pages}
-              selectedPage={selectedPage}
             />
           ) : (
             <ExperienceTab

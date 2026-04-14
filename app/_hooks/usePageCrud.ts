@@ -47,7 +47,7 @@ export function usePageCrud({
     const newPage = createStandardPage(standardPages.length + 1);
     setPages((prev) => [...prev, newPage]);
     setSelectedPageId(newPage.id);
-    setInspectorTab("content");
+    setInspectorTab("overview");
     setIsContentModalOpen(true);
   };
 
@@ -64,7 +64,7 @@ export function usePageCrud({
     const newPage = createTemplatePage(templateId, standardPages.length + 1);
     setPages((prev) => [...prev, newPage]);
     setSelectedPageId(newPage.id);
-    setInspectorTab("content");
+    setInspectorTab("overview");
     setIsContentModalOpen(true);
   };
 
@@ -123,7 +123,7 @@ export function usePageCrud({
     setSelectedPageId(newPage.id);
     setIsContentModalOpen(true);
     if (newPage.canvasFeatures.length === 0 && (newPage.blocks.length > 0 || newPage.socialLinks.length > 0)) {
-      setInspectorTab("content");
+      setInspectorTab("overview");
     } else {
       setInspectorTab("board");
     }

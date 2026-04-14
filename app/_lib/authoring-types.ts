@@ -1,7 +1,7 @@
 export type PageKind = "home" | "page" | "hotspot";
 export type LayoutMode = "desktop" | "mobile-landscape" | "mobile-portrait";
 export type MobileLayoutMode = Exclude<LayoutMode, "desktop">;
-export type InspectorTab = "overview" | "content" | "board" | "experience";
+export type InspectorTab = "overview" | "board" | "settings";
 export type ContentBlockType = "text" | "image" | "video" | "steps" | "callout" | "consent" | "tabs" | "section" | "step-rail" | "carousel";
 export type PageButtonPlacement = "top" | "bottom" | "left" | "right" | "stack";
 export type InteractionType =

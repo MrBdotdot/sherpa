@@ -61,7 +61,7 @@ export function usePageHandlers({
     setIsContentModalOpen(true);
     const page = pages.find((p) => p.id === id);
     if (!page || page.kind === "home") return;
-    setInspectorTab("content");
+    setInspectorTab("overview");
   };
 
   const handleSidebarFeatureClick = (pageId: string, featureId: string) => {

@@ -139,7 +139,7 @@ export function useDrag({
 
     setPages((prev) => [...prev, newHotspot]);
     setSelectedPageId(newHotspot.id);
-    setInspectorTab("content");
+    setInspectorTab("overview");
     setIsContentModalOpen(true);
   };
 
@@ -163,7 +163,7 @@ export function useDrag({
 
     setPages((prev) => [...prev, newHotspot]);
     setSelectedPageId(newHotspot.id);
-    setInspectorTab("content");
+    setInspectorTab("overview");
     setIsContentModalOpen(true);
   };
 

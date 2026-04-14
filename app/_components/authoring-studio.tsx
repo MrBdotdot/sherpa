@@ -206,7 +206,7 @@ export function AuthoringStudio({
     setSelectedPageId(id);
     panels.setIsInspectorOpen(true);
     const page = pages.find((p) => p.id === id);
-    if (page?.kind === "hotspot" || page?.kind === "page") setInspectorTab("content");
+    if (page?.kind === "hotspot" || page?.kind === "page") setInspectorTab("overview");
   }, [pages, panels, setSelectedPageId, setInspectorTab]);
 
   const extraPaletteEntries = usePaletteEntries({
@@ -532,7 +532,7 @@ export function AuthoringStudio({
               openPageEditor(pageId);
               panels.setIsInspectorOpen(true);
               if (blockId) {
-                setInspectorTab("content");
+                setInspectorTab("overview");
                 setScrollToBlock({ id: blockId, ts: Date.now() });
               } else {
                 setScrollToBlock(null);
@@ -615,7 +615,7 @@ export function AuthoringStudio({
       {modals.isCommandPaletteOpen && (
         <CommandPalette
           pages={pages}
-          context={inspectorTab === "content" ? "content" : null}
+          context={inspectorTab === "overview" ? "content" : null}
           extraEntries={extraPaletteEntries}
           onSelectPage={(id) => openPageEditor(id)}
           onAddCanvasFeature={handleAddCanvasFeature}

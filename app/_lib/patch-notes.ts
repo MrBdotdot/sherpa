@@ -6,6 +6,24 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.22.2",
+    date: "2026-04-14",
+    changes: [
+      "Inspector: Card and Content are now a single tab — all card settings in one place",
+      "Inspector: 'Game' tab renamed to 'Settings'",
+      "Inspector: 'Hotspots' tab renamed to 'Features'",
+    ],
+  },
+  {
+    version: "v0.22.1",
+    date: "2026-04-14",
+    changes: [
+      "Fix: dragging a modal or tooltip card to reposition it no longer dismisses the card on release",
+      "Fix: close button on modal and tooltip cards now works correctly",
+      "Fix: board panel no longer scrolls back to top when switching between feature editors",
+    ],
+  },
+  {
     version: "v0.22.0",
     date: "2026-04-13",
     changes: [

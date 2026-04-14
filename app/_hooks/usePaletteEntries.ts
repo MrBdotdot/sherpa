@@ -42,17 +42,16 @@ export function usePaletteEntries({
       { id: "nav-account", label: "Account settings", group: "Navigate", alwaysShow: true, onRun: () => setIsAccountOpen(true) },
       { id: "nav-changelog", label: "View changelog", group: "Navigate", alwaysShow: true, onRun: () => setIsChangelogOpen(true) },
       // View
-      { id: "view-overview", label: "Overview tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("overview") },
-      { id: "view-content", label: "Content tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("content") },
-      { id: "view-board", label: "Board tab", group: "View", alwaysShow: true, onRun: () => { handleDismissContent(); setInspectorTab("board"); } },
-      { id: "view-experience", label: "Experience tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("experience") },
+      { id: "view-overview", label: "Card tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("overview") },
+      { id: "view-board", label: "Features tab", group: "View", alwaysShow: true, onRun: () => { handleDismissContent(); setInspectorTab("board"); } },
+      { id: "view-settings", label: "Settings tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("settings") },
       {
         id: "view-intro-video",
         label: "Intro video / intro screen",
         group: "View",
         alwaysShow: false,
         onRun: () => {
-          setInspectorTab("experience");
+          setInspectorTab("settings");
           requestAnimationFrame(() => {
             const el = document.getElementById("intro-screen-section");
             el?.scrollIntoView({ behavior: "smooth", block: "start" });
