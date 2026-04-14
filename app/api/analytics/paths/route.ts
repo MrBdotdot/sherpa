@@ -28,15 +28,15 @@ export async function GET(request: Request) {
     FROM (
       SELECT
         distinct_id,
-        groupArray(properties.cardTitle)[1] AS first_card,
-        groupArray(properties.cardTitle)[2] AS second_card
+        groupArray(properties.cardTitle ORDER BY timestamp)[1] AS first_card,
+        groupArray(properties.cardTitle ORDER BY timestamp)[2] AS second_card
       FROM events
       WHERE event = 'card_viewed'
         AND properties.gameId = '${gameId}'
         AND timestamp >= '${from}'
         AND timestamp < '${to}'
       GROUP BY distinct_id
-      HAVING length(groupArray(properties.cardTitle)) >= 2
+      HAVING length(groupArray(properties.cardTitle ORDER BY timestamp)) >= 2
     )
     WHERE second_card != ''
     GROUP BY path
