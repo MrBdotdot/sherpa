@@ -6,6 +6,19 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.22.0",
+    date: "2026-04-13",
+    changes: [
+      "Rulebook importer: new parse → review → commit flow; review and reorder sections before adding to your game",
+      "Rulebook importer: choose to split into individual cards or combine into one",
+      "PDF import: limit raised to 50MB",
+      "New experience setting: auto-open a specific card when the player loads",
+      "New experience setting: custom CSS scoped to the player experience",
+      "Onboarding: new welcome screen with guided paths (tutorial, import, scratch)",
+      "Player: contextual hints guide new users through first steps",
+    ],
+  },
+  {
     version: "v0.21.1",
     date: "2026-04-13",
     changes: [
