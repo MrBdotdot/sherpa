@@ -57,7 +57,7 @@ export function useDrag({
       ((page.x !== null && page.y !== null) || page.worldPosition !== undefined)
   );
 
-  const { dragState, handleHotspotPointerDown } = useHotspotDrag({
+  const { dragState, shiftActive: hotspotShiftActive, handleHotspotPointerDown } = useHotspotDrag({
     canvasRef,
     imageStripRef,
     dragThresholdRef,
@@ -69,7 +69,7 @@ export function useDrag({
     onCollapseHeader,
   });
 
-  const { featureDragState, handleCanvasFeaturePointerDown, handleSelectCanvasFeature } = useFeatureDrag({
+  const { featureDragState, shiftActive: featureShiftActive, handleCanvasFeaturePointerDown, handleSelectCanvasFeature } = useFeatureDrag({
     canvasRef,
     imageStripRef,
     contentZoneRef,
@@ -85,6 +85,8 @@ export function useDrag({
     onCollapseInspector,
     onCollapseHeader,
   });
+
+  const snapActive = featureShiftActive || hotspotShiftActive;
 
   const { contentDragState, handleContentCardPointerDown } = useContentDrag({
     canvasRef,
@@ -183,6 +185,7 @@ export function useDrag({
     dragThresholdRef,
     featureDragState,
     contentDragState,
+    snapActive,
     handleHotspotPointerDown,
     handleCanvasFeaturePointerDown,
     handleSelectCanvasFeature,

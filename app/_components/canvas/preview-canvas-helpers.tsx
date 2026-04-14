@@ -57,26 +57,25 @@ export const EmptySurfaceGuidance = memo(function EmptySurfaceGuidance({
   );
 });
 
-export const SnapGuides = memo(function SnapGuides({
-  featureDragState,
-  features,
-}: {
-  featureDragState: FeatureDragState | null;
-  features: CanvasFeature[];
-}) {
-  const activeFeature = features.find((f) => f.id === featureDragState?.id);
-  if (!featureDragState || !activeFeature) return null;
-
-  const showVertical = SNAP_LINES.filter((line) => Math.abs(line - activeFeature.x) <= 0.4);
-  const showHorizontal = SNAP_LINES.filter((line) => Math.abs(line - activeFeature.y) <= 0.4);
-
+export const SnapGuides = memo(function SnapGuides({ shiftActive }: { shiftActive: boolean }) {
+  if (!shiftActive) return null;
   return (
     <>
-      {showVertical.map((line) => (
-        <div key={`v-${line}`} aria-hidden="true" className="pointer-events-none absolute top-0 bottom-0 z-20 w-px bg-sky-500/80" style={{ left: `${line}%` }} />
+      {SNAP_LINES.map((line) => (
+        <div
+          key={`v-${line}`}
+          aria-hidden="true"
+          className="pointer-events-none absolute top-0 bottom-0 z-20 w-px bg-sky-500/80"
+          style={{ left: `${line}%` }}
+        />
       ))}
-      {showHorizontal.map((line) => (
-        <div key={`h-${line}`} aria-hidden="true" className="pointer-events-none absolute left-0 right-0 z-20 h-px bg-sky-500/80" style={{ top: `${line}%` }} />
+      {SNAP_LINES.map((line) => (
+        <div
+          key={`h-${line}`}
+          aria-hidden="true"
+          className="pointer-events-none absolute left-0 right-0 z-20 h-px bg-sky-500/80"
+          style={{ top: `${line}%` }}
+        />
       ))}
     </>
   );

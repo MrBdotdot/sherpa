@@ -63,6 +63,7 @@ export function useFeatureDrag({
   onCollapseHeader,
 }: UseFeatureDragProps) {
   const [featureDragState, setFeatureDragState] = useState<FeatureDragState | null>(null);
+  const [shiftActive, setShiftActive] = useState(false);
   const isPortraitMode = layoutMode === "mobile-portrait";
 
   const getFeatureCoordEl = (isContentZone?: boolean) => {
@@ -124,8 +125,11 @@ export function useFeatureDrag({
       const rect = el.getBoundingClientRect();
       const rawX = event.clientX - rect.left - featureDragState.pointerOffsetX;
       const rawY = event.clientY - rect.top - featureDragState.pointerOffsetY;
-      const x = getSnappedValue(clamp((rawX / rect.width) * 100, 0, 100));
-      const y = getSnappedValue(clamp((rawY / rect.height) * 100, 0, 100));
+      const pctX = clamp((rawX / rect.width) * 100, 0, 100);
+      const pctY = clamp((rawY / rect.height) * 100, 0, 100);
+      const x = event.shiftKey ? getSnappedValue(pctX) : pctX;
+      const y = event.shiftKey ? getSnappedValue(pctY) : pctY;
+      setShiftActive(event.shiftKey);
 
       (dragThresholdRef as React.MutableRefObject<boolean>).current = true;
 
@@ -165,6 +169,7 @@ export function useFeatureDrag({
     };
 
     const handlePointerUp = () => {
+      setShiftActive(false);
       setFeatureDragState(null);
       window.setTimeout(() => {
         (dragThresholdRef as React.MutableRefObject<boolean>).current = false;
@@ -188,5 +193,5 @@ export function useFeatureDrag({
     setInspectorTab("board");
   };
 
-  return { featureDragState, handleCanvasFeaturePointerDown, handleSelectCanvasFeature };
+  return { featureDragState, shiftActive, handleCanvasFeaturePointerDown, handleSelectCanvasFeature };
 }

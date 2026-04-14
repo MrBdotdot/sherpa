@@ -4,6 +4,14 @@ import React, { useEffect, useState } from "react";
 import { clamp } from "@/app/_lib/authoring-utils";
 import { DragState, PageButtonPlacement, PageItem } from "@/app/_lib/authoring-types";
 
+const SNAP_LINES = [33.333, 50, 66.666];
+const SNAP_THRESHOLD = 2;
+
+function getSnappedValue(value: number): number {
+  const target = SNAP_LINES.find((snap) => Math.abs(snap - value) <= SNAP_THRESHOLD);
+  return target ?? value;
+}
+
 const PANEL_COLLAPSE_PROXIMITY = 120;
 const SIDEBAR_WIDTH_PX = 300;
 const INSPECTOR_WIDTH_PX = 380;
@@ -33,6 +41,7 @@ export function useHotspotDrag({
   onCollapseHeader,
 }: UseHotspotDragProps) {
   const [dragState, setDragState] = useState<DragState | null>(null);
+  const [shiftActive, setShiftActive] = useState(false);
 
   const getCoordEl = () =>
     isPortraitMode && imageStripRef.current ? imageStripRef.current : canvasRef.current;
@@ -91,8 +100,11 @@ export function useHotspotDrag({
       const rect = el.getBoundingClientRect();
       const rawX = event.clientX - rect.left - dragState.pointerOffsetX;
       const rawY = event.clientY - rect.top - dragState.pointerOffsetY;
-      const x = clamp((rawX / rect.width) * 100, 0, 100);
-      const y = clamp((rawY / rect.height) * 100, 0, 100);
+      const pctX = clamp((rawX / rect.width) * 100, 0, 100);
+      const pctY = clamp((rawY / rect.height) * 100, 0, 100);
+      const x = event.shiftKey ? getSnappedValue(pctX) : pctX;
+      const y = event.shiftKey ? getSnappedValue(pctY) : pctY;
+      setShiftActive(event.shiftKey);
 
       (dragThresholdRef as React.MutableRefObject<boolean>).current = true;
 
@@ -121,6 +133,7 @@ export function useHotspotDrag({
     };
 
     const handlePointerUp = () => {
+      setShiftActive(false);
       setDragState(null);
       window.setTimeout(() => {
         (dragThresholdRef as React.MutableRefObject<boolean>).current = false;
@@ -136,5 +149,5 @@ export function useHotspotDrag({
     };
   }, [dragState]);
 
-  return { dragState, handleHotspotPointerDown };
+  return { dragState, shiftActive, handleHotspotPointerDown };
 }

@@ -6,6 +6,15 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.22.7",
+    date: "2026-04-14",
+    changes: [
+      "Snap guides are now off by default — hold Shift while dragging to activate",
+      "Snap guides now work for hotspot pins as well as canvas features",
+      "A one-time hint appears on your first drag to teach the Shift shortcut",
+    ],
+  },
+  {
     version: "v0.22.6",
     date: "2026-04-14",
     changes: [

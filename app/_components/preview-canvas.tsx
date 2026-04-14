@@ -30,7 +30,6 @@ import {
   EmptySurfaceGuidance,
   FeatureDragState,
   FeaturePlacer,
-  SNAP_LINES,
   SnapGuides,
 } from "@/app/_components/canvas/preview-canvas-helpers";
 
@@ -43,6 +42,7 @@ type PreviewCanvasProps = {
   dragThresholdRef?: React.RefObject<boolean>;
   contentDragState: ContentDragState | null;
   featureDragState: FeatureDragState | null;
+  snapActive: boolean;
   hotspotPages: PageItem[];
   pages?: PageItem[];
   layoutMode: LayoutMode;
@@ -112,6 +112,7 @@ export function PreviewCanvas({
   dragThresholdRef,
   contentDragState,
   featureDragState,
+  snapActive,
   hotspotPages,
   pages,
   layoutMode,
@@ -280,6 +281,26 @@ export function PreviewCanvas({
     if (introEnabled) setIntroVisible(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPreviewMode]);
+
+  // ── Snap-to-guide hint (one-time, localStorage-gated) ─────────
+  const snapHintShownOnce = useRef(
+    typeof window !== "undefined" && localStorage.getItem("sherpa-snap-hint-dismissed") === "true"
+  );
+  const [snapHintActive, setSnapHintActive] = useState(false);
+
+  const isDraggingFeature = featureDragState !== null;
+  const snapHintVisible = snapHintActive && !snapActive && !isPreviewMode;
+
+  useEffect(() => {
+    if (isDraggingFeature && !snapHintShownOnce.current && !snapHintActive) {
+      setSnapHintActive(true);
+      snapHintShownOnce.current = true;
+      localStorage.setItem("sherpa-snap-hint-dismissed", "true");
+    }
+    if (!isDraggingFeature) {
+      setSnapHintActive(false);
+    }
+  }, [isDraggingFeature, snapHintActive]);
 
   // ── Content module transition ──────────────────────────────────
   const {
@@ -924,18 +945,7 @@ export function PreviewCanvas({
                   />
                 )}
 
-                {featureDragState ? (
-                  <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10">
-                    {SNAP_LINES.map((line) => (
-                      <div key={`grid-v-${line}`} className="absolute top-0 bottom-0 w-px bg-white/20" style={{ left: `${line}%` }} />
-                    ))}
-                    {SNAP_LINES.map((line) => (
-                      <div key={`grid-h-${line}`} className="absolute left-0 right-0 h-px bg-white/20" style={{ top: `${line}%` }} />
-                    ))}
-                  </div>
-                ) : null}
-
-                <SnapGuides featureDragState={featureDragState} features={stripFeatures} />
+                <SnapGuides shiftActive={snapActive} />
                 <FeaturePlacer features={stripFeatures} {...sharedFeaturePlacerProps} />
 
                 {surfacePage.kind === "home" && (
@@ -996,18 +1006,20 @@ export function PreviewCanvas({
                 />
               )}
 
-              {featureDragState || contentDragState ? (
-                <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10">
-                  {SNAP_LINES.map((line) => (
-                    <div key={`grid-v-${line}`} className="absolute top-0 bottom-0 w-px bg-white/20" style={{ left: `${line}%` }} />
-                  ))}
-                  {SNAP_LINES.map((line) => (
-                    <div key={`grid-h-${line}`} className="absolute left-0 right-0 h-px bg-white/20" style={{ top: `${line}%` }} />
-                  ))}
+              <SnapGuides shiftActive={snapActive} />
+              {snapHintVisible ? (
+                <div
+                  aria-live="polite"
+                  className="pointer-events-none absolute bottom-4 left-1/2 z-30 -translate-x-1/2 rounded-full px-4 py-2 text-xs font-medium text-white backdrop-blur-sm"
+                  style={{ backgroundColor: "rgba(46,91,170,0.9)" }}
+                >
+                  Hold{" "}
+                  <kbd className="rounded bg-white/20 px-1.5 py-0.5 font-semibold not-italic">
+                    Shift
+                  </kbd>{" "}
+                  to snap to guides
                 </div>
               ) : null}
-
-              <SnapGuides featureDragState={featureDragState} features={effectiveFeatures} />
               <FeaturePlacer features={effectiveFeatures} {...sharedFeaturePlacerProps} />
 
               {surfacePage.kind === "home" && (

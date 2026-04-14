@@ -153,7 +153,7 @@ export function AuthoringStudio({
 
   const {
     canvasRef, imageStripRef, contentZoneRef, dragThresholdRef,
-    featureDragState, contentDragState,
+    featureDragState, contentDragState, snapActive,
     handleHotspotPointerDown, handleCanvasFeaturePointerDown,
     handleContentCardPointerDown, handleCanvasClick,
     handle3dHotspotPlace, handleDismissContent, handleTogglePreviewMode,
@@ -419,6 +419,7 @@ export function AuthoringStudio({
     dragThresholdRef,
     contentDragState,
     featureDragState,
+    snapActive,
     hotspotPages: localizedHotspotPages,
     pages: localizedPages,
     layoutMode,

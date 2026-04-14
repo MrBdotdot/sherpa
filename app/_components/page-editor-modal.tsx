@@ -436,6 +436,7 @@ export function PageEditorModal({
                 pages={previewPages}
                 contentDragState={null}
                 featureDragState={null}
+                snapActive={false}
                 hotspotPages={hotspotPages}
                 layoutMode={layoutMode}
                 systemSettings={systemSettings}
