@@ -206,9 +206,6 @@ export function PageEditorModal({
   const dk = studioDarkMode;
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: 0 });
-  }, [selectedFeatureId]);
   const panelBg   = dk ? "bg-neutral-900"    : "bg-[#fcfaf7]";
   const panelBord = dk ? "border-neutral-700" : "border-[#e7dfd2]";
   const dialogRef = useFocusTrap<HTMLDivElement>(isOpen && isOverlay);
