@@ -19,61 +19,100 @@ export function dismissOnboarding(): void {
   } catch { /* noop */ }
 }
 
-const STEPS = [
+export function resetOnboarding(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch { /* noop */ }
+}
+
+function ChevronRight() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" className="shrink-0 text-neutral-300">
+      <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+const CHOICES = [
   {
+    id: "tutorial",
     icon: (
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-        <rect x="2" y="4" width="24" height="18" rx="3" fill="#e5e7eb" stroke="#d1d5db" strokeWidth="1.5" />
-        <rect x="5" y="7" width="18" height="12" rx="1.5" fill="#f9fafb" />
-        <circle cx="14" cy="13" r="2.5" fill="#6b7280" />
-        <circle cx="14" cy="13" r="1.2" fill="#374151" />
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <rect x="1" y="3" width="20" height="16" rx="2.5" stroke="currentColor" strokeWidth="1.4" />
+        <path d="M8 8l6 3-6 3V8z" fill="currentColor" opacity="0.7" />
       </svg>
     ),
-    title: "Main Page",
-    description:
-      "Your game's background image or 3D model. This is the first thing players see. Start with box art or a photo of the board.",
+    title: "Take the tutorial",
+    description: "Walk through the studio with an interactive guide",
+    comingSoon: false,
   },
   {
+    id: "import",
     icon: (
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-        <rect x="4" y="3" width="20" height="22" rx="3" fill="#e5e7eb" stroke="#d1d5db" strokeWidth="1.5" />
-        <rect x="7" y="7" width="14" height="2" rx="1" fill="#9ca3af" />
-        <rect x="7" y="11" width="10" height="2" rx="1" fill="#9ca3af" />
-        <rect x="7" y="15" width="12" height="2" rx="1" fill="#9ca3af" />
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <rect x="3" y="1" width="13" height="18" rx="2" stroke="currentColor" strokeWidth="1.4" />
+        <path d="M8 6h6M8 9h6M8 12h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        <path d="M15 15l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
-    title: "Cards",
-    description:
-      "Each card holds rules content: text, images, videos, and steps. Cards open when players tap a hotspot or button on the Main Page.",
+    title: "Import a rulebook",
+    description: "Upload a PDF and we'll structure your cards",
+    comingSoon: false,
   },
   {
+    id: "fresh",
     icon: (
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-        <circle cx="14" cy="14" r="5" fill="#374151" opacity="0.15" />
-        <circle cx="14" cy="14" r="3" fill="#374151" />
-        <circle cx="14" cy="14" r="1.5" fill="white" />
-        <circle cx="14" cy="14" r="5" stroke="#374151" strokeWidth="1.2" fill="none" opacity="0.5" />
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <rect x="2" y="2" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.4" />
+        <path d="M11 7v8M7 11h8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
       </svg>
     ),
-    title: "Hotspots",
-    description:
-      "Click anywhere on the Main Page to drop a hotspot. Players tap it to open the linked card. Drag to reposition anytime.",
+    title: "Start from scratch",
+    description: "Blank canvas, build exactly what you need",
+    comingSoon: false,
+  },
+  {
+    id: "template",
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <rect x="2" y="2" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.4" />
+        <rect x="12" y="2" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.4" />
+        <rect x="2" y="12" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.4" />
+        <rect x="12" y="12" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="1.4" />
+      </svg>
+    ),
+    title: "Start from a template",
+    description: "Pre-built starting points for common game types",
+    comingSoon: true,
   },
 ];
 
 export function OnboardingModal({
   isOpen,
   onClose,
+  onImportPdf,
 }: {
   isOpen: boolean;
   onClose: () => void;
+  onImportPdf: () => void;
 }) {
   const dialogRef = useFocusTrap<HTMLDivElement>(isOpen);
   if (!isOpen) return null;
 
+  function handleChoice(id: string) {
+    if (id === "tutorial") {
+      window.open("/play/tutorial-sherpa-v1", "_blank", "noopener,noreferrer");
+      onClose();
+    } else if (id === "import") {
+      onImportPdf();
+    } else if (id === "fresh") {
+      onClose();
+    }
+  }
+
   return createPortal(
     <div
-      className="fixed inset-0 z-[500] flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-[500] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
@@ -81,34 +120,61 @@ export function OnboardingModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="onboarding-title"
-        className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl"
+        className="w-full max-w-sm rounded-3xl bg-white p-7 shadow-2xl"
       >
         <div className="mb-1 text-xl font-bold text-neutral-900" id="onboarding-title">
           Welcome to Sherpa
         </div>
-        <p className="mb-6 text-sm text-neutral-500">
-          Build a live rules experience for your game in three simple pieces.
+        <p className="mb-4 text-sm text-neutral-500">
+          How would you like to get started?
         </p>
 
-        <div className="mb-7 space-y-5">
-          {STEPS.map((step) => (
-            <div key={step.title} className="flex gap-4">
-              <div className="mt-0.5 shrink-0">{step.icon}</div>
-              <div>
-                <div className="mb-0.5 font-semibold text-neutral-900">{step.title}</div>
-                <div className="text-sm leading-5 text-neutral-500">{step.description}</div>
-              </div>
-            </div>
-          ))}
+        {/* Video placeholder — swap for real embed when walkthrough is ready */}
+        <div className="mb-4 flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl bg-neutral-100">
+          <div className="flex flex-col items-center gap-2 text-neutral-400">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="1.5" />
+              <polygon points="13,10 24,16 13,22" fill="currentColor" opacity="0.6" />
+            </svg>
+            <span className="text-xs font-medium">Walkthrough coming soon</span>
+          </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onClose}
-          className="w-full rounded-full bg-[#3B82F6] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2563EB]"
-        >
-          Get started
-        </button>
+        <div className="space-y-2">
+          {CHOICES.map((choice) =>
+            choice.comingSoon ? (
+              <div
+                key={choice.id}
+                className="flex w-full items-center gap-4 rounded-2xl border border-neutral-100 px-4 py-3.5 opacity-40 cursor-not-allowed"
+              >
+                <div className="shrink-0 text-neutral-400">{choice.icon}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-neutral-900">{choice.title}</span>
+                    <span className="rounded-full bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500">
+                      Coming soon
+                    </span>
+                  </div>
+                  <div className="mt-0.5 text-xs text-neutral-400">{choice.description}</div>
+                </div>
+              </div>
+            ) : (
+              <button
+                key={choice.id}
+                type="button"
+                onClick={() => handleChoice(choice.id)}
+                className="flex w-full items-center gap-4 rounded-2xl border border-neutral-200 px-4 py-3.5 text-left transition hover:border-neutral-300 hover:bg-neutral-50"
+              >
+                <div className="shrink-0 text-neutral-600">{choice.icon}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold text-neutral-900">{choice.title}</div>
+                  <div className="mt-0.5 text-xs text-neutral-500">{choice.description}</div>
+                </div>
+                <ChevronRight />
+              </button>
+            )
+          )}
+        </div>
       </div>
     </div>,
     document.body

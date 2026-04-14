@@ -136,6 +136,7 @@ type GameSwitcherModalProps = {
   onClose: () => void;
   onSelectGame: (gameId: string, gameName: string, studioName: string) => void;
   onDeleteCurrentGame: (nextGame: GameEntry | null) => void;
+  onGameCreated?: () => void;
 };
 
 function getErrorMessage(error: unknown) {
@@ -149,6 +150,7 @@ export function GameSwitcherModal({
   onClose,
   onSelectGame,
   onDeleteCurrentGame,
+  onGameCreated,
 }: GameSwitcherModalProps) {
   const router = useRouter();
   const dialogRef = useFocusTrap<HTMLDivElement>(isOpen);
@@ -266,6 +268,7 @@ export function GameSwitcherModal({
             onDone={(id, name) => {
               onSelectGame(id, name, "");
               handleClose();
+              onGameCreated?.();
             }}
           />
         ) : (
