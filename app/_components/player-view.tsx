@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { usePostHog } from "posthog-js/react";
 import { PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 import { getLocaleFeature, localizePages, parseLocaleLanguages } from "@/app/_lib/localization";
 import { getFontThemeClass } from "@/app/_lib/font-theme";
@@ -42,6 +43,8 @@ export function PlayerView({
   const contentScrollRef = useRef<HTMLDivElement | null>(null);
   const pendingScrollRestoreRef = useRef<number | null>(null);
   const previousDefaultLanguageRef = useRef(defaultLanguageCode);
+  const posthog = usePostHog();
+  const cardOpenTimeRef = useRef<number | null>(null);
   const localizedPages = useMemo(
     () => localizePages(pages, systemSettings.translations, activeLanguageCode, defaultLanguageCode),
     [activeLanguageCode, defaultLanguageCode, pages, systemSettings.translations]
@@ -147,11 +150,25 @@ export function PlayerView({
         { pageId: modulePageRef.current!.id, scrollTop: contentScrollRef.current?.scrollTop ?? 0 },
       ]);
     }
+    posthog?.capture("card_viewed", { gameId, cardId: page.id, cardTitle: page.title });
+    cardOpenTimeRef.current = Date.now();
     setSelectedPageId(id);
     modulePageRef.current = page;
     isModuleExitingRef.current = false;
     setModulePage(page);
     setIsModuleExiting(false);
+  }
+
+  function handleHotspotSelect(id: string) {
+    const page = localizedPages.find((p) => p.id === id);
+    if (page && page.kind !== "home") {
+      posthog?.capture("hotspot_clicked", {
+        gameId,
+        hotspotId: id,
+        hotspotTitle: page.title,
+      });
+    }
+    handleSelectPage(id);
   }
 
   function handleNavigateBack() {
@@ -176,6 +193,16 @@ export function PlayerView({
   }
 
   function handleModuleExitEnd() {
+    if (cardOpenTimeRef.current !== null && modulePageRef.current) {
+      const durationSeconds = Math.round((Date.now() - cardOpenTimeRef.current) / 1000);
+      posthog?.capture("card_closed", {
+        gameId,
+        cardId: modulePageRef.current.id,
+        cardTitle: modulePageRef.current.title,
+        durationSeconds,
+      });
+      cardOpenTimeRef.current = null;
+    }
     modulePageRef.current = null;
     isModuleExitingRef.current = false;
     setModulePage(null);
@@ -268,7 +295,7 @@ export function PlayerView({
           hotspotLabelSize={hotspotLabelSize}
           accentActiveStyle={accentActiveStyle}
           accentRingStyle={accentRingStyle}
-          onSelectPage={handleSelectPage}
+          onSelectPage={handleHotspotSelect}
           onHotspotPointerDown={NOOP_PTR}
           onDeleteHotspot={NOOP}
         />
