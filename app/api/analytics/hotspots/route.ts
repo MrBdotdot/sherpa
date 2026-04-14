@@ -21,33 +21,35 @@ export async function GET(request: Request) {
   const isMember = await assertGameMember(gameId, user.id);
   if (!isMember) return Response.json({ error: "Forbidden" }, { status: 403 });
 
-  // Click counts from hotspot_clicked
-  const clicksResult = await hogql(`
-    SELECT
-      properties.hotspotTitle AS title,
-      count() AS clicks
-    FROM events
-    WHERE event = 'hotspot_clicked'
-      AND properties.gameId = '${gameId}'
-      AND timestamp >= '${from}'
-      AND timestamp < '${to}'
-    GROUP BY title
-    ORDER BY clicks DESC
-    LIMIT 20
-  `);
-
-  // Avg dwell time from card_closed (keyed by cardTitle which matches hotspotTitle)
-  const dwellResult = await hogql(`
-    SELECT
-      properties.cardTitle AS title,
-      avg(toFloat64OrNull(properties.durationSeconds)) AS avg_seconds
-    FROM events
-    WHERE event = 'card_closed'
-      AND properties.gameId = '${gameId}'
-      AND timestamp >= '${from}'
-      AND timestamp < '${to}'
-    GROUP BY title
-  `);
+  // Both queries are independent — run in parallel
+  const [clicksResult, dwellResult] = await Promise.all([
+    // Click counts from hotspot_clicked
+    hogql(`
+      SELECT
+        properties.hotspotTitle AS title,
+        count() AS clicks
+      FROM events
+      WHERE event = 'hotspot_clicked'
+        AND properties.gameId = '${gameId}'
+        AND timestamp >= '${from}'
+        AND timestamp < '${to}'
+      GROUP BY title
+      ORDER BY clicks DESC
+      LIMIT 20
+    `),
+    // Avg dwell time from card_closed (keyed by cardTitle which matches hotspotTitle)
+    hogql(`
+      SELECT
+        properties.cardTitle AS title,
+        avg(toFloat64OrNull(properties.durationSeconds)) AS avg_seconds
+      FROM events
+      WHERE event = 'card_closed'
+        AND properties.gameId = '${gameId}'
+        AND timestamp >= '${from}'
+        AND timestamp < '${to}'
+      GROUP BY title
+    `),
+  ]);
 
   const dwellMap = new Map(
     dwellResult.results.map((row) => [String(row[0]), Number(row[1]) || 0])
