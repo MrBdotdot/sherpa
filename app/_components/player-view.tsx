@@ -144,6 +144,17 @@ export function PlayerView({
       handleDismissContent();
       return;
     }
+    // Card-to-card: fire card_closed for the outgoing card before opening the new one
+    if (cardOpenTimeRef.current !== null && modulePageRef.current && !isModuleExitingRef.current) {
+      const durationSeconds = Math.round((Date.now() - cardOpenTimeRef.current) / 1000);
+      posthog?.capture("card_closed", {
+        gameId,
+        cardId: modulePageRef.current.id,
+        cardTitle: modulePageRef.current.title,
+        durationSeconds,
+      });
+      cardOpenTimeRef.current = null;
+    }
     if (modulePageRef.current && !isModuleExitingRef.current) {
       setNavHistory((prev) => [
         ...prev,
@@ -176,6 +187,19 @@ export function PlayerView({
     if (!prev) return;
     const page = localizedPages.find((p) => p.id === prev.pageId);
     if (!page) { setNavHistory((h) => h.slice(0, -1)); return; }
+    // Fire card_closed for the card being left
+    if (cardOpenTimeRef.current !== null && modulePageRef.current) {
+      const durationSeconds = Math.round((Date.now() - cardOpenTimeRef.current) / 1000);
+      posthog?.capture("card_closed", {
+        gameId,
+        cardId: modulePageRef.current.id,
+        cardTitle: modulePageRef.current.title,
+        durationSeconds,
+      });
+    }
+    // Fire card_viewed for the card being navigated back to, stamp new open time
+    posthog?.capture("card_viewed", { gameId, cardId: page.id, cardTitle: page.title });
+    cardOpenTimeRef.current = Date.now();
     setNavHistory((h) => h.slice(0, -1));
     pendingScrollRestoreRef.current = prev.scrollTop;
     modulePageRef.current = page;
