@@ -1,4 +1,5 @@
 import { ServiceWorkerRegistration } from "@/app/_components/ServiceWorkerRegistration";
+import { PostHogProvider } from "@/app/_components/PostHogProvider";
 
 export default function PlayLayout({
   children,
@@ -8,7 +9,7 @@ export default function PlayLayout({
   return (
     <>
       <ServiceWorkerRegistration />
-      {children}
+      <PostHogProvider>{children}</PostHogProvider>
     </>
   );
 }
