@@ -876,7 +876,6 @@ export function PreviewCanvas({
                 ref={contentZoneRef}
                 className="relative flex-none overflow-hidden"
                 style={{ flex: 100 - portraitSplitRatio, background: portraitBackground }}
-                onPointerUp={onDismissContent}
               >
                 <FeaturePlacer features={contentZoneFeatures} {...sharedFeaturePlacerProps} />
                 {modulePage ? (

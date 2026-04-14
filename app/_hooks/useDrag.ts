@@ -105,7 +105,7 @@ export function useDrag({
     }
 
     if (isPreviewMode) {
-      setSelectedPageId(homePageId);
+      // Backdrop click does not dismiss in preview mode — use the close button.
       return;
     }
 
