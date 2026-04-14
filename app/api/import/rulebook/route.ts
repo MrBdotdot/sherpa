@@ -3,17 +3,20 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/app/_lib/supabase-admin";
 import { getRequestUser } from "@/app/_lib/api-auth";
 import { createImportedPage, createBlock } from "@/app/_lib/authoring-utils";
-import { ContentBlockType, InteractionType, PageItem } from "@/app/_lib/authoring-types";
+import { ContentBlockType, PageItem } from "@/app/_lib/authoring-types";
 import { injectInlineLinks } from "./inject-links";
 
-const SYSTEM_PROMPT = `You are a structural parser for board game rulebooks. Your job is to reorganize the publisher's own words into a set of Sherpa cards.
+const SYSTEM_PROMPT = `You are a structural parser for board game rulebooks.
 
 Rules:
 - Do NOT invent, summarize, or paraphrase — use the original text.
-- Identify logical sections (e.g. Setup, Taking a Turn, Scoring, Winning, FAQ).
-- For each section, produce one card. Dense reference sections (full rules, glossary) use interactionType "full-page"; everything else uses "modal".
-- kind is always "page" unless the content clearly describes a specific physical board element (then "hotspot").
-- blocks: use "section" for subheadings, "steps" for numbered/bulleted lists (newline-separated steps), "callout" for tips/warnings/notes, "text" for everything else.
+- Identify logical top-level chapters or phases (e.g. Setup, Taking a Turn, Scoring, Winning, FAQ). These become cards.
+- Within each card, use blocks to structure the content:
+  - "section": a named sub-heading within the card (e.g. "Components", "Special Rules"). NOT for numbered steps.
+  - "steps": a numbered or bulleted sequence — put each item on its own line. Use this for step-by-step procedures (e.g. "1. Draw a card\n2. Roll the die"). Do NOT create a new card entry for individual numbered steps.
+  - "callout": tips, warnings, notes, or examples (introduced by "Note:", "Tip:", "Example:", etc.)
+  - "text": everything else
+- IMPORTANT: If a section contains a numbered sequence (1. … 2. … 3. …), put ALL the steps together in a single "steps" block inside that card. Do NOT split each numbered step into its own card.
 - Return ONLY valid JSON, no markdown, no explanation.
 
 Response format:
@@ -21,8 +24,6 @@ Response format:
   "cards": [
     {
       "title": "string",
-      "kind": "page" | "hotspot",
-      "interactionType": "modal" | "full-page",
       "blocks": [
         { "type": "text" | "section" | "steps" | "callout", "value": "string" }
       ]
@@ -35,8 +36,6 @@ const MAX_TEXT_CHARS = 80000;
 type ImportedBlock = { type: string; value: string };
 type ImportedCard = {
   title: string;
-  kind: string;
-  interactionType: string;
   blocks: ImportedBlock[];
 };
 
@@ -108,31 +107,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to parse rulebook" }, { status: 500 });
   }
 
-  // 7. Map to PageItems
+  // 7. Combine all sections into one card with section-heading dividers
   const VALID_BLOCK_TYPES = new Set<ContentBlockType>(["text", "section", "steps", "callout"]);
-  const VALID_KINDS: PageItem["kind"][] = ["page", "hotspot"];
-  const VALID_INTERACTION_TYPES: InteractionType[] = ["modal", "full-page"];
 
-  const newPages: PageItem[] = parsed.cards.map((card, i) => {
-    const kind: PageItem["kind"] = VALID_KINDS.includes(card.kind as PageItem["kind"])
-      ? (card.kind as PageItem["kind"])
-      : "page";
-    const interactionType: InteractionType = VALID_INTERACTION_TYPES.includes(card.interactionType as InteractionType)
-      ? (card.interactionType as InteractionType)
-      : "modal";
-    const blocks = (card.blocks ?? [])
-      .filter((b) => VALID_BLOCK_TYPES.has(b.type as ContentBlockType))
-      .map((b) => createBlock(b.type as ContentBlockType, b.value ?? ""));
-
-    return createImportedPage(card.title, kind, interactionType, blocks, i + 1);
-  });
-
-  if (newPages.length === 0) {
-    return NextResponse.json({ error: "No cards could be extracted" }, { status: 422 });
+  if (parsed.cards.length === 0) {
+    return NextResponse.json({ error: "No sections could be extracted" }, { status: 422 });
   }
 
-  // 8a. Inject cross-card inline links
-  const linkedPages = injectInlineLinks(newPages);
+  const allBlocks = parsed.cards.flatMap((card) => [
+    createBlock("section", card.title),
+    ...(card.blocks ?? [])
+      .filter((b) => VALID_BLOCK_TYPES.has(b.type as ContentBlockType))
+      .map((b) => createBlock(b.type as ContentBlockType, b.value ?? "")),
+  ]);
+
+  const page = createImportedPage("Rulebook", "page", "full-page", allBlocks, 1);
+  const linkedPages: PageItem[] = [page];
 
   // 8b. Persist: upsert new cards + append to card_order
   const cardRows = linkedPages.map((page) => ({

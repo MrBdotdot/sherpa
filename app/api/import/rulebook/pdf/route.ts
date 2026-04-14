@@ -6,7 +6,7 @@ import { getRequestUser } from "@/app/_lib/api-auth";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfParse = require("pdf-parse/lib/pdf-parse") as (buffer: Buffer) => Promise<{ text: string }>;
 
-const MAX_PDF_BYTES = 20 * 1024 * 1024; // 20MB
+const MAX_PDF_BYTES = 50 * 1024 * 1024; // 50MB
 
 export async function POST(request: Request) {
   // 1. Auth
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "File must be a PDF" }, { status: 400 });
   }
   if (file.size > MAX_PDF_BYTES) {
-    return NextResponse.json({ error: "PDF exceeds 20MB limit" }, { status: 413 });
+    return NextResponse.json({ error: "PDF exceeds 50MB limit" }, { status: 413 });
   }
 
   // 3. Extract text
@@ -54,19 +54,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "PDF contains no extractable text" }, { status: 422 });
   }
 
-  // 4. Forward to text route
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const forwardRes = await fetch(`${baseUrl}/api/import/rulebook`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(request.headers.get("Authorization")
-        ? { Authorization: request.headers.get("Authorization")! }
-        : {}),
-    },
-    body: JSON.stringify({ text, gameId }),
-  });
-
-  const data = await forwardRes.json();
-  return NextResponse.json(data, { status: forwardRes.status });
+  // 4. Return extracted text — caller is responsible for calling /parse
+  return NextResponse.json({ text });
 }
