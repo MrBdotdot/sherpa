@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { CardPairingModal } from "@/app/_components/card-pairing-modal";
-import { OnboardingModal, dismissOnboarding } from "@/app/_components/onboarding-modal";
+import { OnboardingModal, dismissOnboarding, resetOnboarding } from "@/app/_components/onboarding-modal";
 import { ConfirmDeleteModal } from "@/app/_components/confirm-delete-modal";
 import { PageEditorModal } from "@/app/_components/page-editor-modal";
 import { PageSidebar } from "@/app/_components/page-sidebar";
@@ -15,7 +15,6 @@ import { ChangelogModal } from "@/app/_components/changelog-modal";
 import { AccountPanel } from "@/app/_components/account-panel";
 import { GameSwitcherModal, type GameEntry } from "@/app/_components/game-switcher-modal";
 import { CommandPalette } from "@/app/_components/command-palette";
-import { A11yNotificationStack } from "@/app/_components/a11y-notification";
 import { createInitialPages, getHomePageId } from "@/app/_lib/authoring-utils";
 import { ExperienceStatus, InspectorTab, LayoutMode, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 import { supabase } from "@/app/_lib/supabase";
@@ -31,7 +30,6 @@ import { useDrag } from "@/app/_hooks/useDrag";
 import { usePageHandlers } from "@/app/_hooks/usePageHandlers";
 import { useContentHandlers } from "@/app/_hooks/useContentHandlers";
 import { useCanvasFeatureHandlers } from "@/app/_hooks/useCanvasFeatureHandlers";
-import { useA11yMonitor } from "@/app/_hooks/useA11yMonitor";
 import { usePaletteEntries } from "@/app/_hooks/usePaletteEntries";
 import { usePlan } from "@/app/_hooks/usePlan";
 import { PricingModal } from "@/app/_components/pricing-modal";
@@ -77,7 +75,10 @@ export function AuthoringStudio({
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("desktop");
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [conventionMode, setConventionMode] = useState(false);
-  const [showLayoutHelp, setShowLayoutHelp] = useState(true);
+  const LAYOUT_HELP_KEY = "sherpa_layout_help_dismissed";
+  const [showLayoutHelp, setShowLayoutHelp] = useState(
+    () => typeof window === "undefined" || localStorage.getItem(LAYOUT_HELP_KEY) !== "1"
+  );
   const [, setIsContentModalOpen] = useState(false);
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>("overview");
   const [scrollToBlock, setScrollToBlock] = useState<{ id: string; ts: number } | null>(null);
@@ -97,6 +98,7 @@ export function AuthoringStudio({
   useEffect(() => { layoutModeRef.current = layoutMode; }, [layoutMode]);
   const isPreviewModeRef = useRef(isPreviewMode);
   useEffect(() => { isPreviewModeRef.current = isPreviewMode; }, [isPreviewMode]);
+  const importOpenedFromOnboarding = useRef(false);
 
   // Shared page updaters
   const updateSelectedPage = useCallback((updater: (page: PageItem) => PageItem) => {
@@ -218,39 +220,6 @@ export function AuthoringStudio({
     handleDismissContent,
   });
 
-  const { violations, dismissViolation } = useA11yMonitor(canvasRef);
-
-  const handleA11yNavigate = useCallback(
-    (entityId: string, entityType: "feature" | "block") => {
-      if (entityType === "feature") {
-        const ownerPage = pages.find((p) => p.canvasFeatures.some((f) => f.id === entityId));
-        if (ownerPage) {
-          setSelectedPageId(ownerPage.id);
-          setSelectedFeatureId(entityId);
-          setInspectorTab("board");
-          setIsContentModalOpen(true);
-        }
-      } else {
-        const ownerPage = pages.find((p) => p.blocks.some((b) => b.id === entityId));
-        if (ownerPage) {
-          setSelectedPageId(ownerPage.id);
-          setInspectorTab("content");
-          setIsContentModalOpen(true);
-        }
-      }
-
-      requestAnimationFrame(() => {
-        const el = document.querySelector(`[data-a11y-id="${entityId}"]`);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "nearest" });
-          el.classList.add("a11y-highlight");
-          setTimeout(() => el.classList.remove("a11y-highlight"), 1600);
-        }
-      });
-    },
-    [pages, setSelectedPageId, setSelectedFeatureId, setInspectorTab, setIsContentModalOpen]
-  );
-
   useKeyboardShortcuts({
     pagesHistoryRef, pagesRedoRef, HISTORY_LIMIT,
     pagesRef, selectedFeatureIdRef, selectedPageIdRef,
@@ -312,7 +281,7 @@ export function AuthoringStudio({
     () => pages.filter((p) => p.kind === "page"),
     [pages]
   );
-  const showEmptyOverlay = !isPreviewMode && standardPages.length === 0;
+  const showEmptyOverlay = !isPreviewMode && standardPages.length === 0 && !modals.showOnboarding;
   const activePreviewPage = localizedSelectedPage ?? localizedHomePage ?? localizedPages[0];
   const previewSurfacePage = activePreviewPage
     ? activePreviewPage.kind === "home" ? activePreviewPage : localizedHomePage
@@ -469,7 +438,7 @@ export function AuthoringStudio({
     onContentCardPointerDown: handleContentCardPointerDown,
     onDeleteHotspot: handleDeleteHotspot,
     onDismissContent: handleDismissContent,
-    onDismissLayoutHelp: () => setShowLayoutHelp(false),
+    onDismissLayoutHelp: () => { localStorage.setItem(LAYOUT_HELP_KEY, "1"); setShowLayoutHelp(false); },
     onHotspotPointerDown: handleHotspotPointerDown,
     onLanguageChange: setActiveLanguageCode,
     onSelectPage: handleSelectPage,
@@ -670,15 +639,14 @@ export function AuthoringStudio({
         onConfirm={handleDeleteSelectedPage}
       />
 
-      <A11yNotificationStack
-        violations={violations}
-        onDismiss={dismissViolation}
-        onNavigate={handleA11yNavigate}
-      />
-
       <OnboardingModal
         isOpen={modals.showOnboarding}
         onClose={() => { dismissOnboarding(); modals.setShowOnboarding(false); }}
+        onImportPdf={() => {
+          importOpenedFromOnboarding.current = true;
+          modals.setShowOnboarding(false);
+          modals.setIsRulebookImportOpen(true);
+        }}
       />
 
       <CardPairingModal
@@ -708,8 +676,19 @@ export function AuthoringStudio({
       <RulebookImporterModal
         isOpen={modals.isRulebookImportOpen}
         gameId={currentGameId ?? ""}
-        onClose={() => modals.setIsRulebookImportOpen(false)}
-        onImportComplete={handleImportComplete}
+        onClose={() => {
+          importOpenedFromOnboarding.current = false;
+          modals.setIsRulebookImportOpen(false);
+        }}
+        onImportComplete={() => {
+          importOpenedFromOnboarding.current = false;
+          dismissOnboarding();
+          handleImportComplete();
+        }}
+        onBack={importOpenedFromOnboarding.current ? () => {
+          modals.setIsRulebookImportOpen(false);
+          modals.setShowOnboarding(true);
+        } : undefined}
       />
 
       <AccountPanel
@@ -737,12 +716,20 @@ export function AuthoringStudio({
             return;
           }
           openFreshWorkspace();
+          resetOnboarding();
+          modals.setShowOnboarding(true);
+        }}
+        onGameCreated={() => {
+          resetOnboarding();
+          modals.setShowOnboarding(true);
         }}
       />
       {showPricingModal && (
         <PricingModal
           mode={showPricingModal}
           onClose={() => setShowPricingModal(null)}
+          onStartConventionMode={showPricingModal === "upgrade-prompt" ? handleStartConventionMode : undefined}
+          conventionLinkHref={showPricingModal === "upgrade-prompt" && currentGameId ? (liveViewHref ?? `/play/${currentGameId}`) : undefined}
         />
       )}
     </main>

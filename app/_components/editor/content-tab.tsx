@@ -7,6 +7,7 @@ import { BlockEditor, type BlockFormat } from "@/app/_components/editor/block-ed
 import { BlockPickerModal } from "@/app/_components/editor/block-picker-modal";
 import { SelectField } from "@/app/_components/editor/editor-ui";
 import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
+import { HintBubble } from "@/app/_components/hint-bubble";
 
 function ActionLinkEditor({
   item,
@@ -346,6 +347,12 @@ export function ContentTab({
               onRemove={onRemoveSocialLink}
             />
           ))}
+
+          {selectedPage.blocks.length >= 1 ? (
+            <HintBubble id="first-block" className="text-[11px]">
+              Hover a block and drag the left handle to reorder
+            </HintBubble>
+          ) : null}
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-8 text-center text-sm text-neutral-500">
