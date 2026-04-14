@@ -43,7 +43,7 @@ export function usePaletteEntries({
       { id: "nav-changelog", label: "View changelog", group: "Navigate", alwaysShow: true, onRun: () => setIsChangelogOpen(true) },
       // View
       { id: "view-overview", label: "Card tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("overview") },
-      { id: "view-board", label: "Features tab", group: "View", alwaysShow: true, onRun: () => { handleDismissContent(); setInspectorTab("board"); } },
+      { id: "view-board", label: "Elements tab", group: "View", alwaysShow: true, onRun: () => { handleDismissContent(); setInspectorTab("board"); } },
       { id: "view-settings", label: "Settings tab", group: "View", alwaysShow: true, onRun: () => setInspectorTab("settings") },
       {
         id: "view-intro-video",

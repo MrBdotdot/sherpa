@@ -13,7 +13,7 @@ import {
 } from "@/app/_lib/authoring-types";
 import { getKnownLocaleLanguage } from "@/app/_lib/localization";
 
-export const APP_VERSION = "v0.22.2";
+export const APP_VERSION = "v0.22.3";
 
 export type { PatchNote } from "@/app/_lib/patch-notes";
 export { PATCH_NOTES } from "@/app/_lib/patch-notes";

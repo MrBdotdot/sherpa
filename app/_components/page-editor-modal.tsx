@@ -126,7 +126,7 @@ type PageEditorModalProps = {
 
 function getTabLabel(tab: InspectorTab, pageKind: PageItem["kind"]): string {
   if (tab === "overview") return pageKind === "home" ? "Board" : "Card";
-  if (tab === "board") return "Features";
+  if (tab === "board") return "Elements";
   if (tab === "settings") return "Settings";
   return tab;
 }

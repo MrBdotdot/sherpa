@@ -6,6 +6,13 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.22.3",
+    date: "2026-04-14",
+    changes: [
+      "Inspector: board tab renamed from 'Features' to 'Elements'",
+    ],
+  },
+  {
     version: "v0.22.2",
     date: "2026-04-14",
     changes: [
