@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ContentBlock, PageItem } from "@/app/_lib/authoring-types";
@@ -10,6 +10,7 @@ import { SectionBlock } from "@/app/_components/canvas/step-rail-block";
 import { ImageBlock } from "@/app/_components/canvas/image-block";
 import { CarouselBlock } from "@/app/_components/canvas/carousel-block";
 import { TabsBlock } from "@/app/_components/canvas/tabs-block";
+import { injectPageLinks } from "@/app/_lib/inline-links";
 
 export function PreviewBlocks({
   accentColor,
@@ -26,9 +27,17 @@ export function PreviewBlocks({
   pages?: PageItem[];
   header?: React.ReactNode;
 }) {
+  // Inject inline links at render time so links reflect the current card set
+  // without requiring storage changes. Works for both real pages and the synthetic
+  // pages TabsBlock creates when rendering tab content.
+  const displayPage = useMemo(
+    () => pages && pages.length > 1 ? injectPageLinks(page, pages) : page,
+    [page, pages]
+  );
+
   const hasAnyContent =
-    page.summary.trim().length > 0 ||
-    page.blocks.some(
+    displayPage.summary.trim().length > 0 ||
+    displayPage.blocks.some(
       (block) =>
         block.type === "consent" ||
         block.type === "section" ||
@@ -49,7 +58,7 @@ export function PreviewBlocks({
   const dotColor = accentColor || "#171717";
   const canLink = !!(onNavigate && pages);
 
-  const hasHalfBlock = page.blocks.some((b) => b.blockWidth === "half");
+  const hasHalfBlock = displayPage.blocks.some((b) => b.blockWidth === "half");
 
   function alignClass(block: { textAlign?: string }) {
     if (block.textAlign === "center") return "text-center";
@@ -71,7 +80,7 @@ export function PreviewBlocks({
 
   const blockList = (
     <div className={hasHalfBlock ? "grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2 items-start" : "space-y-2"}>
-      {page.blocks.map((block) => {
+      {displayPage.blocks.map((block) => {
         const spanClass = hasHalfBlock && block.blockWidth !== "half" ? "col-span-2" : "";
         const selfAlign = hasHalfBlock ? selfAlignClass(block) : "";
         const blockClass = `${spanClass} ${selfAlign}`.trim();
@@ -319,12 +328,12 @@ export function PreviewBlocks({
     </div>
   );
 
-  const summary = page.summary.trim() ? (
+  const summary = displayPage.summary.trim() ? (
     <p className="text-sm leading-6 text-neutral-600">
       {canLink ? (
-        <InlineWithLinks text={page.summary} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} />
+        <InlineWithLinks text={displayPage.summary} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} />
       ) : (
-        page.summary
+        displayPage.summary
       )}
     </p>
   ) : null;
