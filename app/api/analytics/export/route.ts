@@ -45,7 +45,7 @@ export async function GET(request: Request) {
       row
         .map((cell) => {
           const s = String(cell ?? "");
-          return s.includes(",") || s.includes('"') || s.includes("\n")
+          return s.includes(",") || s.includes('"') || s.includes("\n") || s.includes("\r")
             ? `"${s.replace(/"/g, '""')}"`
             : s;
         })
