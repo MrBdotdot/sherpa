@@ -28,5 +28,9 @@ export async function hogql(query: string): Promise<HogQLResult> {
     const text = await res.text();
     throw new Error(`PostHog query failed ${res.status}: ${text}`);
   }
-  return res.json() as Promise<HogQLResult>;
+  const body = await res.json();
+  if (!Array.isArray(body?.results) || !Array.isArray(body?.columns)) {
+    throw new Error(`PostHog returned unexpected shape: ${JSON.stringify(body)}`);
+  }
+  return body as HogQLResult;
 }
