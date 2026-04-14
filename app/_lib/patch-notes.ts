@@ -6,6 +6,14 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.22.6",
+    date: "2026-04-14",
+    changes: [
+      "Inspector: Tab 1 is now always labelled 'Content' regardless of page type",
+      "Inspector: Settings tab reorganized into Appearance, Mobile, Behavior, Languages, and Advanced sections",
+    ],
+  },
+  {
     version: "v0.22.5",
     date: "2026-04-14",
     changes: [

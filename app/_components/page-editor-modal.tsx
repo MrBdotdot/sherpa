@@ -126,7 +126,8 @@ type PageEditorModalProps = {
 };
 
 function getTabLabel(tab: InspectorTab, pageKind: PageItem["kind"]): string {
-  if (tab === "overview") return pageKind === "home" ? "Board" : "Card";
+  void pageKind;
+  if (tab === "overview") return "Content";
   if (tab === "board") return "Elements";
   if (tab === "settings") return "Settings";
   return tab;
@@ -226,7 +227,7 @@ export function PageEditorModal({
 
   const titleId = `editor-title-${selectedPage.id}`;
   const boardBadge = selectedPage.canvasFeatures.length;
-  const settingsBadge = availableLanguages?.length ?? 0;
+  const settingsBadge = 0;
   const visibleTabs: InspectorTab[] = ["overview", "board", "settings"];
   const activeTab: InspectorTab =
     inspectorTab === "settings" ? "settings"

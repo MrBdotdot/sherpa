@@ -52,33 +52,8 @@ export function ExperienceTab({
   return (
     <div className="divide-y divide-neutral-200">
 
-      {/* Languages */}
-      <EditorSection title="Languages">
-        {localeFeature ? (
-          <>
-            <p className="mb-4 text-xs text-neutral-400">
-              {languageCount} language{languageCount === 1 ? "" : "s"} configured.
-            </p>
-            <LocaleFeatureEditor
-              feature={localeFeature}
-              pages={pages}
-              translations={systemSettings.translations}
-              onLanguagesChange={onLocaleLanguagesChange}
-              onOpenSpreadsheet={onOpenSpreadsheet}
-              onPromoteLanguageToDefault={onLocalePromoteLanguageToDefault}
-              onSourceTextChange={onLocaleSourceTextChange}
-              onTranslationChange={onLocaleTranslationChange}
-            />
-          </>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-5 text-sm text-neutral-500">
-            Add a language switcher in the Board tab to enable multiple languages.
-          </div>
-        )}
-      </EditorSection>
-
-      {/* Game settings */}
-      <EditorSection title="Game">
+      {/* Appearance */}
+      <EditorSection title="Appearance">
         <div className="space-y-4">
           <SelectField
             label="Font"
@@ -220,8 +195,8 @@ export function ExperienceTab({
         </div>
       </EditorSection>
 
-      {/* Responsive */}
-      <EditorSection title="Responsive">
+      {/* Mobile */}
+      <EditorSection title="Mobile">
         <div className="space-y-4">
           <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
             {(["split", "full"] as const).map((mode) => {
@@ -286,145 +261,170 @@ export function ExperienceTab({
         </div>
       </EditorSection>
 
-      {/* Auto-open card */}
-      <EditorSection title="Auto-open card" id="auto-open-section">
-        <div className="space-y-2">
-          <p className="text-xs text-neutral-500 leading-relaxed">
-            Open a specific card every time the experience loads. Useful for tutorial or guided experiences.
-          </p>
-          <select
-            value={systemSettings.autoOpenPageId ?? ""}
-            onChange={(e) => onSystemSettingChange("autoOpenPageId", e.target.value || undefined)}
-            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
-            aria-label="Auto-open card"
-          >
-            <option value="">None — player starts on the board</option>
-            {pages.filter((p) => p.kind !== "home").map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.title || "Untitled card"}
-              </option>
-            ))}
-          </select>
-        </div>
-      </EditorSection>
-
-      {/* Intro screen */}
-      <EditorSection title="Intro screen" id="intro-screen-section">
-        <div className="space-y-3">
-          <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-neutral-700">
-            <input
-              type="checkbox"
-              checked={systemSettings.introScreen?.enabled ?? false}
-              onChange={(event) =>
-                onSystemSettingChange("introScreen", {
-                  enabled: event.target.checked,
-                  youtubeUrl: systemSettings.introScreen?.youtubeUrl ?? "",
-                })
-              }
-              className="rounded"
-            />
-            Show intro video before experience
-          </label>
-          {systemSettings.introScreen?.enabled ? (
-            <input
-              type="text"
-              value={systemSettings.introScreen.youtubeUrl}
-              onChange={(event) =>
-                onSystemSettingChange("introScreen", {
-                  enabled: true,
-                  youtubeUrl: event.target.value,
-                })
-              }
-              placeholder="Paste YouTube URL"
-              aria-label="Intro video YouTube URL"
-              className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
-            />
-          ) : null}
-        </div>
-      </EditorSection>
-
-      {/* BoardGameGeek */}
-      <EditorSection title="BoardGameGeek">
-        <div className="space-y-3">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={bggInput}
-              onChange={(event) => {
-                setBggInput(event.target.value);
-                setBggError("");
-              }}
-              placeholder="BGG game ID"
-              aria-label="BGG game ID"
-              className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
-            />
-            <button
-              type="button"
-              disabled={!bggInput.trim() || bggLoading}
-              onClick={async () => {
-                const id = bggInput.trim();
-                if (!id) return;
-                setBggLoading(true);
-                setBggError("");
-                try {
-                  const response = await fetch(`/api/bgg?id=${encodeURIComponent(id)}`);
-                  const data = await response.json();
-                  if (!response.ok) {
-                    setBggError(data.error ?? "Import failed");
-                    return;
-                  }
-                  onBggImport({ name: data.name, complexity: data.complexity, bggId: id });
-                  onSystemSettingChange("bggId", id);
-                  onSystemSettingChange("bggComplexity", data.complexity);
-                } catch {
-                  setBggError("Network error. Try again.");
-                } finally {
-                  setBggLoading(false);
-                }
-              }}
-              className="shrink-0 rounded-lg border border-neutral-200 px-3 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-40"
+      {/* Behavior */}
+      <EditorSection title="Behavior">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Auto-open card</div>
+            <p className="text-xs text-neutral-500 leading-relaxed">
+              Open a specific card every time the experience loads. Useful for tutorial or guided experiences.
+            </p>
+            <select
+              value={systemSettings.autoOpenPageId ?? ""}
+              onChange={(e) => onSystemSettingChange("autoOpenPageId", e.target.value || undefined)}
+              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
+              aria-label="Auto-open card"
             >
-              {bggLoading ? "Importing..." : "Import"}
-            </button>
+              <option value="">None — player starts on the board</option>
+              {pages.filter((p) => p.kind !== "home").map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title || "Untitled card"}
+                </option>
+              ))}
+            </select>
           </div>
-          {bggError ? (
-            <p className="text-xs text-red-500">{bggError}</p>
-          ) : null}
-          {systemSettings.bggId ? (
-            <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5">
-              <div className="text-sm text-neutral-700">
-                Complexity: <span className="font-semibold">{(systemSettings.bggComplexity ?? 0).toFixed(1)}/5</span>
-              </div>
-              <a
-                href={`https://boardgamegeek.com/boardgame/${systemSettings.bggId}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs font-medium text-neutral-500 hover:text-neutral-900"
-              >
-                View on BGG
-              </a>
-            </div>
-          ) : null}
+          <div className="space-y-3">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Intro screen</div>
+            <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-neutral-700">
+              <input
+                type="checkbox"
+                checked={systemSettings.introScreen?.enabled ?? false}
+                onChange={(event) =>
+                  onSystemSettingChange("introScreen", {
+                    enabled: event.target.checked,
+                    youtubeUrl: systemSettings.introScreen?.youtubeUrl ?? "",
+                  })
+                }
+                className="rounded"
+              />
+              Show intro video before experience
+            </label>
+            {systemSettings.introScreen?.enabled ? (
+              <input
+                type="text"
+                value={systemSettings.introScreen.youtubeUrl}
+                onChange={(event) =>
+                  onSystemSettingChange("introScreen", {
+                    enabled: true,
+                    youtubeUrl: event.target.value,
+                  })
+                }
+                placeholder="Paste YouTube URL"
+                aria-label="Intro video YouTube URL"
+                className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+              />
+            ) : null}
+          </div>
         </div>
       </EditorSection>
 
-      {/* Custom CSS */}
-      <EditorSection title="Custom CSS">
-        <div className="space-y-2">
-          <textarea
-            value={systemSettings.customCss ?? ""}
-            onChange={(e) => onSystemSettingChange("customCss", e.target.value || undefined)}
-            placeholder={`.sherpa-modal {\n  border-radius: 0;\n}\n\n.sherpa-button {\n  background: #ff6b00;\n}`}
-            rows={10}
-            spellCheck={false}
-            className="w-full resize-y rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 font-mono text-xs leading-relaxed text-neutral-800 placeholder:text-neutral-400 focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/10"
-          />
-          <p className="text-[11px] leading-relaxed text-neutral-400">
-            Scoped to <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-600">.sherpa-player</code>.
-            Target <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-600">.sherpa-modal</code>,{" "}
-            <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-600">.sherpa-button</code>,{" "}
-            <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-600">.sherpa-hotspot-pin</code> for component-level overrides.
-          </p>
+      {/* Languages */}
+      <EditorSection title="Languages">
+        {localeFeature ? (
+          <>
+            <p className="mb-4 text-xs text-neutral-400">
+              {languageCount} language{languageCount === 1 ? "" : "s"} configured.
+            </p>
+            <LocaleFeatureEditor
+              feature={localeFeature}
+              pages={pages}
+              translations={systemSettings.translations}
+              onLanguagesChange={onLocaleLanguagesChange}
+              onOpenSpreadsheet={onOpenSpreadsheet}
+              onPromoteLanguageToDefault={onLocalePromoteLanguageToDefault}
+              onSourceTextChange={onLocaleSourceTextChange}
+              onTranslationChange={onLocaleTranslationChange}
+            />
+          </>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-5 text-sm text-neutral-500">
+            Add a language switcher in the Elements tab to enable multiple languages.
+          </div>
+        )}
+      </EditorSection>
+
+      {/* Advanced */}
+      <EditorSection title="Advanced">
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">BoardGameGeek</div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={bggInput}
+                onChange={(event) => {
+                  setBggInput(event.target.value);
+                  setBggError("");
+                }}
+                placeholder="BGG game ID"
+                aria-label="BGG game ID"
+                className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+              />
+              <button
+                type="button"
+                disabled={!bggInput.trim() || bggLoading}
+                onClick={async () => {
+                  const id = bggInput.trim();
+                  if (!id) return;
+                  setBggLoading(true);
+                  setBggError("");
+                  try {
+                    const response = await fetch(`/api/bgg?id=${encodeURIComponent(id)}`);
+                    const data = await response.json();
+                    if (!response.ok) {
+                      setBggError(data.error ?? "Import failed");
+                      return;
+                    }
+                    onBggImport({ name: data.name, complexity: data.complexity, bggId: id });
+                    onSystemSettingChange("bggId", id);
+                    onSystemSettingChange("bggComplexity", data.complexity);
+                  } catch {
+                    setBggError("Network error. Try again.");
+                  } finally {
+                    setBggLoading(false);
+                  }
+                }}
+                className="shrink-0 rounded-lg border border-neutral-200 px-3 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-40"
+              >
+                {bggLoading ? "Importing..." : "Import"}
+              </button>
+            </div>
+            {bggError ? (
+              <p className="text-xs text-red-500">{bggError}</p>
+            ) : null}
+            {systemSettings.bggId ? (
+              <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5">
+                <div className="text-sm text-neutral-700">
+                  Complexity: <span className="font-semibold">{(systemSettings.bggComplexity ?? 0).toFixed(1)}/5</span>
+                </div>
+                <a
+                  href={`https://boardgamegeek.com/boardgame/${systemSettings.bggId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs font-medium text-neutral-500 hover:text-neutral-900"
+                >
+                  View on BGG
+                </a>
+              </div>
+            ) : null}
+          </div>
+          <div className="space-y-2">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Custom CSS</div>
+            <textarea
+              value={systemSettings.customCss ?? ""}
+              onChange={(e) => onSystemSettingChange("customCss", e.target.value || undefined)}
+              placeholder={`.sherpa-modal {\n  border-radius: 0;\n}\n\n.sherpa-button {\n  background: #ff6b00;\n}`}
+              rows={10}
+              spellCheck={false}
+              className="w-full resize-y rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 font-mono text-xs leading-relaxed text-neutral-800 placeholder:text-neutral-400 focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/10"
+            />
+            <p className="text-[11px] leading-relaxed text-neutral-400">
+              Scoped to <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-600">.sherpa-player</code>.
+              Target <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-600">.sherpa-modal</code>,{" "}
+              <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-600">.sherpa-button</code>,{" "}
+              <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-600">.sherpa-hotspot-pin</code> for component-level overrides.
+            </p>
+          </div>
         </div>
       </EditorSection>
 
