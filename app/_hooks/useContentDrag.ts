@@ -63,6 +63,9 @@ export function useContentDrag({
     const page = selectedPage;
     if (!canvas || !page) return;
 
+    // Don't capture pointer when clicking interactive elements — lets onClick fire normally
+    if ((event.target as HTMLElement).closest("button, input, a, select, textarea")) return;
+
     event.currentTarget.setPointerCapture(event.pointerId);
 
     const rect = canvas.getBoundingClientRect();
@@ -136,11 +139,12 @@ export function useContentDrag({
     };
 
     window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
+    // Use capture phase so this fires before stopPropagation on the card wrapper
+    window.addEventListener("pointerup", handlePointerUp, true);
 
     return () => {
       window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointerup", handlePointerUp, true);
     };
   }, [contentDragState, isPreviewMode, selectedPageId]);
 

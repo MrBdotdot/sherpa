@@ -524,6 +524,7 @@ export function ContentModule({
         className="absolute z-30 flex flex-col items-end"
         style={wrapperStyle}
         onClick={(e) => e.stopPropagation()}
+        onPointerUp={(e) => e.stopPropagation()}
         onAnimationEnd={handleAnimEnd}
       >
         <div
