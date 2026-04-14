@@ -8,6 +8,7 @@ import { CanvasFeature, ContentBlock, ExperienceStatus, PageItem } from "@/app/_
 import { UserMetadata, getUserProfile } from "@/app/_lib/user-profile";
 import { getBlockPreview, getTabSections } from "@/app/_lib/sidebar-icon-utils";
 import { SidebarItemIcon } from "@/app/_components/sidebar-item-icon";
+import { HintBubble } from "@/app/_components/hint-bubble";
 
 type PageSidebarProps = {
   onAddPage: () => void;
@@ -632,6 +633,13 @@ export function PageSidebar({
               );
             })}
           </CollapsibleSection>
+          {navPages.length >= 1 ? (
+            <div className="mt-2">
+              <HintBubble id="first-card" className="text-[11px]">
+                Click a card to open it and add content
+              </HintBubble>
+            </div>
+          ) : null}
         </div>
       </div>
 

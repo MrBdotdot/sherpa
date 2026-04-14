@@ -24,6 +24,7 @@ import { LocaleLanguage } from "@/app/_lib/localization";
 import { getFontThemeClass } from "@/app/_lib/font-theme";
 import { getResolvedCanvasFeatures } from "@/app/_lib/responsive-board";
 import { ContentModule } from "@/app/_components/canvas/content-module";
+import { HintBubble } from "@/app/_components/hint-bubble";
 import {
   ContentDragState,
   EmptySurfaceGuidance,
@@ -509,22 +510,7 @@ export function PreviewCanvas({
         <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
         Convention mode — Exit
       </button>
-    ) : (
-      <button
-        type="button"
-        onClick={onStartConventionMode}
-        className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium shadow-sm transition ${
-          dark
-            ? "border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
-            : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50"
-        }`}
-      >
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-          <polygon points="2,1 11,6 2,11" fill="currentColor" opacity="0.8" />
-        </svg>
-        Convention
-      </button>
-    );
+    ) : null;
 
     return (
       <>
@@ -627,6 +613,9 @@ export function PreviewCanvas({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 xl:justify-self-end xl:justify-end">
+        {hotspotPages.length > 0 && !isPreviewMode ? (
+          <HintBubble id="first-preview">Click Preview to see your game as a player</HintBubble>
+        ) : null}
         <button
           type="button"
           onClick={onTogglePreviewMode}
@@ -634,6 +623,9 @@ export function PreviewCanvas({
         >
           Preview
         </button>
+        {hotspotPages.length > 0 && !isPreviewMode && experienceStatus === "draft" ? (
+          <HintBubble id="first-publish">Publish to share a live link with players</HintBubble>
+        ) : null}
         {renderExperienceStatusControl({ dark: headerDark })}
         {experienceStatus === "published" && liveViewHref ? (
           <a
@@ -961,6 +953,13 @@ export function PreviewCanvas({
                   </div>
                 )}
 
+                {surfacePage.kind === "home" && hotspotPages.length === 0 && !isPreviewMode &&
+                  Boolean(surfacePage.heroImage?.trim()) && !surfacePage.heroImage?.startsWith("color:") ? (
+                  <div className="pointer-events-none absolute inset-0 z-20 flex items-end justify-center pb-8">
+                    <HintBubble id="first-hotspot">Click the background to place a hotspot</HintBubble>
+                  </div>
+                ) : null}
+
                 {(surfacePage.canvasFeatures.length === 0 || hotspotPages.length === 0) && !isPreviewMode && showLayoutHelp ? (
                   <EmptySurfaceGuidance featureCount={surfacePage.canvasFeatures.length} hotspotCount={hotspotPages.length} onClose={onDismissLayoutHelp} />
                 ) : null}
@@ -1053,6 +1052,13 @@ export function PreviewCanvas({
                   {...sharedContentModuleProps}
                   moduleRef={is3dTrackingModule ? moduleElRef : undefined}
                 />
+              ) : null}
+
+              {surfacePage.kind === "home" && hotspotPages.length === 0 && !isPreviewMode &&
+                Boolean(surfacePage.heroImage?.trim()) && !surfacePage.heroImage?.startsWith("color:") ? (
+                <div className="pointer-events-none absolute inset-0 z-20 flex items-end justify-center pb-8">
+                  <HintBubble id="first-hotspot">Click the background to place a hotspot</HintBubble>
+                </div>
               ) : null}
 
               {(surfacePage.canvasFeatures.length === 0 || hotspotPages.length === 0) && !isPreviewMode && showLayoutHelp ? (

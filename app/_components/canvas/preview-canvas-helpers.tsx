@@ -29,8 +29,9 @@ export const EmptySurfaceGuidance = memo(function EmptySurfaceGuidance({
 }) {
   return (
     <div
-      className="absolute left-4 top-4 z-20 max-w-sm rounded-2xl border border-dashed border-neutral-300 bg-white p-4 text-sm text-neutral-600 shadow-sm"
+      className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 max-w-sm rounded-2xl border border-dashed border-neutral-300 bg-white p-4 text-sm text-neutral-600 shadow-sm"
       onPointerDown={(event) => event.stopPropagation()}
+      onClick={(event) => event.stopPropagation()}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="font-medium text-neutral-900">Build the layout</div>

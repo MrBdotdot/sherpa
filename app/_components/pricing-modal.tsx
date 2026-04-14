@@ -6,6 +6,8 @@ import { useFocusTrap } from "@/app/_hooks/useFocusTrap";
 type PricingModalProps = {
   mode: "upgrade-prompt" | "pricing";
   onClose: () => void;
+  onStartConventionMode?: () => void;
+  conventionLinkHref?: string;
 };
 
 type BillingCycle = "monthly" | "annual";
@@ -41,7 +43,7 @@ async function startCheckout(
   }
 }
 
-export function PricingModal({ mode, onClose }: PricingModalProps) {
+export function PricingModal({ mode, onClose, onStartConventionMode, conventionLinkHref }: PricingModalProps) {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null);
 
@@ -102,7 +104,7 @@ export function PricingModal({ mode, onClose }: PricingModalProps) {
             </h2>
             <p className="mt-1 text-sm text-neutral-500">
               Upgrade to Pro to publish your rulebook to a permanent, shareable
-              URL — and remove Sherpa branding from the published page.
+              URL and remove Sherpa branding from the published page.
             </p>
           </div>
         ) : (
@@ -291,6 +293,52 @@ export function PricingModal({ mode, onClose }: PricingModalProps) {
             {loadingPlan === "lifetime" ? "Loading..." : "Buy once"}
           </button>
         </div>
+
+        {/* Convention Mode — free alternative, upgrade-prompt only */}
+        {mode === "upgrade-prompt" && onStartConventionMode ? (
+          <div className="mt-5 border-t border-neutral-100 pt-5">
+            <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 mb-3">
+              Not ready to upgrade?
+            </div>
+            <div className="rounded-xl border border-neutral-200 p-4 space-y-3">
+              <div>
+                <div className="text-sm font-semibold text-neutral-900">Convention Mode</div>
+                <p className="mt-1 text-xs text-neutral-500 leading-relaxed">
+                  Put your game in fullscreen demo mode for conventions and in-person events.
+                  Share the link below so players can follow along on their own device.
+                </p>
+              </div>
+              {conventionLinkHref ? (
+                <div className="flex items-center gap-2 rounded-lg bg-neutral-50 border border-neutral-200 px-3 py-2">
+                  <span className="min-w-0 flex-1 truncate text-xs font-mono text-neutral-600">
+                    {conventionLinkHref}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => navigator.clipboard?.writeText(conventionLinkHref)}
+                    className="shrink-0 text-xs font-medium text-neutral-500 hover:text-neutral-800"
+                  >
+                    Copy
+                  </button>
+                </div>
+              ) : null}
+              <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true" className="mt-0.5 shrink-0">
+                  <circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" strokeWidth="1.2" />
+                  <path d="M6.5 4v3M6.5 9h.01" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                </svg>
+                Sherpa branding appears in the experience on free accounts.
+              </div>
+              <button
+                type="button"
+                onClick={() => { onStartConventionMode(); onClose(); }}
+                className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 transition"
+              >
+                Start Convention Mode
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
