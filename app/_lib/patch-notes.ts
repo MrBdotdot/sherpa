@@ -6,6 +6,60 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.21.1",
+    date: "2026-04-13",
+    changes: [
+      "Player: modals and tooltips now center in the viewport on phone-width screens",
+    ],
+  },
+  {
+    version: "v0.21.0",
+    date: "2026-04-12",
+    changes: [
+      "PDF import: limit raised to 50MB",
+      "PDF import: real upload progress bar (0–60% on transfer, animated to 92% during processing)",
+      "Import now creates one unified Rulebook card with section headings as dividers — split content in the editor",
+    ],
+  },
+  {
+    version: "v0.20.9",
+    date: "2026-04-12",
+    changes: [
+      "Custom CSS: add author-defined CSS in the Game tab to override buttons, modals, hotspots, and more (.sherpa-modal, .sherpa-button, .sherpa-hotspot-pin)",
+      "Onboarding: video placeholder added above the getting-started choices",
+      "PDF import: Cancel/Back from the importer now returns to the onboarding modal instead of stranding you in an empty editor",
+    ],
+  },
+  {
+    version: "v0.20.8",
+    date: "2026-04-12",
+    changes: [
+      "Onboarding redesign: new accounts now see a clean 4-choice screen (tutorial, PDF import, start fresh, template coming soon) instead of a blank editor",
+      "Convention mode: moved into the upgrade modal for free accounts — find it at the bottom of the publish prompt with a shareable link and branding notice",
+    ],
+  },
+  {
+    version: "v0.20.7",
+    date: "2026-04-12",
+    changes: [
+      "Auto-open card on load: set any card to open automatically every time the player loads the experience (configurable in Experience tab)",
+    ],
+  },
+  {
+    version: "v0.20.6",
+    date: "2026-04-12",
+    changes: [
+      "Contextual hints: first-card hint in sidebar, first-block hint in content editor, first-preview and first-publish hints in the canvas header",
+    ],
+  },
+  {
+    version: "v0.20.5",
+    date: "2026-04-12",
+    changes: [
+      "Contextual hint: first-time canvas hint now appears when a background is set but no hotspots have been placed yet",
+    ],
+  },
+  {
     version: "v0.20.4",
     date: "2026-04-12",
     changes: [
