@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useRef } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { PreviewCanvas } from "@/app/_components/preview-canvas";
 import { OverviewTab } from "@/app/_components/editor/overview-tab";
@@ -22,9 +22,10 @@ import {
   SystemSettings,
   TemplateId,
 } from "@/app/_lib/authoring-types";
-import { LocaleLanguage } from "@/app/_lib/localization";
+import { LocaleLanguage, collectTranslationRows, parseLocaleLanguages } from "@/app/_lib/localization";
 import { getPageRoleDescription } from "@/app/_lib/label-utils";
 import { useFocusTrap } from "@/app/_hooks/useFocusTrap";
+import { SpreadsheetModal } from "@/app/_components/editor/locale-feature-editor";
 
 type PageEditorModalProps = {
   activePreviewPage: PageItem;
@@ -212,6 +213,13 @@ export function PageEditorModal({
   void _onPublicUrlChange;
   void _onQrToggle;
 
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const sheetRows = useMemo(() => collectTranslationRows(pages), [pages]);
+  const sheetLanguages = useMemo(
+    () => (localeFeature ? parseLocaleLanguages(localeFeature) : []),
+    [localeFeature]
+  );
+
   if (!isOpen || !selectedPage) {
     return null;
   }
@@ -391,6 +399,7 @@ export function PageEditorModal({
               onCanvasFeatureVisibilityChange={onCanvasFeatureVisibilityChange}
               onCreatePageForButton={onCreatePageForButton}
               onOpenPage={onOpenPage}
+              onOpenSpreadsheet={() => setSheetOpen(true)}
               onRemoveCanvasFeature={onRemoveCanvasFeature}
               pages={pages}
               selectedFeatureId={selectedFeatureId}
@@ -407,6 +416,7 @@ export function PageEditorModal({
               onLocalePromoteLanguageToDefault={onLocalePromoteLanguageToDefault}
               onLocaleSourceTextChange={onLocaleSourceTextChange}
               onLocaleTranslationChange={onLocaleTranslationChange}
+              onOpenSpreadsheet={() => setSheetOpen(true)}
               onSystemSettingChange={onSystemSettingChange}
               onBggImport={onBggImport}
               pages={pages}
@@ -455,17 +465,41 @@ export function PageEditorModal({
     </div>
   );
 
+  const spreadsheet = sheetOpen && localeFeature ? (
+    <SpreadsheetModal
+      rows={sheetRows}
+      languages={sheetLanguages}
+      translations={systemSettings.translations}
+      onClose={() => setSheetOpen(false)}
+      onLanguagesChange={(nextLanguages) => onLocaleLanguagesChange(localeFeature.id, nextLanguages)}
+      onPromoteLanguageToDefault={(languageCode) => {
+        const promoted = sheetLanguages.find((l) => l.code === languageCode);
+        if (!promoted) return;
+        const next = [promoted, ...sheetLanguages.filter((l) => l.code !== languageCode)];
+        onLocalePromoteLanguageToDefault(localeFeature.id, languageCode, next);
+      }}
+      onRemoveLanguage={(languageCode) =>
+        onLocaleLanguagesChange(localeFeature.id, sheetLanguages.filter((l) => l.code !== languageCode))
+      }
+      onSourceTextChange={onLocaleSourceTextChange}
+      onTranslationChange={onLocaleTranslationChange}
+    />
+  ) : null;
+
   if (!isOverlay) {
-    return panelContent;
+    return <>{panelContent}{spreadsheet}</>;
   }
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
-    >
-      {panelContent}
-    </div>
+    <>
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-4"
+        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
+      >
+        {panelContent}
+      </div>
+      {spreadsheet}
+    </>
   );
 }

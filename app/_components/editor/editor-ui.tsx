@@ -58,7 +58,7 @@ export function SelectField<T extends string>({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value as T)}
-        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 font-sans text-sm text-neutral-900 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>

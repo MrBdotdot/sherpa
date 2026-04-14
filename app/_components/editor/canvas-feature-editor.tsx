@@ -29,6 +29,7 @@ export function CanvasFeatureEditor({
   onCanvasFeatureImageUpload,
   onCreatePageForButton,
   onOpenPage,
+  onOpenSpreadsheet,
   onRemoveCanvasFeature,
   pages,
 }: {
@@ -40,6 +41,7 @@ export function CanvasFeatureEditor({
   onCanvasFeatureImageUpload: (featureId: string, event: ChangeEvent<HTMLInputElement>) => void;
   onCreatePageForButton: () => string;
   onOpenPage: (id: string) => void;
+  onOpenSpreadsheet?: () => void;
   onRemoveCanvasFeature: (featureId: string) => void;
   pages: PageItem[];
 }) {
@@ -85,6 +87,7 @@ export function CanvasFeatureEditor({
           onCanvasFeatureImageUpload={onCanvasFeatureImageUpload}
           onCreatePageForButton={onCreatePageForButton}
           onOpenPage={onOpenPage}
+          onOpenSpreadsheet={onOpenSpreadsheet}
         />
 
         {/* Portrait zone toggle — only shown in portrait layout mode */}

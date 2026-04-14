@@ -106,6 +106,7 @@ export function SurfaceTab({
   onCanvasFeatureVisibilityChange,
   onCreatePageForButton,
   onOpenPage,
+  onOpenSpreadsheet,
   onRemoveCanvasFeature,
   pages,
   selectedFeatureId,
@@ -120,6 +121,7 @@ export function SurfaceTab({
   onCanvasFeatureVisibilityChange: (featureId: string, layoutMode: "mobile-landscape" | "mobile-portrait", visible: boolean) => void;
   onCreatePageForButton: () => string;
   onOpenPage: (id: string) => void;
+  onOpenSpreadsheet?: () => void;
   onRemoveCanvasFeature: (featureId: string) => void;
   pages: PageItem[];
   selectedFeatureId: string | null;
@@ -188,6 +190,7 @@ export function SurfaceTab({
           onCanvasFeatureImageUpload={onCanvasFeatureImageUpload}
           onCreatePageForButton={onCreatePageForButton}
           onOpenPage={onOpenPage}
+          onOpenSpreadsheet={onOpenSpreadsheet}
           onRemoveCanvasFeature={onRemoveCanvasFeature}
           pages={pages}
         />

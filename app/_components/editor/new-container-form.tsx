@@ -102,7 +102,7 @@ export function NewContainerForm({
         <select
           value={configDisplayStyle}
           onChange={(e) => setConfigDisplayStyle(e.target.value as DisplayStyleKey)}
-          className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+          className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 font-sans text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
         >
           {DISPLAY_STYLE_OPTIONS.map((opt) => (
             <option key={opt.key} value={opt.key}>{opt.label}</option>

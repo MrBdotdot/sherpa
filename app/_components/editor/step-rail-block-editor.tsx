@@ -248,7 +248,7 @@ export function StepRailBlockEditor({
                 <select
                   value={step.sectionBlockId}
                   onChange={(e) => updateStep(i, { sectionBlockId: e.target.value })}
-                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
+                  className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 font-sans text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
                 >
                   <option value="">None</option>
                   {sectionBlocks.map((sb) => (

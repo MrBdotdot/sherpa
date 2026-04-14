@@ -17,6 +17,7 @@ export function ExperienceTab({
   onLocalePromoteLanguageToDefault,
   onLocaleSourceTextChange,
   onLocaleTranslationChange,
+  onOpenSpreadsheet,
   onSystemSettingChange,
   pages,
   systemSettings,
@@ -33,6 +34,7 @@ export function ExperienceTab({
   ) => void;
   onLocaleSourceTextChange: (key: string, value: string) => void;
   onLocaleTranslationChange: (key: string, languageCode: string, value: string) => void;
+  onOpenSpreadsheet: () => void;
   onSystemSettingChange: <K extends keyof SystemSettings>(field: K, value: SystemSettings[K]) => void;
   pages: PageItem[];
   systemSettings: SystemSettings;
@@ -62,6 +64,7 @@ export function ExperienceTab({
               pages={pages}
               translations={systemSettings.translations}
               onLanguagesChange={onLocaleLanguagesChange}
+              onOpenSpreadsheet={onOpenSpreadsheet}
               onPromoteLanguageToDefault={onLocalePromoteLanguageToDefault}
               onSourceTextChange={onLocaleSourceTextChange}
               onTranslationChange={onLocaleTranslationChange}
@@ -292,7 +295,7 @@ export function ExperienceTab({
           <select
             value={systemSettings.autoOpenPageId ?? ""}
             onChange={(e) => onSystemSettingChange("autoOpenPageId", e.target.value || undefined)}
-            className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 bg-white"
+            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
             aria-label="Auto-open card"
           >
             <option value="">None — player starts on the board</option>

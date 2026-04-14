@@ -17,6 +17,7 @@ type Props = {
   onCanvasFeatureImageUpload: (featureId: string, event: ChangeEvent<HTMLInputElement>) => void;
   onCreatePageForButton: () => string;
   onOpenPage: (id: string) => void;
+  onOpenSpreadsheet?: () => void;
 };
 
 export function CanvasFeatureTypeBody({
@@ -27,6 +28,7 @@ export function CanvasFeatureTypeBody({
   onCanvasFeatureImageUpload,
   onCreatePageForButton,
   onOpenPage,
+  onOpenSpreadsheet,
 }: Props) {
   return (
     <>
@@ -504,9 +506,14 @@ export function CanvasFeatureTypeBody({
 
       {/* Locale */}
       {feature.type === "locale" ? (
-        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-sm leading-6 text-neutral-500">
-          Translation management now lives in the Game tab. Use this hotspot here to place, move, or remove the language switcher from the canvas.
-        </div>
+        <button
+          type="button"
+          onClick={() => onOpenSpreadsheet?.()}
+          disabled={!onOpenSpreadsheet}
+          className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-40"
+        >
+          Open spreadsheet
+        </button>
       ) : null}
     </>
   );

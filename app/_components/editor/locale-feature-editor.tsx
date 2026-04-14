@@ -18,6 +18,7 @@ type LocaleFeatureEditorProps = {
   pages: PageItem[];
   translations: TranslationMap | undefined;
   onLanguagesChange: (featureId: string, languages: LocaleLanguage[]) => void;
+  onOpenSpreadsheet: () => void;
   onPromoteLanguageToDefault: (
     featureId: string,
     languageCode: string,
@@ -27,7 +28,7 @@ type LocaleFeatureEditorProps = {
   onTranslationChange: (key: string, languageCode: string, value: string) => void;
 };
 
-function SpreadsheetModal({
+export function SpreadsheetModal({
   rows,
   languages,
   translations,
@@ -297,15 +298,10 @@ function SpreadsheetModal({
 export function LocaleFeatureEditor({
   feature,
   pages,
-  translations,
-  onLanguagesChange,
-  onPromoteLanguageToDefault,
-  onSourceTextChange,
-  onTranslationChange,
+  onOpenSpreadsheet,
 }: LocaleFeatureEditorProps) {
   const languages = useMemo(() => parseLocaleLanguages(feature), [feature]);
   const translationRows = useMemo(() => collectTranslationRows(pages), [pages]);
-  const [sheetOpen, setSheetOpen] = useState(false);
 
   return (
     <div className="space-y-3">
@@ -314,38 +310,11 @@ export function LocaleFeatureEditor({
       </p>
       <button
         type="button"
-        onClick={() => setSheetOpen(true)}
+        onClick={onOpenSpreadsheet}
         className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
       >
         Open spreadsheet
       </button>
-
-      {sheetOpen ? (
-        <SpreadsheetModal
-          rows={translationRows}
-          languages={languages}
-          translations={translations}
-          onClose={() => setSheetOpen(false)}
-          onLanguagesChange={(nextLanguages) => onLanguagesChange(feature.id, nextLanguages)}
-          onPromoteLanguageToDefault={(languageCode) => {
-            const promotedLanguage = languages.find((language) => language.code === languageCode);
-            if (!promotedLanguage) return;
-            const nextLanguages = [
-              promotedLanguage,
-              ...languages.filter((language) => language.code !== languageCode),
-            ];
-            onPromoteLanguageToDefault(feature.id, languageCode, nextLanguages);
-          }}
-          onRemoveLanguage={(languageCode) => {
-            onLanguagesChange(
-              feature.id,
-              languages.filter((language) => language.code !== languageCode)
-            );
-          }}
-          onSourceTextChange={onSourceTextChange}
-          onTranslationChange={onTranslationChange}
-        />
-      ) : null}
     </div>
   );
 }

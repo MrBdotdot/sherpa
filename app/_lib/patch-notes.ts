@@ -6,6 +6,14 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.22.5",
+    date: "2026-04-14",
+    changes: [
+      "Elements tab: language switcher now has an 'Open spreadsheet' button directly",
+      "Inspector dropdowns now use the correct sans-serif font",
+    ],
+  },
+  {
     version: "v0.22.4",
     date: "2026-04-14",
     changes: [
