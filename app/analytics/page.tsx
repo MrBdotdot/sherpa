@@ -171,8 +171,9 @@ function DateRangePicker({
   }
 
   function applyCustom() {
-    const f = new Date(customFrom);
-    const t = new Date(customTo);
+    // Parse as local noon to avoid timezone-offset shifting the date to the previous day
+    const f = new Date(`${customFrom}T12:00:00`);
+    const t = new Date(`${customTo}T12:00:00`);
     if (!isNaN(f.getTime()) && !isNaN(t.getTime()) && f < t) {
       setPreset("custom");
       onChange(f, t);
@@ -293,7 +294,9 @@ function AnalyticsDashboard() {
       const a = document.createElement("a");
       a.href = url;
       a.download = `sherpa-analytics-${gameId}-${f}-${t}.csv`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } finally {
       setExporting(false);
