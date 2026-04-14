@@ -6,6 +6,7 @@ import { getQrImageUrl } from "@/app/_lib/label-utils";
 import { getFontThemeClass } from "@/app/_lib/font-theme";
 import { PreviewBlocks } from "@/app/_components/canvas/preview-blocks";
 import { StepRailBlock, parseSRPreview } from "@/app/_components/canvas/step-rail-block";
+import { useMobile } from "@/app/_hooks/use-mobile";
 
 function hexToRgba(hex: string, opacity: number): string {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -86,6 +87,7 @@ export function ContentModule({
     cardSize === "compact" ? "w-[260px]" : cardSize === "large" ? "w-[480px]" : "w-[320px]";
 
   const fontThemeClass = getFontThemeClass(systemSettings.fontTheme);
+  const isMobile = useMobile();
   const effectiveSurfaceStyle = systemSettings.darkMode ? "contrast" : systemSettings.surfaceStyle;
   const surfaceStyleClass =
     effectiveSurfaceStyle === "solid"
@@ -348,7 +350,7 @@ export function ContentModule({
               </div>
               <div className="flex flex-wrap gap-2">
                 {page.socialLinks.map((item) => {
-                  const btnClass = `rounded-full px-2.5 py-1.5 text-xs ${
+                  const btnClass = `sherpa-button rounded-full px-2.5 py-1.5 text-xs ${
                     systemSettings.surfaceStyle === "contrast"
                       ? "text-white hover:bg-white/10"
                       : "text-neutral-700 hover:bg-neutral-50"
@@ -490,16 +492,24 @@ export function ContentModule({
 
   // ── Modal & tooltip ────────────────────────────────────────────
   const innerCardClass = ctype === "tooltip"
-    ? `max-w-[220px] rounded-xl p-3 text-sm ${isContentDraggable ? "cursor-grab active:cursor-grabbing" : ""} ${fontThemeClass} ${surfaceStyleClass} ${animClass}`
-    : `rounded-2xl p-4 ${isContentDraggable ? "cursor-grab active:cursor-grabbing" : ""} ${contentCardWidth} max-w-[calc(100%-2rem)] max-h-[80%] overflow-y-auto ${fontThemeClass} ${surfaceStyleClass} ${animClass}`;
+    ? `sherpa-modal max-w-[220px] rounded-xl p-3 text-sm ${isContentDraggable ? "cursor-grab active:cursor-grabbing" : ""} ${fontThemeClass} ${surfaceStyleClass} ${animClass}`
+    : `sherpa-modal rounded-2xl p-4 ${isContentDraggable ? "cursor-grab active:cursor-grabbing" : ""} ${contentCardWidth} max-w-[calc(100%-2rem)] ${isMobile ? "max-h-[72vh]" : "max-h-[80%]"} overflow-y-auto ${fontThemeClass} ${surfaceStyleClass} ${animClass}`;
 
-  const wrapperStyle: React.CSSProperties = {
-    left: `${page.contentX}%`,
-    top: `${page.contentY}%`,
-    transform: "translate3d(-50%, -50%, 0)",
-    touchAction: "none",
-    ...pointerEventsStyle,
-  };
+  const wrapperStyle: React.CSSProperties = isMobile
+    ? {
+        left: "50%",
+        top: "50%",
+        transform: "translate3d(-50%, -50%, 0)",
+        touchAction: "none",
+        ...pointerEventsStyle,
+      }
+    : {
+        left: `${page.contentX}%`,
+        top: `${page.contentY}%`,
+        transform: "translate3d(-50%, -50%, 0)",
+        touchAction: "none",
+        ...pointerEventsStyle,
+      };
 
   return (
     <>
