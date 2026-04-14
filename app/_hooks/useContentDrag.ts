@@ -26,6 +26,7 @@ function getSnappedValue(value: number): number {
 
 type UseContentDragProps = {
   canvasRef: React.RefObject<HTMLDivElement | null>;
+  dragThresholdRef: React.RefObject<boolean>;
   isPortraitMode: boolean;
   isPreviewMode: boolean;
   pages: PageItem[];
@@ -38,6 +39,7 @@ type UseContentDragProps = {
 
 export function useContentDrag({
   canvasRef,
+  dragThresholdRef,
   isPortraitMode,
   isPreviewMode,
   pages,
@@ -70,6 +72,7 @@ export function useContentDrag({
     const contentPixelX = (effectiveCx / 100) * rect.width;
     const contentPixelY = (effectiveCy / 100) * rect.height;
 
+    (dragThresholdRef as React.MutableRefObject<boolean>).current = true;
     setContentDragState({
       pointerOffsetX: event.clientX - (rect.left + contentPixelX),
       pointerOffsetY: event.clientY - (rect.top + contentPixelY),
@@ -128,6 +131,7 @@ export function useContentDrag({
     };
 
     const handlePointerUp = () => {
+      (dragThresholdRef as React.MutableRefObject<boolean>).current = false;
       setContentDragState(null);
     };
 

@@ -88,6 +88,7 @@ export function useDrag({
 
   const { contentDragState, handleContentCardPointerDown } = useContentDrag({
     canvasRef,
+    dragThresholdRef,
     isPortraitMode,
     isPreviewMode,
     pages,
