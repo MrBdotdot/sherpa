@@ -234,6 +234,17 @@ export function PlayerView({
     setSelectedPageId(homePage?.id ?? "");
   }
 
+  function handleLanguageChange(code: string) {
+    if (code !== activeLanguageCode) {
+      posthog?.capture("language_changed", {
+        gameId,
+        fromCode: activeLanguageCode,
+        toCode: code,
+      });
+    }
+    setActiveLanguageCode(code);
+  }
+
   const accentColor = systemSettings.accentColor || "";
   const fontThemeClass = getFontThemeClass(systemSettings.fontTheme);
   const surfaceStyleClass =
@@ -298,7 +309,7 @@ export function PlayerView({
           isPreviewMode
           onCanvasFeaturePointerDown={NOOP_PTR}
           onSelectCanvasFeature={NOOP}
-          onLanguageChange={setActiveLanguageCode}
+          onLanguageChange={handleLanguageChange}
           onSelectPage={handleSelectPage}
         />
       </div>
