@@ -197,6 +197,10 @@ export type SystemSettings = {
   darkMode?: boolean;
   /** Cache the 3D model file on the player's device for offline use */
   cache3dModels?: boolean;
+  /** Page ID to open automatically when the player loads the experience. Opens every visit. */
+  autoOpenPageId?: string;
+  /** Author-defined CSS injected into the player. Scoped to .sherpa-player. */
+  customCss?: string;
 };
 
 export type PageTemplate = {

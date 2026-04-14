@@ -283,6 +283,28 @@ export function ExperienceTab({
         </div>
       </EditorSection>
 
+      {/* Auto-open card */}
+      <EditorSection title="Auto-open card" id="auto-open-section">
+        <div className="space-y-2">
+          <p className="text-xs text-neutral-500 leading-relaxed">
+            Open a specific card every time the experience loads. Useful for tutorial or guided experiences.
+          </p>
+          <select
+            value={systemSettings.autoOpenPageId ?? ""}
+            onChange={(e) => onSystemSettingChange("autoOpenPageId", e.target.value || undefined)}
+            className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 bg-white"
+            aria-label="Auto-open card"
+          >
+            <option value="">None — player starts on the board</option>
+            {pages.filter((p) => p.kind !== "home").map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.title || "Untitled card"}
+              </option>
+            ))}
+          </select>
+        </div>
+      </EditorSection>
+
       {/* Intro screen */}
       <EditorSection title="Intro screen" id="intro-screen-section">
         <div className="space-y-3">
@@ -380,6 +402,26 @@ export function ExperienceTab({
               </a>
             </div>
           ) : null}
+        </div>
+      </EditorSection>
+
+      {/* Custom CSS */}
+      <EditorSection title="Custom CSS">
+        <div className="space-y-2">
+          <textarea
+            value={systemSettings.customCss ?? ""}
+            onChange={(e) => onSystemSettingChange("customCss", e.target.value || undefined)}
+            placeholder={`.sherpa-modal {\n  border-radius: 0;\n}\n\n.sherpa-button {\n  background: #ff6b00;\n}`}
+            rows={10}
+            spellCheck={false}
+            className="w-full resize-y rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 font-mono text-xs leading-relaxed text-neutral-800 placeholder:text-neutral-400 focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/10"
+          />
+          <p className="text-[11px] leading-relaxed text-neutral-400">
+            Scoped to <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-600">.sherpa-player</code>.
+            Target <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-600">.sherpa-modal</code>,{" "}
+            <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-600">.sherpa-button</code>,{" "}
+            <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-600">.sherpa-hotspot-pin</code> for component-level overrides.
+          </p>
         </div>
       </EditorSection>
 

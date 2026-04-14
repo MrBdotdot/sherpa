@@ -35,6 +35,7 @@ export function PlayerView({
   const [isModuleExiting, setIsModuleExiting] = useState(false);
   const modulePageRef = useRef<PageItem | null>(null);
   const isModuleExitingRef = useRef(false);
+  const autoOpenFiredRef = useRef(false);
   const [navHistory, setNavHistory] = useState<Array<{ pageId: string; scrollTop: number }>>([]);
   const contentScrollRef = useRef<HTMLDivElement | null>(null);
   const pendingScrollRestoreRef = useRef<number | null>(null);
@@ -94,6 +95,21 @@ export function PlayerView({
     modulePageRef.current = nextModulePage;
     setModulePage(nextModulePage);
   }, [localizedPages]);
+
+  // Auto-open a card on every load when autoOpenPageId is set.
+  useEffect(() => {
+    if (autoOpenFiredRef.current) return;
+    const targetId = systemSettings.autoOpenPageId;
+    if (!targetId) return;
+    const page = localizedPages.find((p) => p.id === targetId);
+    if (!page) return;
+    autoOpenFiredRef.current = true;
+    modulePageRef.current = page;
+    setModulePage(page);
+    setSelectedPageId(targetId);
+  // Only fires once on mount — intentionally excludes localizedPages from deps.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localizedPages, systemSettings.autoOpenPageId]);
 
   useEffect(() => {
     if (pendingScrollRestoreRef.current === null) return;
@@ -200,13 +216,16 @@ export function PlayerView({
 
   return (
     <div
-      className="fixed inset-0 overflow-hidden bg-black"
+      className="sherpa-player fixed inset-0 overflow-hidden bg-black"
       onPointerDown={(event) => {
         if (event.button !== 0) return;
         if (event.target !== event.currentTarget) return;
         handleDismissContent();
       }}
     >
+      {systemSettings.customCss && (
+        <style>{`.sherpa-player { ${systemSettings.customCss} }`}</style>
+      )}
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
         <CanvasBackground heroImage={homePage.heroImage ?? ""} isPreviewMode={true} />

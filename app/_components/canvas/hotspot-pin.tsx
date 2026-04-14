@@ -112,7 +112,7 @@ export function HotspotPin({
           onPointerDown={(e) => onHotspotPointerDown(e, page)}
           onDragStart={(e) => e.preventDefault()}
           onClick={(e) => { e.stopPropagation(); if (!dragThresholdRef?.current) onSelectPage(page.id); }}
-          className={`group flex flex-col items-center gap-1 ${fontThemeClass}`}
+          className={`sherpa-hotspot-pin group flex flex-col items-center gap-1 ${fontThemeClass}`}
           style={{ touchAction: "none" }}
           aria-label={title}
         >
