@@ -6,6 +6,13 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.22.4",
+    date: "2026-04-14",
+    changes: [
+      "Player: offline badge stays visible until dismissed, now in Sherpa blue",
+    ],
+  },
+  {
     version: "v0.22.3",
     date: "2026-04-14",
     changes: [

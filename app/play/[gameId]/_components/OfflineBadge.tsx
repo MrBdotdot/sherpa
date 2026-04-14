@@ -10,8 +10,6 @@ export function OfflineBadge({ status }: { status: CacheStatus }) {
   useEffect(() => {
     if (status !== "success" && status !== "error") return;
     setVisible(true);
-    const timer = setTimeout(() => setVisible(false), 3000);
-    return () => clearTimeout(timer);
   }, [status]);
 
   if (!visible) return null;
@@ -20,41 +18,19 @@ export function OfflineBadge({ status }: { status: CacheStatus }) {
     <div
       role="status"
       aria-live="polite"
-      className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full bg-neutral-800/95 px-4 py-2 text-sm font-medium text-white shadow-lg backdrop-blur-sm"
+      className="fixed top-4 left-4 z-50 flex items-center gap-2 rounded-full pl-4 pr-2 py-2 text-sm font-medium text-white shadow-lg backdrop-blur-sm"
+      style={{ backgroundColor: status === "success" ? "#2e5baa" : "#92400e" }}
     >
-      {status === "success" ? (
-        <>
-          <svg
-            className="h-4 w-4 shrink-0 text-green-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-          Ready for offline
-        </>
-      ) : (
-        <>
-          <svg
-            className="h-4 w-4 shrink-0 text-yellow-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
-          Offline unavailable
-        </>
-      )}
+      {status === "success" ? "Ready for offline" : "Offline unavailable"}
+      <button
+        onClick={() => setVisible(false)}
+        aria-label="Dismiss"
+        className="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-white/60 transition hover:bg-white/10 hover:text-white"
+      >
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+          <path d="M1.5 1.5l7 7M8.5 1.5l-7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+      </button>
     </div>
   );
 }
