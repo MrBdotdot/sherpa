@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     FROM (
       SELECT
         distinct_id,
-        arrayLast(x -> 1, groupArray(properties.cardTitle)) AS last_card
+        argMax(properties.cardTitle, timestamp) AS last_card
       FROM events
       WHERE event = 'card_viewed'
         AND properties.gameId = '${gameId}'
