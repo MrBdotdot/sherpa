@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
 import { loadGame } from "@/app/_lib/supabase-game";
 import { PlayerView } from "@/app/_components/player-view";
 import { PageItem, SystemSettings } from "@/app/_lib/authoring-types";
@@ -11,6 +12,7 @@ import { InstallPrompt } from "./_components/InstallPrompt";
 
 export default function PlayPage() {
   const { gameId } = useParams<{ gameId: string }>();
+  const posthog = usePostHog();
   const [pages, setPages] = useState<PageItem[] | null>(null);
   const [systemSettings, setSystemSettings] = useState<SystemSettings | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -32,6 +34,18 @@ export default function PlayPage() {
       })
       .catch(() => setNotFound(true));
   }, [gameId]);
+
+  // Fire game_viewed once pages are loaded
+  useEffect(() => {
+    if (!gameId || !pages || !systemSettings) return;
+    const layoutMode =
+      window.innerWidth < 600
+        ? "mobile-portrait"
+        : window.innerWidth < 1024
+        ? "mobile-landscape"
+        : "desktop";
+    posthog?.capture("game_viewed", { gameId, layoutMode });
+  }, [gameId, pages, systemSettings, posthog]);
 
   useEffect(() => {
     if (!gameId) return;
@@ -99,7 +113,12 @@ export default function PlayPage() {
 
   return (
     <>
-      <PlayerView pages={pages} systemSettings={systemSettings} hasBranding={hasBranding} />
+      <PlayerView
+        pages={pages}
+        systemSettings={systemSettings}
+        hasBranding={hasBranding}
+        gameId={gameId}
+      />
       <OfflineBadge status={cacheStatus} />
       <InstallPrompt />
     </>

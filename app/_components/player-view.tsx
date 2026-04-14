@@ -17,10 +17,12 @@ export function PlayerView({
   pages,
   systemSettings,
   hasBranding = false,
+  gameId,
 }: {
   pages: PageItem[];
   systemSettings: SystemSettings;
   hasBranding?: boolean;
+  gameId: string;
 }) {
   const introEnabled = !!(
     systemSettings.introScreen?.enabled && systemSettings.introScreen?.youtubeUrl
