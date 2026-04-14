@@ -1,6 +1,7 @@
 import { getRequestUser } from "@/app/_lib/api-auth";
 import { assertGameMember } from "@/app/_lib/analytics-auth";
 import { hogql } from "@/app/_lib/posthog-query";
+import { isValidDate, isValidUUID } from "@/app/_lib/analytics-params";
 
 export async function GET(request: Request) {
   const user = await getRequestUser(request);
@@ -14,6 +15,12 @@ export async function GET(request: Request) {
   const compareTo = searchParams.get("compareTo");
   if (!gameId || !from || !to) {
     return Response.json({ error: "Missing gameId, from, or to" }, { status: 400 });
+  }
+  if (!isValidUUID(gameId) || !isValidDate(from) || !isValidDate(to)) {
+    return Response.json({ error: "Invalid gameId, from, or to" }, { status: 400 });
+  }
+  if ((compareFrom && !isValidDate(compareFrom)) || (compareTo && !isValidDate(compareTo))) {
+    return Response.json({ error: "Invalid compareFrom or compareTo" }, { status: 400 });
   }
 
   const isMember = await assertGameMember(gameId, user.id);
