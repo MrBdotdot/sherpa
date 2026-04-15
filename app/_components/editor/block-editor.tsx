@@ -32,6 +32,7 @@ export function BlockEditor({
   isFirst,
   isLast,
   pages,
+  anchorBlocks,
   selectedPageId,
   onBlockChange,
   onBlockFitChange,
@@ -52,6 +53,7 @@ export function BlockEditor({
   isFirst: boolean;
   isLast: boolean;
   pages?: PageItem[];
+  anchorBlocks?: ContentBlock[];
   selectedPageId?: string;
   onBlockChange: (blockId: string, value: string) => void;
   onBlockFitChange: (blockId: string, fit: ImageFit) => void;
@@ -110,9 +112,20 @@ export function BlockEditor({
     (p) => p.kind !== "home" && p.id !== selectedPageId
   ) ?? [];
 
-  const triggerResults = trigger.query
+  type TriggerResult = { id: string; label: string };
+
+  const triggerPageResults = trigger.query
     ? linkablePages.filter((p) => (p.title || "").toLowerCase().includes(trigger.query.toLowerCase()))
     : linkablePages;
+
+  const triggerAnchorResults = trigger.query
+    ? (anchorBlocks ?? []).filter((b) => b.value.toLowerCase().includes(trigger.query.toLowerCase()))
+    : (anchorBlocks ?? []);
+
+  const triggerResults: TriggerResult[] = [
+    ...triggerPageResults.map((p) => ({ id: p.id, label: p.title || "Untitled" })),
+    ...triggerAnchorResults.map((b) => ({ id: b.id, label: b.value })),
+  ];
 
   function commitTrigger(pageId: string, pageTitle: string) {
     const ta = textareaRef.current;
@@ -199,8 +212,8 @@ export function BlockEditor({
       setTrigger((t) => ({ ...t, index: Math.max(t.index - 1, 0) }));
     } else if (event.key === "Enter") {
       event.preventDefault();
-      const page = triggerResults[trigger.index];
-      if (page) commitTrigger(page.id, page.title || "link");
+      const item = triggerResults[trigger.index];
+      if (item) commitTrigger(item.id, item.label);
     } else if (event.key === "Escape") {
       closeTrigger();
     }
@@ -393,7 +406,7 @@ export function BlockEditor({
                   <div className="border-b border-neutral-100 px-3 py-2 text-[11px] font-semibold text-neutral-500">
                     Link to page
                   </div>
-                  <PageLinkPicker pages={linkablePages} onSelect={insertLink} />
+                  <PageLinkPicker pages={linkablePages} anchorBlocks={anchorBlocks} onSelect={insertLink} />
                 </div>,
                 document.body
               ) : null}
@@ -532,13 +545,18 @@ export function BlockEditor({
               style={{ position: "fixed", top: triggerPos.top, right: triggerPos.right, minWidth: 220, zIndex: 9999 }}
             >
               <div className="border-b border-neutral-100 px-3 py-1.5 text-[11px] font-semibold text-neutral-400">
-                Link to page{trigger.query ? `: "${trigger.query}"` : ""}
+                Link to page or heading{trigger.query ? `: "${trigger.query}"` : ""}
               </div>
               {triggerResults.length > 0 ? (
-                <PageLinkPicker pages={triggerResults} activeIndex={trigger.index} onMouseDownSelect={commitTrigger} />
+                <PageLinkPicker
+                  pages={triggerPageResults}
+                  anchorBlocks={triggerAnchorResults}
+                  activeIndex={trigger.index}
+                  onMouseDownSelect={commitTrigger}
+                />
               ) : (
                 <div className="px-3 py-3 text-xs text-neutral-400">
-                  No pages yet. Add a page first.
+                  No matches found.
                 </div>
               )}
             </div>,
