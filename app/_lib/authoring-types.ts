@@ -45,6 +45,14 @@ export type DisplayStyleKey =
 
 export type ImageFit = "cover" | "contain" | "fill" | "center";
 
+export type AnchorTarget = {
+  id: string;        // block.id — the DOM element id to scroll to
+  label: string;     // block.value — display text in picker and inserted link
+  pageId: string;    // which card this heading lives on
+  pageTitle: string; // card title — shown as group header for cross-card entries
+  kind: "h2" | "h3" | "section";
+};
+
 export type ImageBlockHotspot = {
   id: string;
   x: number;   // 0–100 percentage from left edge of image
