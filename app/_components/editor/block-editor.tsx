@@ -2,7 +2,7 @@
 
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ContentBlock, ImageFit, PageItem } from "@/app/_lib/authoring-types";
+import { AnchorTarget, ContentBlock, ImageFit, PageItem } from "@/app/_lib/authoring-types";
 import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
 import { StepRailBlockEditor } from "@/app/_components/editor/step-rail-block-editor";
 import { TabsBlockEditor } from "@/app/_components/editor/tabs-block-editor";
@@ -32,7 +32,7 @@ export function BlockEditor({
   isFirst,
   isLast,
   pages,
-  anchorBlocks,
+  anchorTargets,
   selectedPageId,
   onBlockChange,
   onBlockFitChange,
@@ -53,7 +53,7 @@ export function BlockEditor({
   isFirst: boolean;
   isLast: boolean;
   pages?: PageItem[];
-  anchorBlocks?: ContentBlock[];
+  anchorTargets?: AnchorTarget[];
   selectedPageId?: string;
   onBlockChange: (blockId: string, value: string) => void;
   onBlockFitChange: (blockId: string, fit: ImageFit) => void;
@@ -119,12 +119,12 @@ export function BlockEditor({
     : linkablePages;
 
   const triggerAnchorResults = trigger.query
-    ? (anchorBlocks ?? []).filter((b) => b.value.toLowerCase().includes(trigger.query.toLowerCase()))
-    : (anchorBlocks ?? []);
+    ? (anchorTargets ?? []).filter((t) => t.label.toLowerCase().includes(trigger.query.toLowerCase()))
+    : (anchorTargets ?? []);
 
   const triggerResults: TriggerResult[] = [
     ...triggerPageResults.map((p) => ({ id: p.id, label: p.title || "Untitled" })),
-    ...triggerAnchorResults.map((b) => ({ id: b.id, label: b.value })),
+    ...triggerAnchorResults.map((t) => ({ id: t.id, label: t.label })),
   ];
 
   function commitTrigger(pageId: string, pageTitle: string) {
@@ -406,7 +406,7 @@ export function BlockEditor({
                   <div className="border-b border-neutral-100 px-3 py-2 text-[11px] font-semibold text-neutral-500">
                     Link to page
                   </div>
-                  <PageLinkPicker pages={linkablePages} anchorBlocks={anchorBlocks} onSelect={insertLink} />
+                  <PageLinkPicker pages={linkablePages} anchorTargets={anchorTargets} currentPageId={selectedPageId} onSelect={insertLink} />
                 </div>,
                 document.body
               ) : null}
@@ -550,7 +550,8 @@ export function BlockEditor({
               {triggerResults.length > 0 ? (
                 <PageLinkPicker
                   pages={triggerPageResults}
-                  anchorBlocks={triggerAnchorResults}
+                  anchorTargets={triggerAnchorResults}
+                  currentPageId={selectedPageId}
                   activeIndex={trigger.index}
                   onMouseDownSelect={commitTrigger}
                 />
