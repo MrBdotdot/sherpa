@@ -410,6 +410,30 @@ export function CanvasFeatureTypeBody({
             </div>
           </div>
           <div>
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Button color</div>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={feature.buttonBgColor || (
+                  (feature.buttonVariant ?? "secondary") === "secondary" ? "#ffffff"
+                  : brandColors?.[0] || "#111827"
+                )}
+                onChange={(e) => onCanvasFeatureChange(feature.id, "buttonBgColor", e.target.value)}
+                aria-label="Button color"
+                className="h-8 w-10 cursor-pointer rounded-lg border border-neutral-300 p-0.5"
+              />
+              {feature.buttonBgColor ? (
+                <button
+                  type="button"
+                  onClick={() => onCanvasFeatureChange(feature.id, "buttonBgColor", "")}
+                  className="text-xs text-neutral-400 hover:text-neutral-700"
+                >
+                  Use accent
+                </button>
+              ) : null}
+            </div>
+          </div>
+          <div>
             <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Destination</div>
             <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
               {(["external", "page"] as const).map((mode) => {

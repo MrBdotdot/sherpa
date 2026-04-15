@@ -6,6 +6,14 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.24.0",
+    date: "2026-04-15",
+    changes: [
+      "Board buttons now support custom background colors — pick any color and text auto-adjusts for contrast",
+      "All three button styles (Primary, Secondary, Tertiary) support the color picker; use 'Use accent' to reset to default",
+    ],
+  },
+  {
     version: "v0.23.9",
     date: "2026-04-15",
     changes: [

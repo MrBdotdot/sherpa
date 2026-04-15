@@ -5,6 +5,17 @@ import { CanvasFeature, PageItem } from "@/app/_lib/authoring-types";
 import { SearchFeatureCard } from "@/app/_components/canvas/search-feature-card";
 import { LocaleLanguage, parseLocaleLanguages } from "@/app/_lib/localization";
 
+/** Returns #000000 or #ffffff — whichever gives higher contrast against the given hex background. */
+function autoContrast(hex: string): string {
+  const h = hex.replace("#", "").padEnd(6, "0");
+  const r = parseInt(h.slice(0, 2), 16) / 255;
+  const g = parseInt(h.slice(2, 4), 16) / 255;
+  const b = parseInt(h.slice(4, 6), 16) / 255;
+  const toLinear = (c: number) => c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  const L = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+  return L > 0.179 ? "#000000" : "#ffffff";
+}
+
 function ImageFeatureCard({
   feature,
   fontThemeClass,
@@ -305,15 +316,12 @@ export function CanvasFeatureCard({
     const opensPage = (feature.buttonLinkMode ?? "external") === "page";
     let cls = "max-w-[200px] truncate rounded-full px-4 py-2 text-xs font-semibold shadow-sm transition";
     let style: React.CSSProperties = {};
-    if (variant === "primary") {
-      cls += " text-white";
-      style = { backgroundColor: accent };
-    } else if (variant === "tertiary") {
+    if (variant === "tertiary") {
       cls += " bg-transparent underline-offset-2 hover:underline";
-      style = { color: accent };
+      style = { color: feature.buttonBgColor || accent };
     } else {
-      cls += " bg-white/92";
-      style = { color: accent };
+      const bg = feature.buttonBgColor || (variant === "primary" ? accent : "#ffffff");
+      style = { backgroundColor: bg, color: autoContrast(bg) };
     }
     return (
       <button

@@ -117,6 +117,8 @@ export type CanvasFeature = {
   headingSize?: "small" | "medium" | "large";
   /** For button type: visual hierarchy variant */
   buttonVariant?: "primary" | "secondary" | "tertiary";
+  /** For button type: custom background color (hex). Primary/secondary: bg color, text auto-contrasts. Tertiary: text/underline color. */
+  buttonBgColor?: string;
 };
 
 export type CanvasFeatureLayoutOverride = {
@@ -129,7 +131,7 @@ export type CanvasFeatureLayoutOverride = {
 export type CanvasFeatureField =
   | "label" | "description" | "linkUrl" | "imageUrl" | "optionsText"
   | "logoSize" | "qrSize" | "qrBgColor" | "qrBgOpacity" | "portraitZone" | "buttonLinkMode"
-  | "headingColor" | "headingSize" | "buttonVariant";
+  | "headingColor" | "headingSize" | "buttonVariant" | "buttonBgColor";
 
 export type PageItem = {
   id: string;
