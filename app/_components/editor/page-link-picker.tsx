@@ -1,21 +1,43 @@
 "use client";
 
-import { ContentBlock, PageItem } from "@/app/_lib/authoring-types";
+import React from "react";
+import { AnchorTarget, PageItem } from "@/app/_lib/authoring-types";
 
 export function PageLinkPicker({
   pages,
-  anchorBlocks,
+  anchorTargets,
+  currentPageId,
   activeIndex,
   onSelect,
   onMouseDownSelect,
 }: {
   pages: PageItem[];
-  anchorBlocks?: ContentBlock[];
+  anchorTargets?: AnchorTarget[];
+  currentPageId?: string;
   activeIndex?: number;
   onSelect?: (id: string, label: string) => void;
   onMouseDownSelect?: (id: string, label: string) => void;
 }) {
-  const hasAnchors = !!anchorBlocks && anchorBlocks.length > 0;
+  const sameCard = (anchorTargets ?? []).filter((t) => t.pageId === currentPageId);
+  const crossCard = (anchorTargets ?? []).filter((t) => t.pageId !== currentPageId);
+
+  // Group cross-card targets by pageId, preserving first-seen order
+  interface CrossCardGroup {
+    pageId: string;
+    pageTitle: string;
+    items: Array<{ target: AnchorTarget; idx: number }>;
+  }
+  const crossCardGroupMap = new Map<string, CrossCardGroup>();
+  let crossIdx = pages.length + sameCard.length;
+  for (const t of crossCard) {
+    if (!crossCardGroupMap.has(t.pageId)) {
+      crossCardGroupMap.set(t.pageId, { pageId: t.pageId, pageTitle: t.pageTitle, items: [] });
+    }
+    crossCardGroupMap.get(t.pageId)!.items.push({ target: t, idx: crossIdx++ });
+  }
+  const crossCardGroups = [...crossCardGroupMap.values()];
+
+  const hasAnchors = (anchorTargets ?? []).length > 0;
 
   return (
     <ul className="max-h-48 overflow-y-auto p-1">
@@ -44,24 +66,21 @@ export function PageLinkPicker({
           </button>
         </li>
       ))}
-      {hasAnchors && (
+      {sameCard.length > 0 && (
         <>
           <li className={`px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-neutral-400${pages.length > 0 ? " mt-1" : ""}`}>
             On this card
           </li>
-          {anchorBlocks!.map((b, i) => {
+          {sameCard.map((t, i) => {
             const idx = pages.length + i;
-            const kindLabel =
-              b.blockFormat === "h2" ? "H2" :
-              b.blockFormat === "h3" ? "H3" :
-              "Section";
+            const kindLabel = t.kind === "h2" ? "H2" : t.kind === "h3" ? "H3" : "Section";
             return (
-              <li key={b.id}>
+              <li key={t.id}>
                 <button
                   type="button"
-                  onClick={onSelect ? () => onSelect(b.id, b.value) : undefined}
+                  onClick={onSelect ? () => onSelect(t.id, t.label) : undefined}
                   onMouseDown={onMouseDownSelect
-                    ? (e) => { e.preventDefault(); onMouseDownSelect(b.id, b.value); }
+                    ? (e) => { e.preventDefault(); onMouseDownSelect(t.id, t.label); }
                     : undefined
                   }
                   className={`w-full rounded-lg px-2.5 py-2 text-left text-sm transition ${
@@ -70,7 +89,7 @@ export function PageLinkPicker({
                       : "hover:bg-neutral-50"
                   }`}
                 >
-                  <div className="truncate font-medium text-neutral-800">{b.value}</div>
+                  <div className="truncate font-medium text-neutral-800">{t.label}</div>
                   <div className="text-[11px] text-neutral-400">{kindLabel}</div>
                 </button>
               </li>
@@ -78,6 +97,36 @@ export function PageLinkPicker({
           })}
         </>
       )}
+      {crossCardGroups.map((group) => (
+        <React.Fragment key={group.pageId}>
+          <li className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 mt-1">
+            {group.pageTitle}
+          </li>
+          {group.items.map(({ target: t, idx }) => {
+            const kindLabel = t.kind === "h2" ? "H2" : t.kind === "h3" ? "H3" : "Section";
+            return (
+              <li key={t.id}>
+                <button
+                  type="button"
+                  onClick={onSelect ? () => onSelect(t.id, t.label) : undefined}
+                  onMouseDown={onMouseDownSelect
+                    ? (e) => { e.preventDefault(); onMouseDownSelect(t.id, t.label); }
+                    : undefined
+                  }
+                  className={`w-full rounded-lg px-2.5 py-2 text-left text-sm transition ${
+                    activeIndex !== undefined && idx === activeIndex
+                      ? "bg-neutral-100"
+                      : "hover:bg-neutral-50"
+                  }`}
+                >
+                  <div className="truncate font-medium text-neutral-800">{t.label}</div>
+                  <div className="text-[11px] text-neutral-400">{kindLabel}</div>
+                </button>
+              </li>
+            );
+          })}
+        </React.Fragment>
+      ))}
     </ul>
   );
 }
