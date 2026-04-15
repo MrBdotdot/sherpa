@@ -474,6 +474,120 @@ function AnalyticsDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Exit cards + Search terms */}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-neutral-200 bg-white p-5">
+            <div className="mb-1 text-sm font-semibold text-neutral-900">Exit cards</div>
+            <div className="mb-4 text-xs text-neutral-400">
+              Last card players viewed before leaving — high exits with short dwell time may indicate confusion
+            </div>
+            {exitCards ? (
+              exitCards.length > 0 ? (
+                <div className="space-y-3">
+                  {exitCards.map((c, i) => (
+                    <div key={c.title} className="flex items-center gap-3">
+                      <span className="shrink-0 text-[11px] font-semibold text-neutral-300">#{i + 1}</span>
+                      <span className="min-w-0 flex-1 truncate text-sm text-neutral-800">{c.title}</span>
+                      <span className="shrink-0 text-sm font-semibold text-neutral-700">{c.exits.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-neutral-400">No data yet for this range.</p>
+              )
+            ) : (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => <div key={i} className="h-6 animate-pulse rounded-lg bg-neutral-100" />)}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-neutral-200 bg-white p-5">
+            <div className="mb-1 text-sm font-semibold text-neutral-900">Search terms</div>
+            <div className="mb-4 text-xs text-neutral-400">
+              What players are searching for — high-frequency terms that don't match a hotspot name suggest a labelling gap
+            </div>
+            {searchTerms ? (
+              searchTerms.length > 0 ? (
+                <div className="space-y-2">
+                  {searchTerms.map((s) => (
+                    <div key={s.query} className="flex items-center justify-between gap-3">
+                      <span className="min-w-0 flex-1 truncate text-sm text-neutral-700">{s.query}</span>
+                      <span className="shrink-0 text-xs font-semibold text-neutral-500">{s.count.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-neutral-400">No search events recorded yet.</p>
+              )
+            ) : (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => <div key={i} className="h-6 animate-pulse rounded-lg bg-neutral-100" />)}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Peak usage + Language distribution */}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-neutral-200 bg-white p-5">
+            <div className="mb-1 text-sm font-semibold text-neutral-900">Peak usage</div>
+            <div className="mb-4 text-xs text-neutral-400">Sessions by hour of day (UTC)</div>
+            {peakUsage ? (
+              <div className="flex items-end gap-0.5 h-20">
+                {peakUsage.map(({ hour, sessions: s }) => {
+                  const max = Math.max(...peakUsage.map((p) => p.sessions), 1);
+                  const height = Math.round((s / max) * 100);
+                  return (
+                    <div key={hour} className="group relative flex-1 flex flex-col items-center justify-end h-full">
+                      <div
+                        className="w-full rounded-sm bg-sky-400 transition-all"
+                        style={{ height: `${height}%` }}
+                      />
+                      {hour % 6 === 0 && (
+                        <div className="absolute -bottom-4 text-[9px] text-neutral-400">{hour}:00</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="h-20 animate-pulse rounded-xl bg-neutral-100" />
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-neutral-200 bg-white p-5">
+            <div className="mb-1 text-sm font-semibold text-neutral-900">Language distribution</div>
+            <div className="mb-4 text-xs text-neutral-400">Language switches by players</div>
+            {languages ? (
+              languages.length > 0 ? (
+                <div className="space-y-2">
+                  {languages.map((l) => (
+                    <div key={l.code} className="flex items-center gap-3">
+                      <span className="w-10 shrink-0 text-xs font-semibold text-neutral-500 uppercase">{l.code}</span>
+                      <div className="min-w-0 flex-1 h-2 rounded-full bg-neutral-100">
+                        <div
+                          className="h-2 rounded-full bg-indigo-400"
+                          style={{
+                            width: `${Math.round((l.switches / (languages[0]?.switches || 1)) * 100)}%`,
+                          }}
+                        />
+                      </div>
+                      <span className="shrink-0 text-xs text-neutral-500">{l.switches.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-neutral-400">No language switches recorded yet.</p>
+              )
+            ) : (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => <div key={i} className="h-6 animate-pulse rounded-lg bg-neutral-100" />)}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
