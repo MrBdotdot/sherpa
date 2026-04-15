@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useRef, useState, useCallback } from "react";
-import { ContentBlock, ContentBlockType, DisplayStyleKey, ImageFit, PageItem, SocialLink } from "@/app/_lib/authoring-types";
+import { AnchorTarget, ContentBlock, ContentBlockType, DisplayStyleKey, ImageFit, PageItem, SocialLink } from "@/app/_lib/authoring-types";
 import { DISPLAY_STYLE_OPTIONS, getDisplayStyleKey } from "@/app/_lib/display-style";
 import { BlockEditor, type BlockFormat } from "@/app/_components/editor/block-editor";
 import { BlockPickerModal } from "@/app/_components/editor/block-picker-modal";
@@ -173,10 +173,20 @@ export function ContentTab({
     return () => clearTimeout(t);
   }, [scrollToBlockId]);
 
-  const anchorBlocks = selectedPage.blocks.filter(
-    (b) =>
-      (b.blockFormat === "h2" || b.blockFormat === "h3" || b.type === "section") &&
-      b.value.trim() !== ""
+  const anchorTargets: AnchorTarget[] = pages.flatMap((page) =>
+    page.blocks
+      .filter(
+        (b) =>
+          (b.blockFormat === "h2" || b.blockFormat === "h3" || b.type === "section") &&
+          b.value.trim() !== ""
+      )
+      .map((b) => ({
+        id: b.id,
+        label: b.value,
+        pageId: page.id,
+        pageTitle: page.title || "Untitled",
+        kind: (b.blockFormat === "h2" ? "h2" : b.blockFormat === "h3" ? "h3" : "section") as AnchorTarget["kind"],
+      }))
   );
 
   const totalItems = selectedPage.blocks.length + selectedPage.socialLinks.length;
@@ -313,7 +323,7 @@ export function ContentTab({
                   isFirst={index === 0}
                   isLast={index === selectedPage.blocks.length - 1}
                   pages={pages}
-                  anchorBlocks={anchorBlocks}
+                  anchorTargets={anchorTargets}
                   selectedPageId={selectedPage.id}
                   onBlockChange={onBlockChange}
                   onBlockFitChange={onBlockFitChange}
