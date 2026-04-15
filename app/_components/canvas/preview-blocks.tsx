@@ -58,6 +58,16 @@ export function PreviewBlocks({
   const dotColor = accentColor || "#171717";
   const canLink = !!(onNavigate && pages);
 
+  const anchorBlocks = useMemo(
+    () =>
+      displayPage.blocks.filter(
+        (b) =>
+          (b.blockFormat === "h2" || b.blockFormat === "h3" || b.type === "section") &&
+          b.value.trim() !== ""
+      ),
+    [displayPage.blocks]
+  );
+
   const hasHalfBlock = displayPage.blocks.some((b) => b.blockWidth === "half");
 
   function alignClass(block: { textAlign?: string }) {
@@ -91,7 +101,7 @@ export function PreviewBlocks({
           // Heading formats
           if (format === "h2") {
             return (
-              <div key={block.id} data-a11y-id={block.id} data-a11y-type="block" className={`${alignClass(block)} ${blockClass}`}>
+              <div key={block.id} id={block.id} data-a11y-id={block.id} data-a11y-type="block" className={`${alignClass(block)} ${blockClass}`}>
                 <h2 className="text-base font-bold text-neutral-900 leading-tight">
                   {block.value || <span className="text-neutral-400 font-normal">Empty heading</span>}
                 </h2>
@@ -100,7 +110,7 @@ export function PreviewBlocks({
           }
           if (format === "h3") {
             return (
-              <div key={block.id} data-a11y-id={block.id} data-a11y-type="block" className={`${alignClass(block)} ${blockClass}`}>
+              <div key={block.id} id={block.id} data-a11y-id={block.id} data-a11y-type="block" className={`${alignClass(block)} ${blockClass}`}>
                 <h3 className="text-sm font-semibold text-neutral-800 leading-snug">
                   {block.value || <span className="text-neutral-400 font-normal">Empty heading</span>}
                 </h3>
@@ -118,7 +128,7 @@ export function PreviewBlocks({
                     <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: dotColor }} />
                     <span className="text-sm leading-6 text-neutral-700">
                       {canLink ? (
-                        <InlineWithLinks text={item} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} />
+                        <InlineWithLinks text={item} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} anchorBlocks={anchorBlocks} />
                       ) : item}
                     </span>
                   </li>
@@ -146,7 +156,7 @@ export function PreviewBlocks({
                     </span>
                     <span className="text-sm leading-6 text-neutral-700">
                       {canLink ? (
-                        <InlineWithLinks text={item} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} />
+                        <InlineWithLinks text={item} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} anchorBlocks={anchorBlocks} />
                       ) : item}
                     </span>
                   </li>
@@ -178,14 +188,30 @@ export function PreviewBlocks({
                         return <span style={{ color }}>{children}</span>;
                       }
                       if (href?.startsWith("sherpa-link:")) {
-                        const pageId = href.slice("sherpa-link:".length);
-                        const exists = pages?.some((p) => p.id === pageId);
-                        if (exists && onNavigate) {
-                          const color = accentColor || "#2563eb";
+                        const target = href.slice("sherpa-link:".length);
+                        const color = accentColor || "#2563eb";
+                        const isPage = pages?.some((p) => p.id === target);
+                        const isAnchor = !isPage && anchorBlocks.some((b) => b.id === target);
+                        if (isPage && onNavigate) {
                           return (
                             <button
                               type="button"
-                              onClick={(e) => { e.stopPropagation(); onNavigate(pageId); }}
+                              onClick={(e) => { e.stopPropagation(); onNavigate(target); }}
+                              className="cursor-pointer font-bold underline underline-offset-2"
+                              style={{ color }}
+                            >
+                              {children}
+                            </button>
+                          );
+                        }
+                        if (isAnchor) {
+                          return (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                              }}
                               className="cursor-pointer font-bold underline underline-offset-2"
                               style={{ color }}
                             >
@@ -237,6 +263,7 @@ export function PreviewBlocks({
                     pages={pages!}
                     onNavigate={onNavigate!}
                     accentColor={accentColor}
+                    anchorBlocks={anchorBlocks}
                   />
                 ) : (block.value || "Empty callout block")}
               </span>
@@ -331,7 +358,7 @@ export function PreviewBlocks({
   const summary = displayPage.summary.trim() ? (
     <p className="text-sm leading-6 text-neutral-600">
       {canLink ? (
-        <InlineWithLinks text={displayPage.summary} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} />
+        <InlineWithLinks text={displayPage.summary} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} anchorBlocks={anchorBlocks} />
       ) : (
         displayPage.summary
       )}
