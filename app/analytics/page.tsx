@@ -370,7 +370,30 @@ function AnalyticsDashboard() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
+      {/* Tab bar */}
+      <div className="border-b border-neutral-200 bg-white">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="flex">
+            {(["overview", "heatmap"] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => handleTabChange(tab)}
+                className={`px-4 py-3 text-sm font-medium capitalize transition border-b-2 ${
+                  activeTab === tab
+                    ? "border-neutral-900 text-neutral-900 font-semibold"
+                    : "border-transparent text-neutral-500 hover:text-neutral-700"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {activeTab === "overview" && (
+        <div className="mx-auto max-w-6xl px-6 py-8 space-y-6">
         {/* Stat cards */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
           {overview ? (
@@ -617,6 +640,10 @@ function AnalyticsDashboard() {
           </div>
         </div>
       </div>
+      )}
+      {activeTab === "heatmap" && (
+        <HeatmapOverlay boardData={boardData} hotspots={hotspots} />
+      )}
     </div>
   );
 }
