@@ -373,16 +373,18 @@ function AnalyticsDashboard() {
       {/* Tab bar */}
       <div className="border-b border-neutral-200 bg-white">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="flex">
+          <div className="flex" role="tablist" aria-label="Analytics views">
             {(["overview", "heatmap"] as const).map((tab) => (
               <button
                 key={tab}
                 type="button"
+                role="tab"
+                aria-selected={activeTab === tab}
                 onClick={() => handleTabChange(tab)}
-                className={`px-4 py-3 text-sm font-medium capitalize transition border-b-2 ${
+                className={`px-4 py-3 text-sm capitalize transition border-b-2 ${
                   activeTab === tab
                     ? "border-neutral-900 text-neutral-900 font-semibold"
-                    : "border-transparent text-neutral-500 hover:text-neutral-700"
+                    : "border-transparent text-neutral-500 font-medium hover:text-neutral-700"
                 }`}
               >
                 {tab}
