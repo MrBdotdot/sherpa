@@ -46,18 +46,6 @@ export function PreviewBlocks({
         block.value.trim().length > 0
     );
 
-  if (!hasAnyContent) {
-    return (
-      <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-3 py-4 text-sm leading-6 text-neutral-500">
-        No content yet. Add a summary or content blocks to make this page feel
-        complete.
-      </div>
-    );
-  }
-
-  const dotColor = accentColor || "#171717";
-  const canLink = !!(onNavigate && pages);
-
   const anchorTargets = useMemo<AnchorTarget[]>(
     () => {
       const allPages = pages ?? [];
@@ -81,6 +69,18 @@ export function PreviewBlocks({
     },
     [pages, displayPage]
   );
+
+  if (!hasAnyContent) {
+    return (
+      <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-3 py-4 text-sm leading-6 text-neutral-500">
+        No content yet. Add a summary or content blocks to make this page feel
+        complete.
+      </div>
+    );
+  }
+
+  const dotColor = accentColor || "#171717";
+  const canLink = !!(onNavigate && pages);
 
   const hasHalfBlock = displayPage.blocks.some((b) => b.blockWidth === "half");
 
