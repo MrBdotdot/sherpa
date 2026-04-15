@@ -35,6 +35,7 @@ export function BlockEditor({
   anchorTargets,
   selectedPageId,
   onBlockChange,
+  onReplaceBlocks,
   onBlockFitChange,
   onBlockImagePositionChange,
   onBlockPropsChange,
@@ -56,6 +57,7 @@ export function BlockEditor({
   anchorTargets?: AnchorTarget[];
   selectedPageId?: string;
   onBlockChange: (blockId: string, value: string) => void;
+  onReplaceBlocks?: (newBlocks: ContentBlock[]) => void;
   onBlockFitChange: (blockId: string, fit: ImageFit) => void;
   onBlockImagePositionChange: (blockId: string, x: number, y: number) => void;
   onBlockPropsChange: (blockId: string, patch: Partial<ContentBlock>) => void;
@@ -597,6 +599,7 @@ export function BlockEditor({
           pages={pages}
           selectedPageId={selectedPageId}
           onBlockChange={onBlockChange}
+          onReplaceBlocks={onReplaceBlocks}
         />
       ) : block.type === "carousel" ? (
         <CarouselBlockEditor

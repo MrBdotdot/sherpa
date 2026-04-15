@@ -185,7 +185,7 @@ export function AuthoringStudio({
   const {
     handleAddBlock, handleBlockChange, handleBlockVariantChange,
     handleBlockImageFitChange, handleMoveBlockUp, handleMoveBlockDown,
-    handleReorderBlocks, handleBlockImageUpload, handleRemoveBlock,
+    handleReorderBlocks, handleReplaceBlocks, handleBlockImageUpload, handleRemoveBlock,
     handleAddSocialLink, handleSocialLinkChange, handleRemoveSocialLink,
     handleContentTintChange, handleBlockWidthChange, handleBlockTextAlignChange,
     handleBlockVerticalAlignChange, handleBlockFormatChange,
@@ -348,6 +348,7 @@ export function AuthoringStudio({
     onLocaleSourceTextChange: handleLocaleSourceTextChange,
     onLocaleTranslationChange: handleLocaleTranslationChange,
     onBlockChange: handleBlockChange,
+    onReplaceBlocks: handleReplaceBlocks,
     onBlockFitChange: handleBlockImageFitChange,
     onBlockImageUpload: handleBlockImageUpload,
     onBlockVariantChange: handleBlockVariantChange,

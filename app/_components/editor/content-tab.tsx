@@ -122,6 +122,7 @@ export function ContentTab({
   onRemoveBlock,
   onRemoveSocialLink,
   onSocialLinkChange,
+  onReplaceBlocks,
   pages,
   scrollToBlockId,
   selectedPage,
@@ -146,6 +147,7 @@ export function ContentTab({
   onRemoveBlock: (blockId: string) => void;
   onRemoveSocialLink: (socialId: string) => void;
   onSocialLinkChange: (socialId: string, field: "label" | "url" | "linkMode" | "linkPageId", value: string) => void;
+  onReplaceBlocks: (newBlocks: ContentBlock[]) => void;
   pages: PageItem[];
   scrollToBlockId?: string | null;
   selectedPage: PageItem;
@@ -326,6 +328,7 @@ export function ContentTab({
                   anchorTargets={anchorTargets}
                   selectedPageId={selectedPage.id}
                   onBlockChange={onBlockChange}
+                  onReplaceBlocks={onReplaceBlocks}
                   onBlockFitChange={onBlockFitChange}
                   onBlockImagePositionChange={onBlockImagePositionChange}
                   onBlockPropsChange={onBlockPropsChange}

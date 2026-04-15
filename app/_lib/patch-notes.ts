@@ -6,6 +6,13 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.23.8",
+    date: "2026-04-14",
+    changes: [
+      "Step rail unified builder: adding a step automatically creates its section block, removing a step removes it, renaming syncs the section heading, and reordering moves the step together with all its content blocks",
+    ],
+  },
+  {
     version: "v0.23.7",
     date: "2026-04-14",
     changes: [

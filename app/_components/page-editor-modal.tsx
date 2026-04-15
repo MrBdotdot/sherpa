@@ -60,6 +60,7 @@ type PageEditorModalProps = {
   onLocaleSourceTextChange: (key: string, value: string) => void;
   onLocaleTranslationChange: (key: string, languageCode: string, value: string) => void;
   onBlockChange: (blockId: string, value: string) => void;
+  onReplaceBlocks: (newBlocks: ContentBlock[]) => void;
   onBlockFitChange: (blockId: string, fit: ImageFit) => void;
   onBlockImageUpload: (blockId: string, event: ChangeEvent<HTMLInputElement>) => void;
   onBlockVariantChange: (blockId: string, variant: ContentBlock["variant"]) => void;
@@ -150,6 +151,7 @@ export function PageEditorModal({
   onLocaleSourceTextChange,
   onLocaleTranslationChange,
   onBlockChange,
+  onReplaceBlocks,
   onBlockFitChange,
   onBlockImageUpload,
   onBlockVariantChange,
@@ -374,6 +376,7 @@ export function PageEditorModal({
                   onAddBlock={onAddBlock}
                   onAddSocialLink={onAddSocialLink}
                   onBlockChange={onBlockChange}
+                  onReplaceBlocks={onReplaceBlocks}
                   onBlockFitChange={onBlockFitChange}
                   onBlockImagePositionChange={onBlockImagePositionChange}
                   onBlockPropsChange={onBlockPropsChange}

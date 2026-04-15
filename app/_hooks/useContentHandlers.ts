@@ -98,6 +98,11 @@ export function useContentHandlers({
     });
   };
 
+  const handleReplaceBlocks = (newBlocks: ContentBlock[]) => {
+    pushPagesHistory();
+    updateSelectedPage((page) => ({ ...page, blocks: newBlocks }));
+  };
+
   const handleBlockImageUpload = async (
     blockId: string,
     event: ChangeEvent<HTMLInputElement>
@@ -215,6 +220,7 @@ export function useContentHandlers({
     handleMoveBlockUp,
     handleMoveBlockDown,
     handleReorderBlocks,
+    handleReplaceBlocks,
     handleBlockImageUpload,
     handleBlockImageFitChange,
     handleRemoveBlock,
