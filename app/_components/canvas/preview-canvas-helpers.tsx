@@ -6,7 +6,6 @@ import { CanvasDragBadge } from "@/app/_components/canvas/canvas-drag-badge";
 import { LocaleLanguage } from "@/app/_lib/localization";
 
 const LOGO_SIZE_MIN = 24;
-const LOGO_SIZE_MAX = 400;
 
 function BoardResizeHandle({
   logoSize,
@@ -27,7 +26,7 @@ function BoardResizeHandle({
   function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (!startRef.current) return;
     const delta = e.clientY - startRef.current.y;
-    const newSize = Math.max(LOGO_SIZE_MIN, Math.min(LOGO_SIZE_MAX, startRef.current.size + delta));
+    const newSize = Math.max(LOGO_SIZE_MIN, startRef.current.size + delta);
     onResize(Math.round(newSize));
   }
 
@@ -191,20 +190,22 @@ export const FeaturePlacer = memo(function FeaturePlacer({
               }}
             />
           ) : null}
-          <div className={`relative ${isLayoutEditMode ? "pointer-events-none" : ""}`}>
-            <CanvasFeatureCard
-              accentColor={accentColor}
-              feature={feature}
-              pages={pages}
-              activeLanguageCode={activeLanguageCode}
-              availableLanguages={availableLanguages}
-              fontThemeClass={fontThemeClass}
-              isInteractive={isPreviewMode}
-              onNavigate={onSelectPage}
-              onSearch={onSearch}
-              onLanguageChange={onLanguageChange}
-              surfaceStyleClass={surfaceStyleClass}
-            />
+          <div className="relative">
+            <div className={isLayoutEditMode ? "pointer-events-none" : ""}>
+              <CanvasFeatureCard
+                accentColor={accentColor}
+                feature={feature}
+                pages={pages}
+                activeLanguageCode={activeLanguageCode}
+                availableLanguages={availableLanguages}
+                fontThemeClass={fontThemeClass}
+                isInteractive={isPreviewMode}
+                onNavigate={onSelectPage}
+                onSearch={onSearch}
+                onLanguageChange={onLanguageChange}
+                surfaceStyleClass={surfaceStyleClass}
+              />
+            </div>
             {isLayoutEditMode && feature.type === "image" && onCanvasFeatureChange ? (
               <BoardResizeHandle
                 logoSize={feature.logoSize ?? 80}

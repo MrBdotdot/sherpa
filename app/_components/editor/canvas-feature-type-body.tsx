@@ -10,7 +10,6 @@ import { DropdownFeatureEditor } from "@/app/_components/editor/dropdown-feature
 import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
 
 const LOGO_SIZE_MIN = 24;
-const LOGO_SIZE_MAX = 400;
 
 function ImageResizePreview({
   imageUrl,
@@ -35,7 +34,7 @@ function ImageResizePreview({
   function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
     if (!startRef.current) return;
     const delta = e.clientY - startRef.current.y;
-    const newSize = Math.max(LOGO_SIZE_MIN, Math.min(LOGO_SIZE_MAX, startRef.current.size + delta));
+    const newSize = Math.max(LOGO_SIZE_MIN, startRef.current.size + delta);
     onResize(Math.round(newSize));
   }
 
