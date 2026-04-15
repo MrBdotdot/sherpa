@@ -125,6 +125,8 @@ export function getFeatureTypeLabel(type: CanvasFeatureType) {
       return "Language";
     case "search":
       return "Search";
+    case "anchor-pin":
+      return "Anchor pin";
     default:
       return "Feature";
   }

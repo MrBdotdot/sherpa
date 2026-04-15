@@ -383,6 +383,7 @@ export function PreviewCanvas({
     accentActiveStyle,
     accentRingStyle,
     dragThresholdRef,
+    pages,
     onSelectPage,
     onHotspotPointerDown,
     onDeleteHotspot,

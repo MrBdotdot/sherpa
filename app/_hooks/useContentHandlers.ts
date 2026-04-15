@@ -230,6 +230,36 @@ export function useContentHandlers({
     }));
   };
 
+  const handleHotspotModeChange = (mode: "card" | "section") => {
+    pushPagesHistory();
+    updateSelectedPage((page) => {
+      if (mode === "section") {
+        return {
+          ...page,
+          hotspotMode: "section" as const,
+          blocks: [],
+          summary: "",
+          hotspotTargetPageId: undefined,
+          hotspotTargetSectionId: undefined,
+        };
+      }
+      return {
+        ...page,
+        hotspotMode: "card" as const,
+        hotspotTargetPageId: undefined,
+        hotspotTargetSectionId: undefined,
+      };
+    });
+  };
+
+  const handleHotspotTargetChange = (targetPageId: string, targetSectionId: string) => {
+    updateSelectedPage((page) => ({
+      ...page,
+      hotspotTargetPageId: targetPageId || undefined,
+      hotspotTargetSectionId: targetSectionId || undefined,
+    }));
+  };
+
   return {
     handleAddBlock,
     handleInsertBlock,
@@ -252,5 +282,7 @@ export function useContentHandlers({
     handleBlockFormatChange,
     handleBlockImagePositionChange,
     handleBlockPropsChange,
+    handleHotspotModeChange,
+    handleHotspotTargetChange,
   };
 }

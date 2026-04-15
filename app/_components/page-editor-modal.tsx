@@ -26,6 +26,7 @@ import { LocaleLanguage, collectTranslationRows, parseLocaleLanguages } from "@/
 import { getPageRoleDescription } from "@/app/_lib/label-utils";
 import { useFocusTrap } from "@/app/_hooks/useFocusTrap";
 import { SpreadsheetModal } from "@/app/_components/editor/locale-feature-editor";
+import { SectionPicker } from "@/app/_components/editor/section-picker";
 
 type PageEditorModalProps = {
   activePreviewPage: PageItem;
@@ -62,6 +63,8 @@ type PageEditorModalProps = {
   onLocaleTranslationChange: (key: string, languageCode: string, value: string) => void;
   onBlockChange: (blockId: string, value: string) => void;
   onReplaceBlocks: (newBlocks: ContentBlock[]) => void;
+  onHotspotModeChange: (mode: "card" | "section") => void;
+  onHotspotTargetChange: (targetPageId: string, targetSectionId: string) => void;
   onBlockFitChange: (blockId: string, fit: ImageFit) => void;
   onBlockImageUpload: (blockId: string, event: ChangeEvent<HTMLInputElement>) => void;
   onBlockVariantChange: (blockId: string, variant: ContentBlock["variant"]) => void;
@@ -154,6 +157,8 @@ export function PageEditorModal({
   onLocaleTranslationChange,
   onBlockChange,
   onReplaceBlocks,
+  onHotspotModeChange,
+  onHotspotTargetChange,
   onBlockFitChange,
   onBlockImageUpload,
   onBlockVariantChange,
@@ -219,6 +224,7 @@ export function PageEditorModal({
   void _onQrToggle;
 
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [pendingSectionSwitch, setPendingSectionSwitch] = useState(false);
   const sheetRows = useMemo(() => collectTranslationRows(pages), [pages]);
   const sheetLanguages = useMemo(
     () => (localeFeature ? parseLocaleLanguages(localeFeature) : []),
@@ -367,7 +373,73 @@ export function PageEditorModal({
                 selectedPage={selectedPage}
                 systemSettings={systemSettings}
               />
-              {selectedPage.kind !== "home" ? (
+              {selectedPage.kind === "hotspot" ? (
+                <div className="border-t border-neutral-200 px-5 py-4 space-y-3">
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Hotspot behavior</div>
+                  <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
+                    {(["card", "section"] as const).map((mode) => {
+                      const isActive = (!selectedPage.hotspotMode || selectedPage.hotspotMode === "card" ? "card" : "section") === mode;
+                      return (
+                        <button
+                          key={mode}
+                          type="button"
+                          aria-pressed={isActive}
+                          onClick={() => {
+                            if (mode === "section") {
+                              const hasContent = selectedPage.blocks.length > 0 || selectedPage.summary.trim().length > 0;
+                              if (hasContent) {
+                                setPendingSectionSwitch(true);
+                              } else {
+                                onHotspotModeChange("section");
+                              }
+                            } else {
+                              onHotspotModeChange("card");
+                            }
+                          }}
+                          className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
+                            isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-600"
+                          }`}
+                        >
+                          {mode === "card" ? "Opens card" : "Goes to section"}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {pendingSectionSwitch ? (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-2">
+                      <p className="text-xs leading-5 text-amber-800">
+                        Switching to section mode will clear your card content. Continue?
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => { onHotspotModeChange("section"); setPendingSectionSwitch(false); }}
+                          className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+                        >
+                          Yes, clear and switch
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPendingSectionSwitch(false)}
+                          className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+                  {selectedPage.hotspotMode === "section" ? (
+                    <SectionPicker
+                      pages={pages}
+                      targetPageId={selectedPage.hotspotTargetPageId ?? ""}
+                      targetSectionId={selectedPage.hotspotTargetSectionId ?? ""}
+                      onSelectPage={(pageId) => onHotspotTargetChange(pageId, "")}
+                      onSelectSection={(sectionId) => onHotspotTargetChange(selectedPage.hotspotTargetPageId ?? "", sectionId)}
+                    />
+                  ) : null}
+                </div>
+              ) : null}
+              {selectedPage.kind !== "home" && selectedPage.hotspotMode !== "section" ? (
                 <ContentTab
                   scrollToBlockId={scrollToBlockId}
                   onContentTintChange={onContentTintChange}

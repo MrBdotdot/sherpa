@@ -14,6 +14,7 @@ export const CANVAS_ELEMENT_TYPES: Array<{ type: CanvasFeatureType; label: strin
   { type: "heading", label: "Heading", description: "Large heading text on the board" },
   { type: "qr", label: "QR code", description: "Scannable code image" },
   { type: "button", label: "Button", description: "Link button on the board" },
+  { type: "anchor-pin", label: "Anchor pin", description: "Pulsing dot that links to a card or section" },
   { type: "dropdown", label: "Dropdown", description: "Multi-destination selector" },
   { type: "search", label: "Search", description: "Full-text search with breadcrumb navigation" },
   { type: "locale", label: "Language switcher", description: "Lets players switch between available languages" },

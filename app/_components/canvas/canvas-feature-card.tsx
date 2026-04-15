@@ -411,6 +411,37 @@ export function CanvasFeatureCard({
     );
   }
 
+  if (feature.type === "anchor-pin") {
+    const dotBg = accentColor || "#0a0a0a";
+    const isCardMode = !feature.description || feature.description === "card";
+    return (
+      <button
+        type="button"
+        title={feature.label || undefined}
+        aria-label={feature.label || "Anchor pin"}
+        onClick={() => {
+          if (!feature.linkUrl) return;
+          onNavigate?.(feature.linkUrl);
+          if (!isCardMode && feature.optionsText) {
+            const sectionId = feature.optionsText;
+            setTimeout(() => {
+              document.querySelector(`[data-a11y-id="${sectionId}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 400);
+          }
+        }}
+        className={`sherpa-hotspot-pin group flex items-center justify-center ${fontThemeClass}`}
+      >
+        <span className="relative flex h-10 w-10 items-center justify-center">
+          <span className="absolute inset-0 animate-pulse rounded-full opacity-20" style={{ backgroundColor: dotBg }} />
+          <span
+            className="relative h-4 w-4 rounded-full border-2 border-white shadow-md transition-transform group-hover:scale-125"
+            style={{ backgroundColor: dotBg }}
+          />
+        </span>
+      </button>
+    );
+  }
+
   return (
     <div className={`max-w-[220px] rounded-xl border border-neutral-200 bg-white p-3 shadow-sm ${fontThemeClass}`}>
       <div className="line-clamp-3 text-[11px] italic leading-5 text-neutral-500">{feature.label || "Disclaimer text"}</div>

@@ -190,6 +190,7 @@ export function AuthoringStudio({
     handleContentTintChange, handleBlockWidthChange, handleBlockTextAlignChange,
     handleBlockVerticalAlignChange, handleBlockFormatChange,
     handleBlockImagePositionChange, handleBlockPropsChange,
+    handleHotspotModeChange, handleHotspotTargetChange,
   } = useContentHandlers({ pushPagesHistory, updateSelectedPage, userId, gameId: currentGameId });
 
   const {
@@ -392,6 +393,8 @@ export function AuthoringStudio({
     onBlockFormatChange: handleBlockFormatChange,
     onBlockImagePositionChange: handleBlockImagePositionChange,
     onBlockPropsChange: handleBlockPropsChange,
+    onHotspotModeChange: handleHotspotModeChange,
+    onHotspotTargetChange: handleHotspotTargetChange,
     onOpenPage: openPageEditor,
     scrollToBlockId: scrollToBlock?.id ?? null,
     isPortraitMode: layoutMode === "mobile-portrait" && systemSettings.portraitLayout !== "full",

@@ -8,6 +8,7 @@ import {
 } from "@/app/_lib/authoring-types";
 import { DropdownFeatureEditor } from "@/app/_components/editor/dropdown-feature-editor";
 import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
+import { SectionPicker } from "@/app/_components/editor/section-picker";
 
 const LOGO_SIZE_MIN = 24;
 
@@ -109,11 +110,13 @@ export function CanvasFeatureTypeBody({
           placeholder={
             feature.type === "heading" ? "Heading text"
             : feature.type === "search" ? "Placeholder text"
+            : feature.type === "anchor-pin" ? "Tooltip text (shown on hover)"
             : "Element label"
           }
           aria-label={
             feature.type === "heading" ? "Heading text"
             : feature.type === "search" ? "Placeholder text"
+            : feature.type === "anchor-pin" ? "Tooltip text"
             : "Element label"
           }
           className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
@@ -564,6 +567,70 @@ export function CanvasFeatureTypeBody({
         <p className="text-xs leading-5 text-neutral-400">
           Searches all page titles, summaries, and block content. Results show breadcrumb paths and click directly to the matching page. The label above becomes the search bar placeholder text.
         </p>
+      ) : null}
+
+      {/* Anchor pin */}
+      {feature.type === "anchor-pin" ? (
+        <div className="space-y-3">
+          <div>
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Destination</div>
+            <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
+              {(["card", "section"] as const).map((mode) => {
+                const isActive = (!feature.description || feature.description === "card" ? "card" : "section") === mode;
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => onCanvasFeatureChange(feature.id, "description", mode)}
+                    aria-pressed={isActive}
+                    className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
+                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-600"
+                    }`}
+                  >
+                    {mode === "card" ? "Link to card" : "Link to section"}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {(!feature.description || feature.description === "card") ? (
+            <div className="space-y-1.5">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Card</div>
+              <div className="overflow-hidden rounded-xl border border-neutral-200">
+                {feature.linkUrl ? (
+                  <div className="flex items-center justify-between px-3 py-2.5">
+                    <span className="text-sm font-medium text-neutral-800">
+                      {pages.find((p) => p.id === feature.linkUrl)?.title || "Untitled"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onCanvasFeatureChange(feature.id, "linkUrl", "")}
+                      className="text-xs text-neutral-400 hover:text-neutral-700"
+                    >
+                      Change
+                    </button>
+                  </div>
+                ) : (
+                  <PageLinkPicker
+                    pages={pages.filter((p) => p.kind !== "home")}
+                    onSelect={(pageId) => onCanvasFeatureChange(feature.id, "linkUrl", pageId)}
+                  />
+                )}
+              </div>
+            </div>
+          ) : (
+            <SectionPicker
+              pages={pages}
+              targetPageId={feature.linkUrl}
+              targetSectionId={feature.optionsText}
+              onSelectPage={(pageId) => {
+                onCanvasFeatureChange(feature.id, "linkUrl", pageId);
+                onCanvasFeatureChange(feature.id, "optionsText", "");
+              }}
+              onSelectSection={(sectionId) => onCanvasFeatureChange(feature.id, "optionsText", sectionId)}
+            />
+          )}
+        </div>
       ) : null}
 
       {/* Disclaimer */}

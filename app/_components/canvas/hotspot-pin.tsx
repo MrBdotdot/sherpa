@@ -27,6 +27,7 @@ export function HotspotPin({
   accentActiveStyle,
   accentRingStyle,
   dragThresholdRef,
+  pages,
   onSelectPage,
   onHotspotPointerDown,
   onDeleteHotspot,
@@ -44,13 +45,35 @@ export function HotspotPin({
   accentActiveStyle: React.CSSProperties;
   accentRingStyle: React.CSSProperties;
   dragThresholdRef?: React.RefObject<boolean>;
+  pages?: PageItem[];
   onSelectPage: (id: string) => void;
   onHotspotPointerDown: (event: React.PointerEvent<HTMLButtonElement>, page: PageItem) => void;
   onDeleteHotspot: (pageId: string) => void;
 }) {
   const dotBg = accentColor || "#0a0a0a";
-  const showQuickDelete = !isPreviewMode && isHotspotEmpty(page);
+  const isSectionMode = page.hotspotMode === "section";
+  const showQuickDelete = !isPreviewMode && isHotspotEmpty(page) && !isSectionMode;
   const title = page.title?.trim() ? page.title : `Hotspot ${index + 1}`;
+
+  const sectionLabel = isSectionMode && page.hotspotTargetSectionId && pages
+    ? pages.find((p) => p.id === page.hotspotTargetPageId)?.blocks.find((b) => b.id === page.hotspotTargetSectionId)?.value
+    : undefined;
+
+  function handleClick(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (dragThresholdRef?.current) return;
+    if (isSectionMode && page.hotspotTargetPageId) {
+      onSelectPage(page.hotspotTargetPageId);
+      const sectionId = page.hotspotTargetSectionId;
+      if (sectionId) {
+        setTimeout(() => {
+          document.querySelector(`[data-a11y-id="${sectionId}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 400);
+      }
+    } else {
+      onSelectPage(page.id);
+    }
+  }
 
   return (
     <div
@@ -95,7 +118,7 @@ export function HotspotPin({
           aria-label={`Select hotspot: ${title}`}
         >
           <CanvasDragBadge
-            label="Hotspot"
+            label={isSectionMode ? "Section link" : "Hotspot"}
             showMove
             preferBelow={(page.y ?? 50) <= 12}
             onMovePointerDown={(e) => {
@@ -111,10 +134,11 @@ export function HotspotPin({
           draggable={false}
           onPointerDown={(e) => onHotspotPointerDown(e, page)}
           onDragStart={(e) => e.preventDefault()}
-          onClick={(e) => { e.stopPropagation(); if (!dragThresholdRef?.current) onSelectPage(page.id); }}
+          onClick={handleClick}
+          title={isSectionMode ? (sectionLabel || title) : undefined}
           className={`sherpa-hotspot-pin group flex flex-col items-center gap-1 ${fontThemeClass}`}
           style={{ touchAction: "none" }}
-          aria-label={title}
+          aria-label={isSectionMode ? (sectionLabel || title) : title}
         >
           <span className={`relative flex ${hotspotContainerSize} items-center justify-center`}>
             {isSelected
@@ -126,15 +150,17 @@ export function HotspotPin({
               style={{ backgroundColor: dotBg }}
             />
           </span>
-          <span
-            className={`rounded-full ${hotspotLabelSize} font-semibold shadow-sm transition`}
-            style={isSelected
-              ? { backgroundColor: dotBg, color: "#fff" }
-              : { backgroundColor: "rgba(255,255,255,0.92)", color: "#0a0a0a" }
-            }
-          >
-            {title}
-          </span>
+          {!isSectionMode ? (
+            <span
+              className={`rounded-full ${hotspotLabelSize} font-semibold shadow-sm transition`}
+              style={isSelected
+                ? { backgroundColor: dotBg, color: "#fff" }
+                : { backgroundColor: "rgba(255,255,255,0.92)", color: "#0a0a0a" }
+              }
+            >
+              {title}
+            </span>
+          ) : null}
         </button>
       )}
     </div>

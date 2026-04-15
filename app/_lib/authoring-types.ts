@@ -22,7 +22,8 @@ export type CanvasFeatureType =
   | "dropdown"
   | "page-button"
   | "locale"
-  | "search";
+  | "search"
+  | "anchor-pin";
 export type TemplateId =
   | "blank"
   | "how-to-play"
@@ -162,6 +163,12 @@ export type PageItem = {
   worldPosition?: [number, number, number];
   /** Surface normal at the hotspot's placement point, used for visibility culling [x, y, z] */
   worldNormal?: [number, number, number];
+  /** For hotspot kind: whether tapping opens the hotspot's own card or navigates to a section in another card */
+  hotspotMode?: "card" | "section";
+  /** For hotspot kind in section mode: the card to navigate to */
+  hotspotTargetPageId?: string;
+  /** For hotspot kind in section mode: the block ID of the section within the target card */
+  hotspotTargetSectionId?: string;
 };
 
 export type DragState = {

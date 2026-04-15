@@ -6,6 +6,14 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.24.2",
+    date: "2026-04-15",
+    changes: [
+      "Anchor pins: new canvas element — a pulsing dot that links to any card or section without showing its own card",
+      "Hotspot pins can now redirect to a section instead of opening their own card — toggle in the hotspot's Content tab",
+    ],
+  },
+  {
     version: "v0.24.1",
     date: "2026-04-15",
     changes: [
