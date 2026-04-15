@@ -3,18 +3,26 @@ import type { PageItem, ContentBlock } from "@/app/_lib/authoring-types";
 const SCANNABLE_TYPES = new Set<ContentBlock["type"]>(["text", "steps", "callout"]);
 const MIN_TITLE_LENGTH = 4;
 
+interface LinkCandidate {
+  title: string;
+  /** What gets inserted as the link target: pageId for cards, blockId for headings/sections. */
+  targetId: string;
+  /** Which card this candidate belongs to — used to skip same-card matches. */
+  pageId: string;
+}
+
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function injectLinksIntoText(
   text: string,
-  candidates: Array<{ title: string; pageId: string }>,
+  candidates: LinkCandidate[],
   excludePageId: string,
   seen: Set<string>
 ): string {
   let result = text;
-  for (const { title, pageId } of candidates) {
+  for (const { title, targetId, pageId } of candidates) {
     if (pageId === excludePageId) continue;
     const key = title.toLowerCase();
     if (seen.has(key)) continue;
@@ -28,18 +36,31 @@ function injectLinksIntoText(
     if (opens > closes) continue;
     result =
       result.slice(0, match.index) +
-      `((${match[1]}|${pageId}))` +
+      `((${match[1]}|${targetId}))` +
       result.slice(match.index + match[0].length);
     seen.add(key);
   }
   return result;
 }
 
-function buildCandidates(allPages: PageItem[]) {
-  return allPages
+function buildCandidates(allPages: PageItem[]): LinkCandidate[] {
+  const pageCandidates: LinkCandidate[] = allPages
     .filter((p) => p.title.length >= MIN_TITLE_LENGTH)
-    .map((p) => ({ title: p.title, pageId: p.id }))
-    .sort((a, b) => b.title.length - a.title.length);
+    .map((p) => ({ title: p.title, targetId: p.id, pageId: p.id }));
+
+  const sectionCandidates: LinkCandidate[] = allPages.flatMap((p) =>
+    p.blocks
+      .filter(
+        (b) =>
+          (b.blockFormat === "h2" || b.blockFormat === "h3" || b.type === "section") &&
+          b.value.trim().length >= MIN_TITLE_LENGTH
+      )
+      .map((b) => ({ title: b.value.trim(), targetId: b.id, pageId: p.id }))
+  );
+
+  // Page candidates take priority over section candidates for same-length titles.
+  // Stable sort preserves insertion order within equal-length groups.
+  return [...pageCandidates, ...sectionCandidates].sort((a, b) => b.title.length - a.title.length);
 }
 
 /**
