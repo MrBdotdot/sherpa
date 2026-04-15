@@ -251,9 +251,10 @@ function HeatmapOverlay({
 
   const analyticsRows = hotspots ?? [];
   const totalClicks = analyticsRows.reduce((sum, h) => sum + h.clicks, 0);
-  const maxClicks = Math.max(...analyticsRows.map((h) => h.clicks), 1);
+  const maxClicks = analyticsRows.reduce((m, h) => Math.max(m, h.clicks), 1);
 
-  const joined = boardData.hotspots.map((bh) => {
+  // Join by title — PostHog captures hotspotTitle from page.title, so they always match
+  const joined = (boardData.hotspots ?? []).map((bh) => {
     const analytics = analyticsRows.find((h) => h.title === bh.title);
     const clicks = analytics?.clicks ?? 0;
     const avgDurationSeconds = analytics?.avgDurationSeconds ?? 0;
@@ -301,11 +302,11 @@ function HeatmapOverlay({
                 {isHovered && (
                   <div
                     className="pointer-events-none absolute z-20 whitespace-nowrap rounded-xl border border-neutral-100 bg-white px-3 py-2 shadow-xl"
-                    style={{
-                      bottom: "calc(100% + 8px)",
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                    }}
+                    style={
+                      h.y < 20
+                        ? { top: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)" }
+                        : { bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)" }
+                    }
                   >
                     <div className="text-xs font-semibold text-neutral-900">{h.title}</div>
                     <div className="mt-0.5 text-[11px] text-neutral-500">
