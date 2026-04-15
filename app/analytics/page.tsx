@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { apiFetch } from "@/app/_lib/api-fetch";
 
@@ -25,6 +25,11 @@ type HotspotData = {
 type DeviceData = { device: string; label: string; sessions: number; pct: number; color: string }[];
 
 type PathData = { path: string; sessions: number; pct: number }[];
+
+type BoardData = {
+  heroImage: string;
+  hotspots: { id: string; title: string; x: number; y: number }[];
+};
 
 // ── Utilities ─────────────────────────────────────────────────────
 
@@ -240,6 +245,15 @@ function AnalyticsDashboard() {
   const [peakUsage, setPeakUsage] = useState<{ hour: number; sessions: number }[] | null>(null);
   const [languages, setLanguages] = useState<{ code: string; switches: number }[] | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [activeTab, setActiveTab] = useState<"overview" | "heatmap">("overview");
+  const [boardData, setBoardData] = useState<BoardData | null>(null);
+  const boardFetchedRef = useRef(false);
+
+  // Reset board cache when the game changes
+  useEffect(() => {
+    boardFetchedRef.current = false;
+    setBoardData(null);
+  }, [gameId]);
 
   const fetchAll = useCallback(async () => {
     if (!gameId) return;
@@ -300,6 +314,19 @@ function AnalyticsDashboard() {
       URL.revokeObjectURL(url);
     } finally {
       setExporting(false);
+    }
+  }
+
+  function handleTabChange(tab: "overview" | "heatmap") {
+    setActiveTab(tab);
+    if (tab === "heatmap" && !boardFetchedRef.current && gameId) {
+      boardFetchedRef.current = true;
+      apiFetch(`/api/analytics/board?gameId=${gameId}`)
+        .then((r) => r.json())
+        .then(setBoardData)
+        .catch(() => {
+          // boardData stays null — the overlay shows its empty state
+        });
     }
   }
 
