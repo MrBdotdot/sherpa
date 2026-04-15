@@ -10,7 +10,7 @@ import {
   PageItem,
   SystemSettings,
 } from "@/app/_lib/authoring-types";
-import { createResponsiveCanvasFeature, setFeatureVisibilityForLayout } from "@/app/_lib/responsive-board";
+import { createResponsiveCanvasFeature, getFeatureOriginLayout, setFeatureVisibilityForLayout } from "@/app/_lib/responsive-board";
 import { uploadImage } from "@/app/_lib/supabase-storage";
 
 interface UseCanvasFeatureHandlersProps {
@@ -55,23 +55,38 @@ export function useCanvasFeatureHandlers({
   ) => {
     updateSelectedPage((page) => ({
       ...page,
-      canvasFeatures: page.canvasFeatures.map((feature) =>
-        feature.id === featureId
-          ? {
-              ...feature,
-              [field]:
-                field === "logoSize" || field === "qrSize"
-                  ? parseInt(value, 10)
-                  : field === "qrBgOpacity"
-                  ? parseFloat(value)
-                  : field === "qrBgColor"
-                  ? (value || undefined)
-                  : field === "portraitZone"
-                  ? (value === "content" ? "content" : undefined)
-                  : value,
-            }
-          : feature
-      ),
+      canvasFeatures: page.canvasFeatures.map((feature) => {
+        if (feature.id !== featureId) return feature;
+
+        // logoSize and qrSize changes in mobile mode are stored per-layout
+        // so they don't bleed back into the desktop view
+        if ((field === "logoSize" || field === "qrSize") && layoutMode !== "desktop" && getFeatureOriginLayout(feature) === "desktop") {
+          return {
+            ...feature,
+            layoutOverrides: {
+              ...(feature.layoutOverrides ?? {}),
+              [layoutMode]: {
+                ...(feature.layoutOverrides?.[layoutMode] ?? {}),
+                [field]: parseInt(value, 10),
+              },
+            },
+          };
+        }
+
+        return {
+          ...feature,
+          [field]:
+            field === "logoSize" || field === "qrSize"
+              ? parseInt(value, 10)
+              : field === "qrBgOpacity"
+              ? parseFloat(value)
+              : field === "qrBgColor"
+              ? (value || undefined)
+              : field === "portraitZone"
+              ? (value === "content" ? "content" : undefined)
+              : value,
+        };
+      }),
     }));
   };
 
@@ -108,6 +123,20 @@ export function useCanvasFeatureHandlers({
 
   const handleRemoveCanvasFeature = (featureId: string) => {
     pushPagesHistory();
+    // If this is an auto-migrated page-button, record its target so the migration
+    // doesn't recreate it on the next load.
+    if (featureId.startsWith("feature-migrated-")) {
+      const allFeatures = _pages.flatMap((p) => p.canvasFeatures);
+      const feature = allFeatures.find((f) => f.id === featureId);
+      if (feature?.type === "page-button" && feature.linkUrl) {
+        setSystemSettings((prev) => ({
+          ...prev,
+          dismissedPageButtonTargets: [
+            ...new Set([...(prev.dismissedPageButtonTargets ?? []), feature.linkUrl]),
+          ],
+        }));
+      }
+    }
     updateSelectedPage((page) => ({
       ...page,
       canvasFeatures: page.canvasFeatures.filter((feature) => feature.id !== featureId),

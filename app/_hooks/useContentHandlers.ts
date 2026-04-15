@@ -241,6 +241,7 @@ export function useContentHandlers({
           summary: "",
           hotspotTargetPageId: undefined,
           hotspotTargetSectionId: undefined,
+          hotspotScrollSectionId: undefined,
         };
       }
       return {
@@ -257,6 +258,13 @@ export function useContentHandlers({
       ...page,
       hotspotTargetPageId: targetPageId || undefined,
       hotspotTargetSectionId: targetSectionId || undefined,
+    }));
+  };
+
+  const handleHotspotScrollSectionChange = (sectionId: string | undefined) => {
+    updateSelectedPage((page) => ({
+      ...page,
+      hotspotScrollSectionId: sectionId || undefined,
     }));
   };
 
@@ -284,5 +292,6 @@ export function useContentHandlers({
     handleBlockPropsChange,
     handleHotspotModeChange,
     handleHotspotTargetChange,
+    handleHotspotScrollSectionChange,
   };
 }

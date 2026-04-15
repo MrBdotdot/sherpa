@@ -1,98 +1,128 @@
 "use client";
 
+import { useState } from "react";
 import { PageItem } from "@/app/_lib/authoring-types";
-import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
 
 export function SectionPicker({
   pages,
   targetPageId,
   targetSectionId,
-  onSelectPage,
-  onSelectSection,
+  onSelect,
 }: {
   pages: PageItem[];
   targetPageId: string;
   targetSectionId: string;
-  onSelectPage: (pageId: string) => void;
-  onSelectSection: (sectionId: string) => void;
+  /** Called with pageId + sectionId when a selection is made. Pass ("","") to reset. */
+  onSelect: (pageId: string, sectionId: string) => void;
 }) {
+  const [expandedPageId, setExpandedPageId] = useState<string | null>(null);
+
   const nonHomePages = pages.filter((p) => p.kind !== "home");
   const targetPage = nonHomePages.find((p) => p.id === targetPageId);
-  const sections = targetPage?.blocks.filter(
-    (b) => b.type === "section" || b.blockFormat === "h2" || b.blockFormat === "h3"
-  ) ?? [];
+  const selectedSection = targetPage?.blocks.find((b) => b.id === targetSectionId);
 
-  return (
-    <div className="space-y-3">
-      <div className="space-y-1.5">
-        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Card</div>
-        <div className="overflow-hidden rounded-xl border border-neutral-200">
-          {targetPageId ? (
-            <div className="flex items-center justify-between px-3 py-2.5">
-              <span className="text-sm font-medium text-neutral-800">
-                {targetPage?.title || "Untitled"}
-              </span>
-              <button
-                type="button"
-                onClick={() => { onSelectPage(""); onSelectSection(""); }}
-                className="text-xs text-neutral-400 hover:text-neutral-700"
-              >
-                Change
-              </button>
+  // ── Summary: selection made ───────────────────────────────────────────
+  if (targetPageId && targetSectionId) {
+    const kindLabel =
+      selectedSection?.type === "section" ? "Section"
+      : selectedSection?.blockFormat === "h2" ? "H2"
+      : "H3";
+    return (
+      <div className="overflow-hidden rounded-xl border border-neutral-200">
+        <div className="flex items-center justify-between px-3 py-2.5">
+          <div className="min-w-0">
+            <div className="truncate text-sm font-medium text-neutral-800">
+              {selectedSection?.value ?? "Unknown section"}
             </div>
-          ) : (
-            <PageLinkPicker
-              pages={nonHomePages}
-              onSelect={(pageId) => { onSelectPage(pageId); onSelectSection(""); }}
-            />
-          )}
+            <div className="text-[11px] text-neutral-400">
+              {targetPage?.title || "Untitled"} · {kindLabel}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => { onSelect("", ""); setExpandedPageId(null); }}
+            className="ml-3 shrink-0 text-xs text-neutral-400 hover:text-neutral-700"
+          >
+            Change
+          </button>
         </div>
       </div>
+    );
+  }
 
-      {targetPageId ? (
-        <div className="space-y-1.5">
-          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Section</div>
-          {sections.length > 0 ? (
-            <div className="overflow-hidden rounded-xl border border-neutral-200">
-              {targetSectionId ? (
-                <div className="flex items-center justify-between px-3 py-2.5">
-                  <span className="text-sm font-medium text-neutral-800">
-                    {sections.find((b) => b.id === targetSectionId)?.value || "Unknown section"}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => onSelectSection("")}
-                    className="text-xs text-neutral-400 hover:text-neutral-700"
-                  >
-                    Change
-                  </button>
+  // ── Picker: accordion card list ───────────────────────────────────────
+  if (nonHomePages.length === 0) {
+    return (
+      <p className="text-xs leading-5 text-neutral-400">No cards available to link to.</p>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-neutral-200">
+      <ul>
+        {nonHomePages.map((p, i) => {
+          const isExpanded = expandedPageId === p.id;
+          const sections = p.blocks.filter(
+            (b) => b.type === "section" || b.blockFormat === "h2" || b.blockFormat === "h3"
+          );
+          const hasSections = sections.length > 0;
+
+          return (
+            <li key={p.id} className={i > 0 ? "border-t border-neutral-100" : ""}>
+              {/* Card row */}
+              <button
+                type="button"
+                onClick={() => setExpandedPageId(isExpanded ? null : p.id)}
+                className="flex w-full items-center justify-between px-3 py-2.5 text-left transition hover:bg-neutral-50"
+              >
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium text-neutral-800">
+                    {p.title || "Untitled"}
+                  </div>
+                  <div className="text-[11px] capitalize text-neutral-400">
+                    {hasSections ? `${sections.length} section${sections.length === 1 ? "" : "s"}` : "No sections"}
+                  </div>
                 </div>
-              ) : (
-                <ul className="max-h-48 overflow-y-auto p-1">
-                  {sections.map((s) => (
-                    <li key={s.id}>
-                      <button
-                        type="button"
-                        onClick={() => onSelectSection(s.id)}
-                        className="w-full rounded-lg px-2.5 py-2 text-left text-sm transition hover:bg-neutral-50"
-                      >
-                        <div className="truncate font-medium text-neutral-800">{s.value}</div>
-                        <div className="text-[11px] capitalize text-neutral-400">
-                          {s.type === "section" ? "Section" : s.blockFormat === "h2" ? "H2" : "H3"}
-                        </div>
-                      </button>
+                <svg
+                  width="12" height="12" viewBox="0 0 12 12" fill="none"
+                  aria-hidden="true"
+                  className={`ml-2 shrink-0 text-neutral-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                >
+                  <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              {/* Sections drawer */}
+              {isExpanded && (
+                <ul className="border-t border-neutral-100 bg-neutral-50 px-1 py-1">
+                  {hasSections ? sections.map((s) => {
+                    const kindLabel =
+                      s.type === "section" ? "Section"
+                      : s.blockFormat === "h2" ? "H2"
+                      : "H3";
+                    return (
+                      <li key={s.id}>
+                        <button
+                          type="button"
+                          onClick={() => onSelect(p.id, s.id)}
+                          className="w-full rounded-lg py-2 pl-5 pr-2.5 text-left text-sm transition hover:bg-white"
+                        >
+                          <div className="truncate font-medium text-neutral-800">{s.value}</div>
+                          <div className="text-[11px] text-neutral-400">{kindLabel}</div>
+                        </button>
+                      </li>
+                    );
+                  }) : (
+                    <li className="py-2 pl-5 pr-2.5 text-xs text-neutral-400">
+                      No section headings in this card.
                     </li>
-                  ))}
+                  )}
                 </ul>
               )}
-            </div>
-          ) : (
-            <p className="text-xs leading-5 text-neutral-400">
-              No section headings in this card. Add section, H2, or H3 blocks to create anchor targets.
-            </p>
-          )}
-        </div>
-      ) : null}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

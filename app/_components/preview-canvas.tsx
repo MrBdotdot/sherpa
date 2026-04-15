@@ -848,6 +848,7 @@ export function PreviewCanvas({
       >
         <div
           ref={canvasRef}
+          data-mobile-canvas={isMobileFrame ? "true" : undefined}
           className={`overflow-hidden ${
             isPreviewMode && layoutMode === "mobile-portrait"
               ? "relative flex flex-col w-[390px] rounded-[44px] border-[6px] border-neutral-700 shadow-[0_40px_80px_rgba(0,0,0,0.6)]"

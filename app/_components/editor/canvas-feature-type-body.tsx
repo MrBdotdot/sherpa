@@ -623,11 +623,10 @@ export function CanvasFeatureTypeBody({
               pages={pages}
               targetPageId={feature.linkUrl}
               targetSectionId={feature.optionsText}
-              onSelectPage={(pageId) => {
+              onSelect={(pageId, sectionId) => {
                 onCanvasFeatureChange(feature.id, "linkUrl", pageId);
-                onCanvasFeatureChange(feature.id, "optionsText", "");
+                onCanvasFeatureChange(feature.id, "optionsText", sectionId);
               }}
-              onSelectSection={(sectionId) => onCanvasFeatureChange(feature.id, "optionsText", sectionId)}
             />
           )}
         </div>

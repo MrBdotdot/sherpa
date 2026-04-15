@@ -2,6 +2,7 @@
 
 import React from "react";
 import { AnchorTarget, PageItem } from "@/app/_lib/authoring-types";
+import { dispatchSectionHighlight } from "@/app/_lib/section-highlight";
 
 // Pre-process ((label|target)) and {text|color} for ReactMarkdown
 export function processInlineMarkup(text: string): string {
@@ -73,6 +74,7 @@ export function InlineWithLinks({
             onClick={(e) => {
               e.stopPropagation();
               document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+              dispatchSectionHighlight(target);
             }}
             className="inline cursor-pointer font-bold underline underline-offset-2"
             style={{ color }}
@@ -91,6 +93,7 @@ export function InlineWithLinks({
               onNavigate(pageId);
               setTimeout(() => {
                 document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                dispatchSectionHighlight(target);
               }, 400);
             }}
             className="inline cursor-pointer font-bold underline underline-offset-2"

@@ -65,6 +65,7 @@ type PageEditorModalProps = {
   onReplaceBlocks: (newBlocks: ContentBlock[]) => void;
   onHotspotModeChange: (mode: "card" | "section") => void;
   onHotspotTargetChange: (targetPageId: string, targetSectionId: string) => void;
+  onHotspotScrollSectionChange: (sectionId: string | undefined) => void;
   onBlockFitChange: (blockId: string, fit: ImageFit) => void;
   onBlockImageUpload: (blockId: string, event: ChangeEvent<HTMLInputElement>) => void;
   onBlockVariantChange: (blockId: string, variant: ContentBlock["variant"]) => void;
@@ -159,6 +160,7 @@ export function PageEditorModal({
   onReplaceBlocks,
   onHotspotModeChange,
   onHotspotTargetChange,
+  onHotspotScrollSectionChange,
   onBlockFitChange,
   onBlockImageUpload,
   onBlockVariantChange,
@@ -408,7 +410,7 @@ export function PageEditorModal({
                   {pendingSectionSwitch ? (
                     <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-2">
                       <p className="text-xs leading-5 text-amber-800">
-                        Switching to section mode will clear your card content. Continue?
+                        This will convert the hotspot into an anchor pin and remove its card content. Continue?
                       </p>
                       <div className="flex gap-2">
                         <button
@@ -416,7 +418,7 @@ export function PageEditorModal({
                           onClick={() => { onHotspotModeChange("section"); setPendingSectionSwitch(false); }}
                           className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
                         >
-                          Yes, clear and switch
+                          Yes, convert
                         </button>
                         <button
                           type="button"
@@ -428,13 +430,55 @@ export function PageEditorModal({
                       </div>
                     </div>
                   ) : null}
+                  {(!selectedPage.hotspotMode || selectedPage.hotspotMode === "card") ? (() => {
+                    const cardSections = selectedPage.blocks.filter(
+                      (b) => b.type === "section" || b.blockFormat === "h2" || b.blockFormat === "h3"
+                    );
+                    if (cardSections.length === 0) return null;
+                    const current = cardSections.find((s) => s.id === selectedPage.hotspotScrollSectionId);
+                    return (
+                      <div className="space-y-1.5">
+                        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Jump to section</div>
+                        <div className="overflow-hidden rounded-xl border border-neutral-200">
+                          {current ? (
+                            <div className="flex items-center justify-between px-3 py-2.5">
+                              <span className="text-sm font-medium text-neutral-800">{current.value}</span>
+                              <button
+                                type="button"
+                                onClick={() => onHotspotScrollSectionChange(undefined)}
+                                className="text-xs text-neutral-400 hover:text-neutral-700"
+                              >
+                                Clear
+                              </button>
+                            </div>
+                          ) : (
+                            <ul className="max-h-48 overflow-y-auto p-1">
+                              {cardSections.map((s) => (
+                                <li key={s.id}>
+                                  <button
+                                    type="button"
+                                    onClick={() => onHotspotScrollSectionChange(s.id)}
+                                    className="w-full rounded-lg px-2.5 py-2 text-left text-sm transition hover:bg-neutral-50"
+                                  >
+                                    <div className="truncate font-medium text-neutral-800">{s.value}</div>
+                                    <div className="text-[11px] capitalize text-neutral-400">
+                                      {s.type === "section" ? "Section" : s.blockFormat === "h2" ? "H2" : "H3"}
+                                    </div>
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })() : null}
                   {selectedPage.hotspotMode === "section" ? (
                     <SectionPicker
                       pages={pages}
                       targetPageId={selectedPage.hotspotTargetPageId ?? ""}
                       targetSectionId={selectedPage.hotspotTargetSectionId ?? ""}
-                      onSelectPage={(pageId) => onHotspotTargetChange(pageId, "")}
-                      onSelectSection={(sectionId) => onHotspotTargetChange(selectedPage.hotspotTargetPageId ?? "", sectionId)}
+                      onSelect={(pageId, sectionId) => onHotspotTargetChange(pageId, sectionId)}
                     />
                   ) : null}
                 </div>

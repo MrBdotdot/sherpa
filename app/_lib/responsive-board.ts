@@ -68,6 +68,8 @@ export function resolveCanvasFeatureForLayout(
           layoutMode === "mobile-portrait"
             ? override?.portraitZone ?? feature.portraitZone
             : undefined,
+        ...(override?.logoSize !== undefined ? { logoSize: override.logoSize } : {}),
+        ...(override?.qrSize !== undefined ? { qrSize: override.qrSize } : {}),
       },
       sourceFeature: feature,
       originLayout,

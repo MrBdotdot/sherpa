@@ -196,11 +196,12 @@ export function migrateLocaleFeature(pages: PageItem[]): PageItem[] {
   );
 }
 
-export function migratePageButtons(pages: PageItem[]): PageItem[] {
+export function migratePageButtons(pages: PageItem[], dismissedTargets: string[] = []): PageItem[] {
   const homePage = pages.find((p) => p.kind === "home");
   if (!homePage) return pages;
 
   const navPages = pages.filter((p) => p.kind === "page");
+  const dismissed = new Set(dismissedTargets);
   const existingTargetIds = new Set(
     homePage.canvasFeatures
       .filter((f) => f.type === "page-button")
@@ -216,7 +217,7 @@ export function migratePageButtons(pages: PageItem[]): PageItem[] {
   };
 
   const newButtons: CanvasFeature[] = navPages
-    .filter((p) => !existingTargetIds.has(p.id))
+    .filter((p) => !existingTargetIds.has(p.id) && !dismissed.has(p.id))
     .map((p) => {
       const [bx, by] =
         p.x !== null && p.y !== null

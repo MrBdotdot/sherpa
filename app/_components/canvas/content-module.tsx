@@ -367,6 +367,17 @@ export function ContentModule({
                       </button>
                     );
                   }
+                  if (item.linkMode === "email" && item.url) {
+                    return (
+                      <a
+                        key={item.id}
+                        href={`mailto:${item.url}`}
+                        className={btnClass}
+                      >
+                        {item.label || "Email"}
+                      </a>
+                    );
+                  }
                   return (
                     <a
                       key={item.id}

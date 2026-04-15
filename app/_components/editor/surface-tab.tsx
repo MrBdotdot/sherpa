@@ -6,6 +6,7 @@ import {
   CanvasFeatureField,
   CanvasFeatureType,
   LayoutMode,
+  MobileLayoutMode,
   PageItem,
 } from "@/app/_lib/authoring-types";
 import {
@@ -182,7 +183,7 @@ export function SurfaceTab({
         ) : null}
 
         <CanvasFeatureEditor
-          feature={item.sourceFeature}
+          feature={item.feature}
           isSelected={item.sourceFeature.id === selectedFeatureId}
           isPortraitMode={isPortraitMode}
           brandColors={brandColors}
@@ -191,7 +192,11 @@ export function SurfaceTab({
           onCreatePageForButton={onCreatePageForButton}
           onOpenPage={onOpenPage}
           onOpenSpreadsheet={onOpenSpreadsheet}
-          onRemoveCanvasFeature={onRemoveCanvasFeature}
+          onRemoveCanvasFeature={
+            isMobileView && isDesktopSource
+              ? (featureId) => onCanvasFeatureVisibilityChange(featureId, layoutMode as MobileLayoutMode, false)
+              : onRemoveCanvasFeature
+          }
           pages={pages}
         />
       </div>

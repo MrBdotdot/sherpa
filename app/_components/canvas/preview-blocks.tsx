@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { AnchorTarget, PageItem } from "@/app/_lib/authoring-types";
@@ -11,6 +11,73 @@ import { ImageBlock } from "@/app/_components/canvas/image-block";
 import { CarouselBlock } from "@/app/_components/canvas/carousel-block";
 import { TabsBlock } from "@/app/_components/canvas/tabs-block";
 import { injectPageLinks } from "@/app/_lib/inline-links";
+import { dispatchSectionHighlight } from "@/app/_lib/section-highlight";
+
+function HighlightableBlock({
+  id,
+  className,
+  accentColor,
+  children,
+}: {
+  id: string;
+  className?: string;
+  accentColor?: string;
+  children: React.ReactNode;
+}) {
+  const [highlighted, setHighlighted] = useState(false);
+  const [barHeight, setBarHeight] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      if ((e as CustomEvent<{ id: string }>).detail?.id === id) {
+        setHighlighted(true);
+      }
+    };
+    window.addEventListener("sherpa:section-highlight", handler);
+    return () => window.removeEventListener("sherpa:section-highlight", handler);
+  }, [id]);
+
+  useEffect(() => {
+    if (!highlighted || !ref.current) return;
+    const el = ref.current;
+    const raf = requestAnimationFrame(() => {
+      const allAnchors = Array.from(document.querySelectorAll("[data-section-anchor]")) as HTMLElement[];
+      const myIndex = allAnchors.indexOf(el);
+      const nextEl = allAnchors[myIndex + 1] ?? null;
+      const myRect = el.getBoundingClientRect();
+      setBarHeight(nextEl ? nextEl.getBoundingClientRect().top - myRect.top : 1000);
+    });
+    const t = setTimeout(() => setHighlighted(false), 2500);
+    return () => { cancelAnimationFrame(raf); clearTimeout(t); };
+  }, [highlighted]);
+
+  return (
+    <div
+      ref={ref}
+      id={id}
+      data-a11y-id={id}
+      data-a11y-type="block"
+      data-section-anchor
+      className={`relative ${className ?? ""}`}
+      onMouseEnter={() => highlighted && setTimeout(() => setHighlighted(false), 400)}
+    >
+      {highlighted && (
+        <>
+          <div
+            className="pointer-events-none absolute -left-4 w-1.5 rounded-full opacity-80"
+            style={{ backgroundColor: accentColor || "#3b82f6", top: 0, height: barHeight }}
+          />
+          <div
+            className="pointer-events-none absolute -right-4 w-1.5 rounded-full opacity-80"
+            style={{ backgroundColor: accentColor || "#3b82f6", top: 0, height: barHeight }}
+          />
+        </>
+      )}
+      {children}
+    </div>
+  );
+}
 
 export function PreviewBlocks({
   accentColor,
@@ -115,38 +182,45 @@ export function PreviewBlocks({
           // Heading formats
           if (format === "h2") {
             return (
-              <div key={block.id} id={block.id} data-a11y-id={block.id} data-a11y-type="block" className={`${alignClass(block)} ${blockClass}`}>
+              <HighlightableBlock key={block.id} id={block.id} accentColor={accentColor} className={`${alignClass(block)} ${blockClass}`}>
                 <h2 className="text-base font-bold text-neutral-900 leading-tight">
                   {block.value || <span className="text-neutral-400 font-normal">Empty heading</span>}
                 </h2>
-              </div>
+              </HighlightableBlock>
             );
           }
           if (format === "h3") {
             return (
-              <div key={block.id} id={block.id} data-a11y-id={block.id} data-a11y-type="block" className={`${alignClass(block)} ${blockClass}`}>
+              <HighlightableBlock key={block.id} id={block.id} accentColor={accentColor} className={`${alignClass(block)} ${blockClass}`}>
                 <h3 className="text-sm font-semibold text-neutral-800 leading-snug">
                   {block.value || <span className="text-neutral-400 font-normal">Empty heading</span>}
                 </h3>
-              </div>
+              </HighlightableBlock>
             );
           }
 
           // Bullet list
           if (format === "bullets") {
-            const items = block.value.split("\n").map((s) => s.trim()).filter(Boolean);
-            return items.length > 0 ? (
+            const rawItems = block.value.split("\n").filter((s) => s.trim().length > 0);
+            return rawItems.length > 0 ? (
               <ul key={block.id} data-a11y-id={block.id} data-a11y-type="block" className={`list-none space-y-1 ${alignClass(block)} ${blockClass}`}>
-                {items.map((item, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: dotColor }} />
-                    <span className="text-sm leading-6 text-neutral-700">
-                      {canLink ? (
-                        <InlineWithLinks text={item} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} anchorTargets={anchorTargets} currentPageId={displayPage.id} />
-                      ) : item}
-                    </span>
-                  </li>
-                ))}
+                {rawItems.map((rawItem, i) => {
+                  const isIndented = rawItem.startsWith("\t");
+                  const item = isIndented ? rawItem.slice(1).trim() : rawItem.trim();
+                  return (
+                    <li key={i} className={`flex items-start gap-2 ${isIndented ? "pl-5" : ""}`}>
+                      <span
+                        className={`shrink-0 rounded-full ${isIndented ? "mt-2.5 h-1 w-1 opacity-50" : "mt-2 h-1.5 w-1.5"}`}
+                        style={{ backgroundColor: dotColor }}
+                      />
+                      <span className="text-sm leading-6 text-neutral-700">
+                        {canLink ? (
+                          <InlineWithLinks text={item} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} anchorTargets={anchorTargets} currentPageId={displayPage.id} />
+                        ) : item}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <div key={block.id} data-a11y-id={block.id} data-a11y-type="block" className={`rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500 ${blockClass}`}>
@@ -157,21 +231,35 @@ export function PreviewBlocks({
 
           // Numbered / steps
           if (format === "steps") {
-            const items = block.value.split("\n").map((s) => s.trim()).filter(Boolean);
-            return items.length > 0 ? (
+            const rawItems = block.value.split("\n").filter((s) => s.trim().length > 0);
+            let parentCount = 0;
+            let subCount = 0;
+            const labeledItems = rawItems.map((rawItem) => {
+              const isIndented = rawItem.startsWith("\t");
+              const text = isIndented ? rawItem.slice(1).trim() : rawItem.trim();
+              if (isIndented) {
+                subCount++;
+                return { text, isIndented, label: String.fromCharCode(96 + subCount) };
+              } else {
+                parentCount++;
+                subCount = 0;
+                return { text, isIndented, label: String(parentCount) };
+              }
+            });
+            return labeledItems.length > 0 ? (
               <ol key={block.id} data-a11y-id={block.id} data-a11y-type="block" className={`list-none space-y-2 ${alignClass(block)} ${blockClass}`}>
-                {items.map((item, i) => (
-                  <li key={i} className="flex items-start gap-2.5">
+                {labeledItems.map(({ text, isIndented, label }, i) => (
+                  <li key={i} className={`flex items-start gap-2.5 ${isIndented ? "pl-7" : ""}`}>
                     <span
-                      className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                      className={`shrink-0 flex items-center justify-center rounded-full font-bold text-white ${isIndented ? "mt-0.5 h-4 w-4 text-[9px] opacity-75" : "mt-0.5 h-5 w-5 text-[10px]"}`}
                       style={{ backgroundColor: dotColor }}
                     >
-                      {i + 1}
+                      {label}
                     </span>
                     <span className="text-sm leading-6 text-neutral-700">
                       {canLink ? (
-                        <InlineWithLinks text={item} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} anchorTargets={anchorTargets} currentPageId={displayPage.id} />
-                      ) : item}
+                        <InlineWithLinks text={text} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} anchorTargets={anchorTargets} currentPageId={displayPage.id} />
+                      ) : text}
                     </span>
                   </li>
                 ))}
@@ -227,6 +315,7 @@ export function PreviewBlocks({
                               onClick={(e) => {
                                 e.stopPropagation();
                                 document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                dispatchSectionHighlight(target);
                               }}
                               className="cursor-pointer font-bold underline underline-offset-2"
                               style={{ color }}
@@ -245,6 +334,7 @@ export function PreviewBlocks({
                                 onNavigate(pageId);
                                 setTimeout(() => {
                                   document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                  dispatchSectionHighlight(target);
                                 }, 400);
                               }}
                               className="cursor-pointer font-bold underline underline-offset-2"
@@ -346,7 +436,7 @@ export function PreviewBlocks({
         if (block.type === "section") {
           return (
             <div key={block.id} className={hasHalfBlock ? "col-span-2" : ""}>
-              <SectionBlock block={block} />
+              <SectionBlock block={block} accentColor={accentColor} />
             </div>
           );
         }

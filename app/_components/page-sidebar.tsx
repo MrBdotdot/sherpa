@@ -317,7 +317,7 @@ export function PageSidebar({
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const [openSections, setOpenSections] = useState<Set<string>>(
-    () => new Set(["elements", "page-buttons", "hotspots", "pages"])
+    () => new Set(["elements", "anchor-pins", "page-buttons", "hotspots", "pages"])
   );
 
   const toggleSection = (key: string) =>
@@ -358,7 +358,8 @@ export function PageSidebar({
         {homePages.length > 0 ? (
           <div className="space-y-4">
             {homePages.map((homePage) => {
-              const elements = homePage.canvasFeatures.filter((f) => f.type !== "page-button");
+              const elements = homePage.canvasFeatures.filter((f) => f.type !== "page-button" && f.type !== "anchor-pin");
+              const anchorPins = homePage.canvasFeatures.filter((f) => f.type === "anchor-pin");
               const pageButtons = homePage.canvasFeatures.filter((f) => f.type === "page-button");
 
               return (
@@ -476,6 +477,25 @@ export function PageSidebar({
                         </li>
                       );
                     })}
+                  </CollapsibleSection>
+
+                  <CollapsibleSection
+                    title="Anchor Pins"
+                    open={openSections.has("anchor-pins")}
+                    onToggle={() => toggleSection("anchor-pins")}
+                    isEmpty={anchorPins.length === 0}
+                    emptyText="No anchor pins yet. Add one from the Board tab."
+                    count={anchorPins.length}
+                  >
+                    {anchorPins.map((feature) => (
+                      <li key={feature.id}>
+                        <SidebarFeatureItem
+                          feature={feature}
+                          isSelected={feature.id === selectedFeatureId}
+                          onSelect={() => onSelectFeature(homePage.id, feature.id)}
+                        />
+                      </li>
+                    ))}
                   </CollapsibleSection>
 
                   <CollapsibleSection

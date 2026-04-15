@@ -4,6 +4,7 @@ import React from "react";
 import { PageItem } from "@/app/_lib/authoring-types";
 import { DEFAULT_HOTSPOT_BLOCK_TEXT } from "@/app/_lib/authoring-utils";
 import { CanvasDragBadge } from "@/app/_components/canvas/canvas-drag-badge";
+import { dispatchSectionHighlight } from "@/app/_lib/section-highlight";
 
 function isHotspotEmpty(page: PageItem): boolean {
   const hasRealSummary = page.summary.trim().length > 0;
@@ -67,11 +68,19 @@ export function HotspotPin({
       const sectionId = page.hotspotTargetSectionId;
       if (sectionId) {
         setTimeout(() => {
-          document.querySelector(`[data-a11y-id="${sectionId}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+          document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+          dispatchSectionHighlight(sectionId);
         }, 400);
       }
     } else {
       onSelectPage(page.id);
+      const scrollId = page.hotspotScrollSectionId;
+      if (scrollId) {
+        setTimeout(() => {
+          document.getElementById(scrollId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+          dispatchSectionHighlight(scrollId);
+        }, 400);
+      }
     }
   }
 

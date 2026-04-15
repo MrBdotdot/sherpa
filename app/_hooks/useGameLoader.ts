@@ -84,16 +84,17 @@ export function useGameLoader({
     let cancelled = false;
 
     async function load() {
-      const applyLoadedPages = (nextPages: PageItem[]) =>
+      const applyLoadedPages = (nextPages: PageItem[], dismissed: string[] = []) =>
         migrateResponsiveBoardFeatures(
-          migrateLocaleFeature(migratePageButtons(ensureUniquePageIds(nextPages)))
+          migrateLocaleFeature(migratePageButtons(ensureUniquePageIds(nextPages), dismissed))
         );
 
       try {
         const remote = await loadGame(currentGameId);
         if (cancelled) return;
         if (remote) {
-          const loaded = applyLoadedPages(remote.pages);
+          const dismissed = remote.systemSettings?.dismissedPageButtonTargets ?? [];
+          const loaded = applyLoadedPages(remote.pages, dismissed);
           setPages(
             loaded.length > 0
               ? loaded
@@ -111,7 +112,8 @@ export function useGameLoader({
         } else {
           const persisted = loadPersistedState();
           if (persisted) {
-            if (persisted.pages) setPages(applyLoadedPages(persisted.pages));
+            const dismissed = persisted.systemSettings?.dismissedPageButtonTargets ?? [];
+            if (persisted.pages) setPages(applyLoadedPages(persisted.pages, dismissed));
             if (persisted.systemSettings) {
               setSystemSettings({ ...DEFAULT_SYSTEM_SETTINGS, ...persisted.systemSettings });
             }
@@ -122,7 +124,8 @@ export function useGameLoader({
 
       const persisted = loadPersistedState();
       if (persisted) {
-        if (persisted.pages) setPages(applyLoadedPages(persisted.pages));
+        const dismissed = persisted.systemSettings?.dismissedPageButtonTargets ?? [];
+        if (persisted.pages) setPages(applyLoadedPages(persisted.pages, dismissed));
         if (persisted.systemSettings) {
           setSystemSettings({ ...DEFAULT_SYSTEM_SETTINGS, ...persisted.systemSettings });
         }

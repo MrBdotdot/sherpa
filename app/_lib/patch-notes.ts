@@ -6,6 +6,53 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.24.8",
+    date: "2026-04-15",
+    changes: [
+      "Navigating to a section via anchor pin, hotspot, search, or inline link now briefly highlights the section with left and right edge bars — disappears on hover or after 2.5 seconds",
+    ],
+  },
+  {
+    version: "v0.24.7",
+    date: "2026-04-15",
+    changes: [
+      "Anchor pins now appear in their own 'Anchor Pins' section in the left nav, separate from other board elements",
+    ],
+  },
+  {
+    version: "v0.24.6",
+    date: "2026-04-15",
+    changes: [
+      "Hotspots in 'Opens card' mode can now jump to a specific section when the card opens — choose a section under 'Jump to section' in the hotspot's Overview tab",
+    ],
+  },
+  {
+    version: "v0.24.5",
+    date: "2026-04-15",
+    changes: [
+      "Fixed: deleting a canvas element in mobile view no longer removes it from desktop — it hides it for that layout instead",
+      "Fixed: resizing a logo or QR code in mobile view no longer overrides the desktop size — each layout keeps its own size",
+      "Search dropdown now flips upward when there isn't enough space below it on screen",
+    ],
+  },
+  {
+    version: "v0.24.4",
+    date: "2026-04-15",
+    changes: [
+      "Search now indexes section headings (H2, H3, Section blocks) as separate results — results show the section in the breadcrumb and scroll directly to it",
+      "Fixed: hotspot section mode and anchor-pin scroll-to-section now works for Section-type blocks (previously only worked for H2/H3)",
+      "Quick links: new Email option — enter an address and the button opens a mailto: link",
+    ],
+  },
+  {
+    version: "v0.24.3",
+    date: "2026-04-15",
+    changes: [
+      "Bullet and numbered lists now support one level of indentation — press Tab to indent a line, Shift+Tab to dedent, or use the ← → buttons in the toolbar",
+      "Indented steps render as lettered sub-items (a, b, c…) that reset under each parent step",
+    ],
+  },
+  {
     version: "v0.24.2",
     date: "2026-04-15",
     changes: [

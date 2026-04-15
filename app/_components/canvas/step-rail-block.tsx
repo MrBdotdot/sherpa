@@ -2,13 +2,60 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { ContentBlock } from "@/app/_lib/authoring-types";
+import { dispatchSectionHighlight } from "@/app/_lib/section-highlight";
 
 // ── SectionBlock ───────────────────────────────────────────────
 
-export function SectionBlock({ block }: { block: ContentBlock }) {
+export function SectionBlock({ block, accentColor }: { block: ContentBlock; accentColor?: string }) {
+  const [highlighted, setHighlighted] = useState(false);
+  const [barHeight, setBarHeight] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      if ((e as CustomEvent<{ id: string }>).detail?.id === block.id) {
+        setHighlighted(true);
+      }
+    };
+    window.addEventListener("sherpa:section-highlight", handler);
+    return () => window.removeEventListener("sherpa:section-highlight", handler);
+  }, [block.id]);
+
+  useEffect(() => {
+    if (!highlighted || !ref.current) return;
+    const el = ref.current;
+    const raf = requestAnimationFrame(() => {
+      const allAnchors = Array.from(document.querySelectorAll("[data-section-anchor]")) as HTMLElement[];
+      const myIndex = allAnchors.indexOf(el);
+      const nextEl = allAnchors[myIndex + 1] ?? null;
+      const myRect = el.getBoundingClientRect();
+      setBarHeight(nextEl ? nextEl.getBoundingClientRect().top - myRect.top : 1000);
+    });
+    const t = setTimeout(() => setHighlighted(false), 2500);
+    return () => { cancelAnimationFrame(raf); clearTimeout(t); };
+  }, [highlighted]);
+
   const label = block.value.trim();
   return (
-    <div id={block.id} className="flex items-center gap-3 py-2">
+    <div
+      ref={ref}
+      id={block.id}
+      data-section-anchor
+      className="relative flex items-center gap-3 py-2"
+      onMouseEnter={() => highlighted && setTimeout(() => setHighlighted(false), 400)}
+    >
+      {highlighted && (
+        <>
+          <div
+            className="pointer-events-none absolute -left-4 w-1.5 rounded-full opacity-80"
+            style={{ backgroundColor: accentColor || "#3b82f6", top: 0, height: barHeight }}
+          />
+          <div
+            className="pointer-events-none absolute -right-4 w-1.5 rounded-full opacity-80"
+            style={{ backgroundColor: accentColor || "#3b82f6", top: 0, height: barHeight }}
+          />
+        </>
+      )}
       {label ? (
         <>
           <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">{label}</span>
@@ -179,6 +226,7 @@ export function StepRailBlock({ block }: { block: ContentBlock }) {
     if (clickLockTimerRef.current) clearTimeout(clickLockTimerRef.current);
     clickLockTimerRef.current = setTimeout(() => { clickLockRef.current = false; }, 900);
     document.getElementById(step.sectionBlockId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    dispatchSectionHighlight(step.sectionBlockId);
   }
 
   const activeIdx = data.steps.findIndex((s) => s.id === activeStepId);

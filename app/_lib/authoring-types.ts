@@ -84,8 +84,8 @@ export type SocialLink = {
   id: string;
   label: string;
   url: string;
-  /** "external" = open URL in new tab; "page" = navigate to an internal card */
-  linkMode?: "external" | "page";
+  /** "external" = open URL in new tab; "page" = navigate to an internal card; "email" = mailto: link */
+  linkMode?: "external" | "page" | "email";
   /** pageId to navigate to when linkMode === "page" */
   linkPageId?: string;
 };
@@ -127,6 +127,8 @@ export type CanvasFeatureLayoutOverride = {
   y?: number;
   hidden?: boolean;
   portraitZone?: "content";
+  logoSize?: number;
+  qrSize?: number;
 };
 
 export type CanvasFeatureField =
@@ -169,6 +171,8 @@ export type PageItem = {
   hotspotTargetPageId?: string;
   /** For hotspot kind in section mode: the block ID of the section within the target card */
   hotspotTargetSectionId?: string;
+  /** For hotspot kind in card mode: auto-scroll to this block ID when the card opens */
+  hotspotScrollSectionId?: string;
 };
 
 export type DragState = {
@@ -218,6 +222,8 @@ export type SystemSettings = {
   autoOpenPageId?: string;
   /** Author-defined CSS injected into the player. Scoped to .sherpa-player. */
   customCss?: string;
+  /** Page IDs whose auto-migrated page-button has been intentionally dismissed — migration skips these */
+  dismissedPageButtonTargets?: string[];
 };
 
 export type PageTemplate = {

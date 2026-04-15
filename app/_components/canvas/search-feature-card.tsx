@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { CanvasFeature, PageItem } from "@/app/_lib/authoring-types";
 import { searchPages } from "@/app/_lib/search-index";
+import { dispatchSectionHighlight } from "@/app/_lib/section-highlight";
 
 function HighlightedSnippet({ text, query, className }: { text: string; query: string; className?: string }) {
   const q = query.trim().toLowerCase();
@@ -17,6 +19,8 @@ function HighlightedSnippet({ text, query, className }: { text: string; query: s
     </span>
   );
 }
+
+type DropPos = { top?: number; bottom?: number; left: number; width: number };
 
 export function SearchFeatureCard({
   feature,
@@ -35,16 +39,56 @@ export function SearchFeatureCard({
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const [dropDir, setDropDir] = useState<"down" | "up">("down");
-  const [dropAlign, setDropAlign] = useState<"left" | "right">("left");
+  const [dropPos, setDropPos] = useState<DropPos | null>(null);
+  const [mobileConfig, setMobileConfig] = useState<{
+    openUpward: boolean;
+    width: number;
+    left?: number;
+    right?: number;
+  } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useLayoutEffect(() => {
     if (!open || !containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    setDropDir(rect.bottom + 320 > window.innerHeight ? "up" : "down");
-    setDropAlign(rect.left + 300 > window.innerWidth ? "right" : "left");
+    const dropdownH = 280;
+    const gap = 6;
+
+    const mobileCanvas = containerRef.current.closest("[data-mobile-canvas]") as HTMLElement | null;
+    if (mobileCanvas) {
+      const canvasRect = mobileCanvas.getBoundingClientRect();
+      const dropWidth = Math.max(rect.width, 260);
+      const openUpward = canvasRect.bottom - rect.bottom < Math.min(dropdownH, 200);
+
+      // Prefer aligning to the left edge of the search bar.
+      // If the dropdown would overflow the right edge of the canvas, right-align it instead.
+      const spaceRight = canvasRect.right - rect.left;
+      const spaceLeft = rect.right - canvasRect.left;
+      const alignRight = spaceRight < dropWidth && spaceLeft >= dropWidth;
+
+      setMobileConfig({
+        openUpward,
+        width: dropWidth,
+        left: alignRight ? undefined : 0,
+        right: alignRight ? 0 : undefined,
+      });
+      setDropPos(null);
+      return;
+    }
+
+    setMobileConfig(null);
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const pos: DropPos = {
+      left: rect.left,
+      width: Math.max(rect.width, 300),
+    };
+    if (spaceBelow < dropdownH && rect.top > spaceBelow) {
+      pos.bottom = window.innerHeight - rect.top + gap;
+    } else {
+      pos.top = rect.bottom + gap;
+    }
+    setDropPos(pos);
   }, [open]);
 
   const results = useMemo(() => searchPages(pages, query), [pages, query]);
@@ -56,9 +100,15 @@ export function SearchFeatureCard({
   const hoverClass = isContrast ? "hover:bg-white/10" : "hover:bg-neutral-50";
   const dividerClass = isContrast ? "border-t border-white/10" : "border-t border-neutral-100";
 
-  function navigate(pageId: string) {
+  function navigate(pageId: string, sectionId?: string) {
     if (query.trim()) onSearch?.(query.trim());
     onNavigate?.(pageId);
+    if (sectionId) {
+      setTimeout(() => {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        dispatchSectionHighlight(sectionId);
+      }, 400);
+    }
     setQuery("");
     setOpen(false);
   }
@@ -70,6 +120,65 @@ export function SearchFeatureCard({
   function cancelClose() {
     if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
   }
+
+  const mobileDropdownStyle: React.CSSProperties | null = mobileConfig ? {
+    position: "absolute",
+    zIndex: 50,
+    left: mobileConfig.left,
+    right: mobileConfig.right,
+    width: mobileConfig.width,
+    maxHeight: 280,
+    overflowY: "auto",
+    ...(mobileConfig.openUpward ? { bottom: "calc(100% + 6px)" } : { top: "calc(100% + 6px)" }),
+  } : null;
+
+  const dropdown = open && (mobileConfig || dropPos) ? (
+    <div
+      style={mobileDropdownStyle ?? {
+        position: "fixed",
+        zIndex: 9999,
+        top: dropPos!.top,
+        bottom: dropPos!.bottom,
+        left: dropPos!.left,
+        width: dropPos!.width,
+        maxHeight: 320,
+        overflowY: "auto",
+      }}
+      className={`rounded-xl border shadow-2xl ${surfaceStyleClass} ${fontThemeClass}`}
+      onPointerDown={cancelClose}
+    >
+      {!query.trim() || results.length === 0 ? (
+        <div className={`px-4 py-3 text-xs ${dimClass}`}>
+          {!query.trim() ? "Start typing to search…" : "No results"}
+        </div>
+      ) : (
+        results.map((result, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); navigate(result.pageId, result.sectionId); }}
+            className={`w-full px-3 py-2.5 text-left transition ${hoverClass} ${i > 0 ? dividerClass : ""}`}
+          >
+            <div className={`mb-0.5 flex flex-wrap items-center gap-x-1 text-[10px] leading-4 ${dimClass}`}>
+              {result.breadcrumb.map((crumb, ci) => (
+                <React.Fragment key={ci}>
+                  {ci > 0 && <span aria-hidden="true">/</span>}
+                  <span className="transition hover:underline hover:opacity-70">
+                    {crumb.label}
+                  </span>
+                </React.Fragment>
+              ))}
+            </div>
+            <HighlightedSnippet
+              text={result.matchSnippet}
+              query={query}
+              className={`line-clamp-2 text-xs leading-[1.4] ${snippetClass}`}
+            />
+          </button>
+        ))
+      )}
+    </div>
+  ) : null;
 
   return (
     <div ref={containerRef} className={`relative w-[220px] ${fontThemeClass}`} onClick={(e) => e.stopPropagation()}>
@@ -104,46 +213,12 @@ export function SearchFeatureCard({
         ) : null}
       </div>
 
-      {/* Results dropdown — flips up/right when near viewport edge */}
-      {open ? (
-        <div
-          className={`absolute z-50 max-h-[320px] w-[300px] overflow-y-auto rounded-xl border shadow-2xl ${surfaceStyleClass} ${dropDir === "up" ? "bottom-full mb-1.5" : "top-full mt-1.5"} ${dropAlign === "right" ? "right-0" : "left-0"}`}
-          onPointerDown={cancelClose}
-        >
-          {!query.trim() || results.length === 0 ? (
-            <div className={`px-4 py-3 text-xs ${dimClass}`}>
-              {!query.trim() ? "Start typing to search…" : "No results"}
-            </div>
-          ) : (
-            results.map((result, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={(e) => { e.stopPropagation(); navigate(result.pageId); }}
-                className={`w-full px-3 py-2.5 text-left transition ${hoverClass} ${i > 0 ? dividerClass : ""}`}
-              >
-                {/* Breadcrumb */}
-                <div className={`mb-0.5 flex flex-wrap items-center gap-x-1 text-[10px] leading-4 ${dimClass}`}>
-                  {result.breadcrumb.map((crumb, ci) => (
-                    <React.Fragment key={ci}>
-                      {ci > 0 && <span aria-hidden="true">/</span>}
-                      <span className="transition hover:underline hover:opacity-70">
-                        {crumb.label}
-                      </span>
-                    </React.Fragment>
-                  ))}
-                </div>
-                {/* Snippet with keyword highlighted */}
-                <HighlightedSnippet
-                  text={result.matchSnippet}
-                  query={query}
-                  className={`line-clamp-2 text-xs leading-[1.4] ${snippetClass}`}
-                />
-              </button>
-            ))
-          )}
-        </div>
-      ) : null}
+      {/* Results dropdown — inline in mobile (clipped by phone frame), portaled in desktop */}
+      {mobileConfig
+        ? dropdown
+        : typeof document !== "undefined" && dropdown
+        ? createPortal(dropdown, document.body)
+        : null}
     </div>
   );
 }

@@ -186,6 +186,30 @@ export function BlockEditor({
     }, 0);
   }
 
+  function indentCurrentLine(indent: boolean, fromPos?: number) {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const val = block.value;
+    const pos = fromPos ?? cursorRef.current.start;
+    const lineStart = val.lastIndexOf("\n", pos - 1) + 1;
+    let newVal: string;
+    let newPos: number;
+    if (indent) {
+      if (val[lineStart] === "\t") return;
+      newVal = val.slice(0, lineStart) + "\t" + val.slice(lineStart);
+      newPos = pos + 1;
+    } else {
+      if (val[lineStart] !== "\t") return;
+      newVal = val.slice(0, lineStart) + val.slice(lineStart + 1);
+      newPos = Math.max(lineStart, pos - 1);
+    }
+    onBlockChange(block.id, newVal);
+    setTimeout(() => {
+      ta.focus();
+      ta.setSelectionRange(newPos, newPos);
+    }, 0);
+  }
+
   function handleTextareaChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
     const newValue = event.target.value;
     onBlockChange(block.id, newValue);
@@ -205,6 +229,11 @@ export function BlockEditor({
   }
 
   function handleTextareaKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === "Tab" && !trigger.active && (effectiveFormat === "bullets" || effectiveFormat === "steps")) {
+      event.preventDefault();
+      indentCurrentLine(!event.shiftKey, event.currentTarget.selectionStart);
+      return;
+    }
     if (!trigger.active || triggerResults.length === 0) return;
     if (event.key === "ArrowDown") {
       event.preventDefault();
@@ -289,6 +318,28 @@ export function BlockEditor({
                   </button>
                 );
               })}
+            </div>
+          ) : null}
+
+          {/* Indent / dedent — only for list formats */}
+          {(effectiveFormat === "bullets" || effectiveFormat === "steps") ? (
+            <div className="flex items-center rounded-lg border border-neutral-200 bg-neutral-100 p-0.5">
+              <button
+                type="button"
+                onClick={() => indentCurrentLine(false)}
+                title="Decrease indent"
+                className="rounded px-2 py-1 text-[10px] font-semibold leading-none text-neutral-400 hover:text-neutral-600"
+              >
+                ←
+              </button>
+              <button
+                type="button"
+                onClick={() => indentCurrentLine(true)}
+                title="Increase indent"
+                className="rounded px-2 py-1 text-[10px] font-semibold leading-none text-neutral-400 hover:text-neutral-600"
+              >
+                →
+              </button>
             </div>
           ) : null}
 

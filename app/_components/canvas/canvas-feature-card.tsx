@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { CanvasFeature, PageItem } from "@/app/_lib/authoring-types";
 import { SearchFeatureCard } from "@/app/_components/canvas/search-feature-card";
 import { LocaleLanguage, parseLocaleLanguages } from "@/app/_lib/localization";
+import { dispatchSectionHighlight } from "@/app/_lib/section-highlight";
 
 /** Returns #000000 or #ffffff — whichever gives higher contrast against the given hex background. */
 function autoContrast(hex: string): string {
@@ -425,7 +426,8 @@ export function CanvasFeatureCard({
           if (!isCardMode && feature.optionsText) {
             const sectionId = feature.optionsText;
             setTimeout(() => {
-              document.querySelector(`[data-a11y-id="${sectionId}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+              document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+              dispatchSectionHighlight(sectionId);
             }, 400);
           }
         }}

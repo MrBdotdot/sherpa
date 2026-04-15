@@ -15,8 +15,8 @@ import { ChangelogModal } from "@/app/_components/changelog-modal";
 import { AccountPanel } from "@/app/_components/account-panel";
 import { GameSwitcherModal, type GameEntry } from "@/app/_components/game-switcher-modal";
 import { CommandPalette } from "@/app/_components/command-palette";
-import { createInitialPages, getHomePageId } from "@/app/_lib/authoring-utils";
-import { ExperienceStatus, InspectorTab, LayoutMode, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
+import { createCanvasFeature, createInitialPages, getHomePageId } from "@/app/_lib/authoring-utils";
+import { CanvasFeature, ExperienceStatus, InspectorTab, LayoutMode, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 import { supabase } from "@/app/_lib/supabase";
 import { useSearchParams } from "next/navigation";
 import { UserMetadata } from "@/app/_lib/user-profile";
@@ -190,7 +190,7 @@ export function AuthoringStudio({
     handleContentTintChange, handleBlockWidthChange, handleBlockTextAlignChange,
     handleBlockVerticalAlignChange, handleBlockFormatChange,
     handleBlockImagePositionChange, handleBlockPropsChange,
-    handleHotspotModeChange, handleHotspotTargetChange,
+    handleHotspotModeChange, handleHotspotTargetChange, handleHotspotScrollSectionChange,
   } = useContentHandlers({ pushPagesHistory, updateSelectedPage, userId, gameId: currentGameId });
 
   const {
@@ -393,8 +393,34 @@ export function AuthoringStudio({
     onBlockFormatChange: handleBlockFormatChange,
     onBlockImagePositionChange: handleBlockImagePositionChange,
     onBlockPropsChange: handleBlockPropsChange,
-    onHotspotModeChange: handleHotspotModeChange,
+    onHotspotModeChange: (mode: "card" | "section") => {
+      if (mode === "section" && selectedPage?.kind === "hotspot") {
+        // Convert the hotspot into an anchor-pin canvas feature on the home board,
+        // preserving its position and title, then delete the hotspot card.
+        const hotspot = selectedPage;
+        const anchorPin: CanvasFeature = {
+          ...createCanvasFeature("anchor-pin"),
+          label: hotspot.title || "",
+          description: "section",
+          linkUrl: hotspot.hotspotTargetPageId ?? "",
+          optionsText: hotspot.hotspotTargetSectionId ?? "",
+          x: hotspot.x ?? 50,
+          y: hotspot.y ?? 50,
+        };
+        setPages((prev) =>
+          prev.map((p) =>
+            p.kind === "home"
+              ? { ...p, canvasFeatures: [...p.canvasFeatures, anchorPin] }
+              : p
+          )
+        );
+        handleDeleteHotspot(hotspot.id);
+      } else {
+        handleHotspotModeChange(mode);
+      }
+    },
     onHotspotTargetChange: handleHotspotTargetChange,
+    onHotspotScrollSectionChange: handleHotspotScrollSectionChange,
     onOpenPage: openPageEditor,
     scrollToBlockId: scrollToBlock?.id ?? null,
     isPortraitMode: layoutMode === "mobile-portrait" && systemSettings.portraitLayout !== "full",

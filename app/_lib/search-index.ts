@@ -2,12 +2,14 @@ import type { ContentBlock, PageItem } from "@/app/_lib/authoring-types";
 
 export type SearchIndexEntry = {
   pageId: string;
+  sectionId?: string;
   breadcrumb: Array<{ label: string; pageId: string }>;
   text: string;
 };
 
 export type SearchHit = {
   pageId: string;
+  sectionId?: string;
   breadcrumb: Array<{ label: string; pageId: string }>;
   matchSnippet: string;
 };
@@ -114,6 +116,18 @@ export function buildSearchIndex(pages: PageItem[]): SearchIndexEntry[] {
     }
 
     for (const block of page.blocks) {
+      if (
+        (block.type === "section" || block.blockFormat === "h2" || block.blockFormat === "h3") &&
+        block.value.trim()
+      ) {
+        entries.push({
+          pageId: page.id,
+          sectionId: block.id,
+          breadcrumb: [...baseCrumb, { label: block.value.trim(), pageId: page.id }],
+          text: block.value.trim(),
+        });
+      }
+
       if (block.type === "tabs") {
         try {
           const data = JSON.parse(block.value);
@@ -181,7 +195,7 @@ export function searchPages(pages: PageItem[], query: string): SearchHit[] {
       entry.text.slice(start, end).trim() +
       (end < entry.text.length ? "…" : "");
 
-    hits.push({ pageId: entry.pageId, breadcrumb: entry.breadcrumb, matchSnippet: snippet });
+    hits.push({ pageId: entry.pageId, sectionId: entry.sectionId, breadcrumb: entry.breadcrumb, matchSnippet: snippet });
     if (hits.length >= 8) break;
   }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useRef, useState, useCallback } from "react";
+import React, { ChangeEvent, useEffect, useRef, useState, useCallback } from "react";
 import { AnchorTarget, ContentBlock, ContentBlockType, DisplayStyleKey, ImageFit, PageItem, SocialLink } from "@/app/_lib/authoring-types";
 import { DISPLAY_STYLE_OPTIONS, getDisplayStyleKey } from "@/app/_lib/display-style";
 import { BlockEditor, type BlockFormat } from "@/app/_components/editor/block-editor";
@@ -57,7 +57,7 @@ function ActionLinkEditor({
 
       {/* Link mode toggle */}
       <div className="mb-3 flex rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
-        {(["external", "page"] as const).map((m) => (
+        {(["external", "page", "email"] as const).map((m) => (
           <button
             key={m}
             type="button"
@@ -68,7 +68,7 @@ function ActionLinkEditor({
                 : "text-neutral-500 hover:text-neutral-700"
             }`}
           >
-            {m === "external" ? "External URL" : "Go to card"}
+            {m === "external" ? "External URL" : m === "email" ? "Email" : "Go to card"}
           </button>
         ))}
       </div>
@@ -82,7 +82,16 @@ function ActionLinkEditor({
           aria-label="Action link label"
           className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
         />
-        {mode === "external" ? (
+        {mode === "email" ? (
+          <input
+            type="email"
+            value={item.url}
+            onChange={(e) => onChange(item.id, "url", e.target.value)}
+            placeholder="name@example.com"
+            aria-label="Email address"
+            className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+          />
+        ) : mode === "external" ? (
           <input
             type="text"
             value={item.url}
@@ -312,9 +321,8 @@ export function ContentTab({
           {selectedPage.blocks.map((block, index) => {
             const showDropLine = dropIndex === index && dragIndex !== null && dragIndex !== index && dragIndex !== index - 1;
             return (
-              <>
+              <React.Fragment key={block.id}>
                 <div
-                  key={block.id}
                   ref={(el) => { blockRefs.current[block.id] = el; }}
                   className={`group relative rounded-2xl transition-shadow duration-300 ${highlightBlockId === block.id ? "ring-4 ring-black/25 shadow-lg" : ""} ${dragIndex === index ? "opacity-40" : ""}`}
                   onDragOver={(e) => { e.preventDefault(); setDropIndex(index); }}
@@ -369,8 +377,8 @@ export function ContentTab({
                     onRemoveBlock={onRemoveBlock}
                   />
                 </div>
-                <InsertZone key={`insert-${block.id}`} index={index + 1} onInsert={openPickerAt} />
-              </>
+                <InsertZone index={index + 1} onInsert={openPickerAt} />
+              </React.Fragment>
             );
           })}
 
