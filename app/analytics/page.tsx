@@ -221,6 +221,133 @@ function DateRangePicker({
   );
 }
 
+// ── Heatmap ───────────────────────────────────────────────────────
+
+function dotColor(pctOfMax: number): string {
+  if (pctOfMax < 34) return "#3b82f6";
+  if (pctOfMax < 67) return "#eab308";
+  return "#ef4444";
+}
+
+function HeatmapOverlay({
+  boardData,
+  hotspots,
+}: {
+  boardData: BoardData | null;
+  hotspots: HotspotData | null;
+}) {
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+
+  if (!boardData) {
+    return (
+      <div className="mx-auto max-w-6xl px-6 py-8">
+        <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+          <div className="aspect-video w-full animate-pulse bg-neutral-100" />
+          <div className="h-12 border-t border-neutral-100" />
+        </div>
+      </div>
+    );
+  }
+
+  const analyticsRows = hotspots ?? [];
+  const totalClicks = analyticsRows.reduce((sum, h) => sum + h.clicks, 0);
+  const maxClicks = Math.max(...analyticsRows.map((h) => h.clicks), 1);
+
+  const joined = boardData.hotspots.map((bh) => {
+    const analytics = analyticsRows.find((h) => h.title === bh.title);
+    const clicks = analytics?.clicks ?? 0;
+    const avgDurationSeconds = analytics?.avgDurationSeconds ?? 0;
+    const pctOfTotal = totalClicks > 0 ? Math.round((clicks / totalClicks) * 100) : 0;
+    const pctOfMax = Math.round((clicks / maxClicks) * 100);
+    return { ...bh, clicks, avgDurationSeconds, pctOfTotal, pctOfMax };
+  });
+
+  return (
+    <div className="mx-auto max-w-6xl px-6 py-8">
+      <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+        {/* Board */}
+        <div className="relative aspect-video w-full bg-neutral-900">
+          {boardData.heroImage && (
+            <img
+              src={boardData.heroImage}
+              alt="Board"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          )}
+          {joined.map((h) => {
+            const isZero = h.clicks === 0;
+            const diameter = isZero ? 14 : Math.round(14 + (h.pctOfMax / 100) * 42);
+            const color = isZero ? "rgba(156,163,175,0.5)" : dotColor(h.pctOfMax);
+            const isHovered = hoveredId === h.id;
+            return (
+              <div
+                key={h.id}
+                className="absolute"
+                style={{ left: `${h.x}%`, top: `${h.y}%`, transform: "translate(-50%, -50%)" }}
+                onMouseEnter={() => setHoveredId(h.id)}
+                onMouseLeave={() => setHoveredId(null)}
+              >
+                <div
+                  className="rounded-full transition-all"
+                  style={{
+                    width: diameter,
+                    height: diameter,
+                    background: color,
+                    border: isZero ? "1.5px solid rgba(156,163,175,0.6)" : "none",
+                    boxShadow: !isZero && isHovered ? `0 0 0 3px ${color}40` : "none",
+                    opacity: isZero ? 1 : 0.85,
+                  }}
+                />
+                {isHovered && (
+                  <div
+                    className="pointer-events-none absolute z-20 whitespace-nowrap rounded-xl border border-neutral-100 bg-white px-3 py-2 shadow-xl"
+                    style={{
+                      bottom: "calc(100% + 8px)",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                    }}
+                  >
+                    <div className="text-xs font-semibold text-neutral-900">{h.title}</div>
+                    <div className="mt-0.5 text-[11px] text-neutral-500">
+                      {h.clicks.toLocaleString()} clicks
+                      {totalClicks > 0 && ` · ${h.pctOfTotal}% of total`}
+                      {h.avgDurationSeconds > 0 && ` · ${formatDuration(h.avgDurationSeconds)} avg`}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Legend */}
+        <div className="flex flex-wrap items-center gap-4 border-t border-neutral-100 px-5 py-3">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-neutral-400">
+            Click density
+          </span>
+          {([
+            { color: "#3b82f6", label: "Low" },
+            { color: "#eab308", label: "Medium" },
+            { color: "#ef4444", label: "High" },
+          ] as const).map(({ color, label }) => (
+            <div key={label} className="flex items-center gap-1.5">
+              <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color, opacity: 0.85 }} />
+              <span className="text-[10px] text-neutral-500">{label}</span>
+            </div>
+          ))}
+          <div className="ml-auto flex items-center gap-1.5">
+            <div
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ background: "rgba(156,163,175,0.5)", border: "1px solid rgba(156,163,175,0.6)" }}
+            />
+            <span className="text-[10px] text-neutral-500">No clicks</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Dashboard ─────────────────────────────────────────────────────
 
 function AnalyticsDashboard() {
