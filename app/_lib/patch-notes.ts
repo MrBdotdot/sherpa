@@ -6,6 +6,13 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.23.4",
+    date: "2026-04-14",
+    changes: [
+      "Heading and section links now work across cards — type (( to link to a heading on any card, clicking navigates there and scrolls to the heading",
+    ],
+  },
+  {
     version: "v0.23.3",
     date: "2026-04-14",
     changes: [
