@@ -172,6 +172,13 @@ export function ContentTab({
     const t = setTimeout(() => setHighlightBlockId(null), 1400);
     return () => clearTimeout(t);
   }, [scrollToBlockId]);
+
+  const anchorBlocks = selectedPage.blocks.filter(
+    (b) =>
+      (b.blockFormat === "h2" || b.blockFormat === "h3" || b.type === "section") &&
+      b.value.trim() !== ""
+  );
+
   const totalItems = selectedPage.blocks.length + selectedPage.socialLinks.length;
   const currentDisplayStyle = getDisplayStyleKey(selectedPage);
   const showTint = selectedPage.interactionType === "modal"
@@ -306,6 +313,7 @@ export function ContentTab({
                   isFirst={index === 0}
                   isLast={index === selectedPage.blocks.length - 1}
                   pages={pages}
+                  anchorBlocks={anchorBlocks}
                   selectedPageId={selectedPage.id}
                   onBlockChange={onBlockChange}
                   onBlockFitChange={onBlockFitChange}
