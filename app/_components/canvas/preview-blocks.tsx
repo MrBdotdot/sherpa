@@ -245,7 +245,7 @@ export function PreviewBlocks({
                                 onNavigate(pageId);
                                 setTimeout(() => {
                                   document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
-                                }, 150);
+                                }, 400);
                               }}
                               className="cursor-pointer font-bold underline underline-offset-2"
                               style={{ color }}

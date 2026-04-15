@@ -6,6 +6,13 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.23.5",
+    date: "2026-04-14",
+    changes: [
+      "Fix: cross-card heading links now reliably scroll to the target after navigating — increased scroll delay to account for card animation duration",
+    ],
+  },
+  {
     version: "v0.23.4",
     date: "2026-04-14",
     changes: [
