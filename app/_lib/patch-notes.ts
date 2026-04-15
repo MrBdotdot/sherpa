@@ -6,6 +6,16 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.23.0",
+    date: "2026-04-14",
+    changes: [
+      "Analytics dashboard now shows real data — sessions, hotspot performance, device breakdown, navigation paths",
+      "New panels: exit cards, search terms, peak usage by hour, language distribution",
+      "Date range picker with period-over-period comparison on all stat cards",
+      "Export any date range as a CSV from the analytics dashboard header",
+    ],
+  },
+  {
     version: "v0.22.7",
     date: "2026-04-14",
     changes: [
