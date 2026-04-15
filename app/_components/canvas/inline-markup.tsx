@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ContentBlock, PageItem } from "@/app/_lib/authoring-types";
+import { AnchorTarget, PageItem } from "@/app/_lib/authoring-types";
 
 // Pre-process ((label|target)) and {text|color} for ReactMarkdown
 export function processInlineMarkup(text: string): string {
@@ -16,19 +16,22 @@ export function resolveColor(raw: string, accentColor: string): string {
 }
 
 // Render plain text with ((label|target)) and {text|color} inline markup.
-// target may be a pageId (navigate) or a heading/section blockId (scroll).
+// target may be a pageId (navigate), a same-card blockId (scroll),
+// or a cross-card blockId (navigate to card then scroll).
 export function InlineWithLinks({
   text,
   pages,
   onNavigate,
   accentColor,
-  anchorBlocks,
+  anchorTargets,
+  currentPageId,
 }: {
   text: string;
   pages: PageItem[];
   onNavigate: (pageId: string) => void;
   accentColor: string;
-  anchorBlocks?: ContentBlock[];
+  anchorTargets?: AnchorTarget[];
+  currentPageId?: string;
 }) {
   const regex = /\(\(([^|)]+)\|([^)]+)\)\)|\{([^|}]+)\|([^}]+)\}/g;
   const parts: React.ReactNode[] = [];
@@ -46,7 +49,9 @@ export function InlineWithLinks({
       const target = match[2];
       const color = accentColor || "#2563eb";
       const isPage = pages.some((p) => p.id === target);
-      const isAnchor = !isPage && (anchorBlocks?.some((b) => b.id === target) ?? false);
+      const anchorTarget = !isPage ? anchorTargets?.find((t) => t.id === target) : undefined;
+      const isSameCardAnchor = !!anchorTarget && anchorTarget.pageId === currentPageId;
+      const isCrossCardAnchor = !!anchorTarget && anchorTarget.pageId !== currentPageId;
 
       if (isPage) {
         parts.push(
@@ -60,7 +65,7 @@ export function InlineWithLinks({
             {label}
           </button>
         );
-      } else if (isAnchor) {
+      } else if (isSameCardAnchor) {
         parts.push(
           <button
             key={k}
@@ -68,6 +73,25 @@ export function InlineWithLinks({
             onClick={(e) => {
               e.stopPropagation();
               document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+            className="inline cursor-pointer font-bold underline underline-offset-2"
+            style={{ color }}
+          >
+            {label}
+          </button>
+        );
+      } else if (isCrossCardAnchor) {
+        const pageId = anchorTarget.pageId;
+        parts.push(
+          <button
+            key={k}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onNavigate(pageId);
+              setTimeout(() => {
+                document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 150);
             }}
             className="inline cursor-pointer font-bold underline underline-offset-2"
             style={{ color }}
