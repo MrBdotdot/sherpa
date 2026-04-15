@@ -253,6 +253,7 @@ function AnalyticsDashboard() {
   useEffect(() => {
     boardFetchedRef.current = false;
     setBoardData(null);
+    setActiveTab("overview");
   }, [gameId]);
 
   const fetchAll = useCallback(async () => {
@@ -325,7 +326,7 @@ function AnalyticsDashboard() {
         .then((r) => r.json())
         .then(setBoardData)
         .catch(() => {
-          // boardData stays null — the overlay shows its empty state
+          boardFetchedRef.current = false; // allow retry on next tab switch
         });
     }
   }
