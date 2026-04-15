@@ -187,7 +187,7 @@ export function StepRailBlock({ block }: { block: ContentBlock }) {
 
   if (data.orientation === "vertical") {
     return (
-      <div className="flex flex-col items-center pt-1 w-10 flex-shrink-0">
+      <div className="flex flex-col items-center pt-1 w-14 flex-shrink-0">
         {data.steps.map((step, i) => (
           <React.Fragment key={step.id}>
             <button
@@ -201,14 +201,14 @@ export function StepRailBlock({ block }: { block: ContentBlock }) {
             >
               <SRStepIcon step={step} active={activeStepId === step.id} index={i} iconShape={data.iconShape} showPing={data.showPing} />
               {step.label && (
-                <span className="max-w-[40px] text-center text-[9px] font-medium leading-tight text-neutral-600">
+                <span className="max-w-[52px] text-center text-[9px] font-medium leading-tight text-neutral-600">
                   {step.label}
                 </span>
               )}
             </button>
             {i < data.steps.length - 1 && (
               <div
-                className="my-1 h-3 w-0.5 flex-none rounded-full"
+                className="my-1.5 h-4 w-0.5 flex-none rounded-full"
                 style={{ backgroundColor: activeIdx > i ? step.color : "#e5e7eb" }}
               />
             )}

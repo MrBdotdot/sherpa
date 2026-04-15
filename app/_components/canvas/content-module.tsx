@@ -270,17 +270,17 @@ export function ContentModule({
           {stepRailBlock && srOrientation === "vertical" && (
             // All three regions use the same two-column layout so the content
             // column stays at a consistent left edge throughout.
-            // Rail column is w-10 (40px) + gap-2 (8px) = 48px gutter.
+            // Rail column is w-14 (56px) + gap-3 (12px) = 68px gutter.
             <div className="space-y-2">
               {/* Title always in the content column */}
-              <div className="flex gap-2">
-                <div className="w-10 flex-shrink-0" />
+              <div className="flex gap-3">
+                <div className="w-14 flex-shrink-0" />
                 <div className="min-w-0 flex-1">{titleNode}</div>
               </div>
               {/* Pre-section content */}
               {(srPreBlocks.length > 0 || page.summary.trim()) && (
-                <div className="flex gap-2">
-                  <div className="w-10 flex-shrink-0" />
+                <div className="flex gap-3">
+                  <div className="w-14 flex-shrink-0" />
                   <div className="min-w-0 flex-1">
                     <PreviewBlocks
                       accentColor={accentColor}
@@ -294,8 +294,8 @@ export function ContentModule({
               )}
               {/* Rail beside linked sections — sticky within scroll container */}
               {srRailSpanBlocks.length > 0 && (
-                <div className="flex items-start gap-2">
-                  <div className="w-10 flex-shrink-0 self-start" style={{ position: "sticky", top: 0 }}>
+                <div className="flex items-start gap-3">
+                  <div className="w-14 flex-shrink-0 self-start" style={{ position: "sticky", top: 0 }}>
                     <StepRailBlock block={stepRailBlock} />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -305,8 +305,8 @@ export function ContentModule({
               )}
               {/* Post-section content */}
               {srPostBlocks.length > 0 && (
-                <div className="flex gap-2">
-                  <div className="w-10 flex-shrink-0" />
+                <div className="flex gap-3">
+                  <div className="w-14 flex-shrink-0" />
                   <div className="min-w-0 flex-1">{previewBlocks(srPostBlocks)}</div>
                 </div>
               )}

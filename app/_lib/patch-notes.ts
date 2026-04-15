@@ -6,6 +6,13 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.23.7",
+    date: "2026-04-14",
+    changes: [
+      "Step rail layout: wider rail column (56px), more breathing room between rail and content, taller connector segments and longer step labels",
+    ],
+  },
+  {
     version: "v0.23.6",
     date: "2026-04-14",
     changes: [
