@@ -6,6 +6,13 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.23.1",
+    date: "2026-04-14",
+    changes: [
+      "Analytics: new Heatmap tab shows hotspot click density overlaid on the board image",
+    ],
+  },
+  {
     version: "v0.23.0",
     date: "2026-04-14",
     changes: [
