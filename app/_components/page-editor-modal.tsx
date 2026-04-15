@@ -35,6 +35,7 @@ type PageEditorModalProps = {
   isOverlay?: boolean;
   onAddCanvasFeature: (type: CanvasFeatureType) => void;
   onAddBlock: (type: ContentBlockType) => void;
+  onInsertBlock: (type: ContentBlockType, atIndex: number) => void;
   onAddSocialLink: () => void;
   isPortraitMode?: boolean;
   onCanvasFeatureChange: (
@@ -142,6 +143,7 @@ export function PageEditorModal({
   isOverlay = true,
   onAddCanvasFeature,
   onAddBlock,
+  onInsertBlock,
   onAddSocialLink,
   onCanvasFeatureChange,
   onCanvasFeatureImageUpload,
@@ -374,6 +376,7 @@ export function PageEditorModal({
                   onBlockVerticalAlignChange={onBlockVerticalAlignChange}
                   onBlockFormatChange={onBlockFormatChange}
                   onAddBlock={onAddBlock}
+                  onInsertBlock={onInsertBlock}
                   onAddSocialLink={onAddSocialLink}
                   onBlockChange={onBlockChange}
                   onReplaceBlocks={onReplaceBlocks}

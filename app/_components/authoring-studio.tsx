@@ -183,7 +183,7 @@ export function AuthoringStudio({
   });
 
   const {
-    handleAddBlock, handleBlockChange, handleBlockVariantChange,
+    handleAddBlock, handleInsertBlock, handleBlockChange, handleBlockVariantChange,
     handleBlockImageFitChange, handleMoveBlockUp, handleMoveBlockDown,
     handleReorderBlocks, handleReplaceBlocks, handleBlockImageUpload, handleRemoveBlock,
     handleAddSocialLink, handleSocialLinkChange, handleRemoveSocialLink,
@@ -339,6 +339,7 @@ export function AuthoringStudio({
     inspectorTab,
     onAddCanvasFeature: handleAddCanvasFeature,
     onAddBlock: handleAddBlock,
+    onInsertBlock: handleInsertBlock,
     onAddSocialLink: handleAddSocialLink,
     onCanvasFeatureChange: handleCanvasFeatureChange,
     onCanvasFeatureImageUpload: handleCanvasFeatureImageUpload,

@@ -6,6 +6,13 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.24.1",
+    date: "2026-04-15",
+    changes: [
+      "Insert a block anywhere — hover between blocks in the Content tab to reveal the blue insert line, click to choose a block type at that position",
+    ],
+  },
+  {
     version: "v0.24.0",
     date: "2026-04-15",
     changes: [

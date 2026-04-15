@@ -9,6 +9,22 @@ import { SelectField } from "@/app/_components/editor/editor-ui";
 import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
 import { HintBubble } from "@/app/_components/hint-bubble";
 
+function InsertZone({ index, onInsert }: { index: number; onInsert: (i: number) => void }) {
+  return (
+    <div
+      className="group relative h-4 cursor-pointer"
+      onClick={() => onInsert(index)}
+    >
+      <div className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 items-center opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#3B82F6] text-xs font-bold text-white shadow-sm">
+          +
+        </div>
+        <div className="ml-1 h-px flex-1 bg-[#3B82F6]" />
+      </div>
+    </div>
+  );
+}
+
 function ActionLinkEditor({
   item,
   pages,
@@ -103,6 +119,7 @@ function ActionLinkEditor({
 
 export function ContentTab({
   onAddBlock,
+  onInsertBlock,
   onAddSocialLink,
   onBlockChange,
   onBlockFitChange,
@@ -128,6 +145,7 @@ export function ContentTab({
   selectedPage,
 }: {
   onAddBlock: (type: ContentBlockType) => void;
+  onInsertBlock: (type: ContentBlockType, atIndex: number) => void;
   onAddSocialLink: () => void;
   onBlockChange: (blockId: string, value: string) => void;
   onBlockFitChange: (blockId: string, fit: ImageFit) => void;
@@ -156,7 +174,13 @@ export function ContentTab({
   const [highlightBlockId, setHighlightBlockId] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const [insertAtIndex, setInsertAtIndex] = useState<number | null>(null);
   const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  function openPickerAt(index: number) {
+    setInsertAtIndex(index);
+    setPickerOpen(true);
+  }
 
   const handleDrop = useCallback((overIndex: number) => {
     if (dragIndex === null) return;
@@ -284,65 +308,69 @@ export function ContentTab({
       {/* Blocks + social links */}
       {totalItems > 0 ? (
         <div className="space-y-3">
+          <InsertZone index={0} onInsert={openPickerAt} />
           {selectedPage.blocks.map((block, index) => {
             const showDropLine = dropIndex === index && dragIndex !== null && dragIndex !== index && dragIndex !== index - 1;
             return (
-              <div
-                key={block.id}
-                ref={(el) => { blockRefs.current[block.id] = el; }}
-                className={`group relative rounded-2xl transition-shadow duration-300 ${highlightBlockId === block.id ? "ring-4 ring-black/25 shadow-lg" : ""} ${dragIndex === index ? "opacity-40" : ""}`}
-                onDragOver={(e) => { e.preventDefault(); setDropIndex(index); }}
-                onDrop={(e) => { e.preventDefault(); handleDrop(index); }}
-              >
-                {showDropLine && (
-                  <div className="pointer-events-none absolute -top-2 inset-x-2 z-20 h-0.5 rounded-full bg-blue-500" />
-                )}
-                {/* Drag handle */}
+              <>
                 <div
-                  draggable
-                  onDragStart={(e) => {
-                    setDragIndex(index);
-                    e.dataTransfer.effectAllowed = "move";
-                    const el = blockRefs.current[block.id];
-                    if (el) e.dataTransfer.setDragImage(el, 40, 20);
-                  }}
-                  onDragEnd={() => { setDragIndex(null); setDropIndex(null); }}
-                  className="absolute inset-y-0 left-0 z-10 flex w-6 cursor-grab items-center justify-center rounded-l-2xl opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/5 active:cursor-grabbing"
-                  aria-label="Drag to reorder"
+                  key={block.id}
+                  ref={(el) => { blockRefs.current[block.id] = el; }}
+                  className={`group relative rounded-2xl transition-shadow duration-300 ${highlightBlockId === block.id ? "ring-4 ring-black/25 shadow-lg" : ""} ${dragIndex === index ? "opacity-40" : ""}`}
+                  onDragOver={(e) => { e.preventDefault(); setDropIndex(index); }}
+                  onDrop={(e) => { e.preventDefault(); handleDrop(index); }}
                 >
-                  <svg width="10" height="14" viewBox="0 0 10 14" fill="none" aria-hidden="true">
-                    <circle cx="3" cy="3" r="1.2" fill="#9ca3af"/>
-                    <circle cx="7" cy="3" r="1.2" fill="#9ca3af"/>
-                    <circle cx="3" cy="7" r="1.2" fill="#9ca3af"/>
-                    <circle cx="7" cy="7" r="1.2" fill="#9ca3af"/>
-                    <circle cx="3" cy="11" r="1.2" fill="#9ca3af"/>
-                    <circle cx="7" cy="11" r="1.2" fill="#9ca3af"/>
-                  </svg>
+                  {showDropLine && (
+                    <div className="pointer-events-none absolute -top-2 inset-x-2 z-20 h-0.5 rounded-full bg-blue-500" />
+                  )}
+                  {/* Drag handle */}
+                  <div
+                    draggable
+                    onDragStart={(e) => {
+                      setDragIndex(index);
+                      e.dataTransfer.effectAllowed = "move";
+                      const el = blockRefs.current[block.id];
+                      if (el) e.dataTransfer.setDragImage(el, 40, 20);
+                    }}
+                    onDragEnd={() => { setDragIndex(null); setDropIndex(null); }}
+                    className="absolute inset-y-0 left-0 z-10 flex w-6 cursor-grab items-center justify-center rounded-l-2xl opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/5 active:cursor-grabbing"
+                    aria-label="Drag to reorder"
+                  >
+                    <svg width="10" height="14" viewBox="0 0 10 14" fill="none" aria-hidden="true">
+                      <circle cx="3" cy="3" r="1.2" fill="#9ca3af"/>
+                      <circle cx="7" cy="3" r="1.2" fill="#9ca3af"/>
+                      <circle cx="3" cy="7" r="1.2" fill="#9ca3af"/>
+                      <circle cx="7" cy="7" r="1.2" fill="#9ca3af"/>
+                      <circle cx="3" cy="11" r="1.2" fill="#9ca3af"/>
+                      <circle cx="7" cy="11" r="1.2" fill="#9ca3af"/>
+                    </svg>
+                  </div>
+                  <BlockEditor
+                    block={block}
+                    index={index}
+                    isFirst={index === 0}
+                    isLast={index === selectedPage.blocks.length - 1}
+                    pages={pages}
+                    anchorTargets={anchorTargets}
+                    selectedPageId={selectedPage.id}
+                    onBlockChange={onBlockChange}
+                    onReplaceBlocks={onReplaceBlocks}
+                    onBlockFitChange={onBlockFitChange}
+                    onBlockImagePositionChange={onBlockImagePositionChange}
+                    onBlockPropsChange={onBlockPropsChange}
+                    onBlockFormatChange={onBlockFormatChange}
+                    onBlockImageUpload={onBlockImageUpload}
+                    onBlockVariantChange={onBlockVariantChange}
+                    onBlockVerticalAlignChange={onBlockVerticalAlignChange}
+                    onBlockWidthChange={onBlockWidthChange}
+                    onBlockTextAlignChange={onBlockTextAlignChange}
+                    onMoveBlockDown={onMoveBlockDown}
+                    onMoveBlockUp={onMoveBlockUp}
+                    onRemoveBlock={onRemoveBlock}
+                  />
                 </div>
-                <BlockEditor
-                  block={block}
-                  index={index}
-                  isFirst={index === 0}
-                  isLast={index === selectedPage.blocks.length - 1}
-                  pages={pages}
-                  anchorTargets={anchorTargets}
-                  selectedPageId={selectedPage.id}
-                  onBlockChange={onBlockChange}
-                  onReplaceBlocks={onReplaceBlocks}
-                  onBlockFitChange={onBlockFitChange}
-                  onBlockImagePositionChange={onBlockImagePositionChange}
-                  onBlockPropsChange={onBlockPropsChange}
-                  onBlockFormatChange={onBlockFormatChange}
-                  onBlockImageUpload={onBlockImageUpload}
-                  onBlockVariantChange={onBlockVariantChange}
-                  onBlockVerticalAlignChange={onBlockVerticalAlignChange}
-                  onBlockWidthChange={onBlockWidthChange}
-                  onBlockTextAlignChange={onBlockTextAlignChange}
-                  onMoveBlockDown={onMoveBlockDown}
-                  onMoveBlockUp={onMoveBlockUp}
-                  onRemoveBlock={onRemoveBlock}
-                />
-              </div>
+                <InsertZone key={`insert-${block.id}`} index={index + 1} onInsert={openPickerAt} />
+              </>
             );
           })}
 
@@ -383,9 +411,16 @@ export function ContentTab({
 
       {pickerOpen ? (
         <BlockPickerModal
-          onAddBlock={onAddBlock}
+          onAddBlock={(type) => {
+            if (insertAtIndex !== null) {
+              onInsertBlock(type, insertAtIndex);
+            } else {
+              onAddBlock(type);
+            }
+            setInsertAtIndex(null);
+          }}
           onAddSocialLink={onAddSocialLink}
-          onClose={() => setPickerOpen(false)}
+          onClose={() => { setPickerOpen(false); setInsertAtIndex(null); }}
         />
       ) : null}
     </div>
