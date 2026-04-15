@@ -41,7 +41,7 @@ export async function GET(request: Request) {
     hogql(`
       SELECT
         properties.cardTitle AS title,
-        avg(toFloat64OrNull(properties.durationSeconds)) AS avg_seconds
+        avg(toFloatOrDefault(properties.durationSeconds)) AS avg_seconds
       FROM events
       WHERE event = 'card_closed'
         AND properties.gameId = '${gameId}'

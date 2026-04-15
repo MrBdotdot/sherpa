@@ -23,12 +23,14 @@ export function SearchFeatureCard({
   pages = [],
   fontThemeClass = "font-sans",
   onNavigate,
+  onSearch,
   surfaceStyleClass,
 }: {
   feature: CanvasFeature;
   pages: PageItem[];
   fontThemeClass?: string;
   onNavigate?: (id: string) => void;
+  onSearch?: (query: string) => void;
   surfaceStyleClass: string;
 }) {
   const [query, setQuery] = useState("");
@@ -55,6 +57,7 @@ export function SearchFeatureCard({
   const dividerClass = isContrast ? "border-t border-white/10" : "border-t border-neutral-100";
 
   function navigate(pageId: string) {
+    if (query.trim()) onSearch?.(query.trim());
     onNavigate?.(pageId);
     setQuery("");
     setOpen(false);

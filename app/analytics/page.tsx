@@ -51,7 +51,7 @@ function getRangeParams(from: Date, to: Date): { from: string; to: string; compa
   const compareTo = from;
   return {
     from: formatDate(from),
-    to: formatDate(to),
+    to: formatDate(addDays(to, 1)), // exclusive upper bound — include all events on the `to` day
     compareFrom: formatDate(compareFrom),
     compareTo: formatDate(compareTo),
   };

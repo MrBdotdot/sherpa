@@ -311,6 +311,7 @@ export function PlayerView({
           onSelectCanvasFeature={NOOP}
           onLanguageChange={handleLanguageChange}
           onSelectPage={handleSelectPage}
+          onSearch={(q) => posthog?.capture("search_performed", { gameId, query: q })}
         />
       </div>
 

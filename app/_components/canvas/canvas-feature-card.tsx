@@ -172,6 +172,7 @@ export function CanvasFeatureCard({
   fontThemeClass = "font-sans",
   isInteractive = true,
   onNavigate,
+  onSearch,
   onLanguageChange,
   surfaceStyleClass,
 }: {
@@ -183,6 +184,7 @@ export function CanvasFeatureCard({
   fontThemeClass?: string;
   isInteractive?: boolean;
   onNavigate?: (id: string) => void;
+  onSearch?: (query: string) => void;
   onLanguageChange?: (languageCode: string) => void;
   surfaceStyleClass: string;
 }) {
@@ -193,6 +195,7 @@ export function CanvasFeatureCard({
         pages={pages}
         fontThemeClass={fontThemeClass}
         onNavigate={onNavigate}
+        onSearch={onSearch}
         surfaceStyleClass={surfaceStyleClass}
       />
     );

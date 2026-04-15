@@ -97,6 +97,7 @@ export const FeaturePlacer = memo(function FeaturePlacer({
   onSelectCanvasFeature,
   onLanguageChange,
   onSelectPage,
+  onSearch,
 }: {
   features: CanvasFeature[];
   isLayoutEditMode: boolean;
@@ -112,6 +113,7 @@ export const FeaturePlacer = memo(function FeaturePlacer({
   onSelectCanvasFeature: (featureId: string) => void;
   onLanguageChange?: (languageCode: string) => void;
   onSelectPage: (id: string) => void;
+  onSearch?: (query: string) => void;
 }) {
   return (
     <>
@@ -149,6 +151,7 @@ export const FeaturePlacer = memo(function FeaturePlacer({
               fontThemeClass={fontThemeClass}
               isInteractive={isPreviewMode}
               onNavigate={onSelectPage}
+              onSearch={onSearch}
               onLanguageChange={onLanguageChange}
               surfaceStyleClass={surfaceStyleClass}
             />
