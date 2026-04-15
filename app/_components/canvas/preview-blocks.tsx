@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ContentBlock, PageItem } from "@/app/_lib/authoring-types";
+import { AnchorTarget, PageItem } from "@/app/_lib/authoring-types";
 import { ConsentFormBlock } from "@/app/_components/canvas/consent-form-block";
 import { processInlineMarkup, resolveColor, InlineWithLinks } from "@/app/_components/canvas/inline-markup";
 import { SectionBlock } from "@/app/_components/canvas/step-rail-block";
@@ -58,14 +58,28 @@ export function PreviewBlocks({
   const dotColor = accentColor || "#171717";
   const canLink = !!(onNavigate && pages);
 
-  const anchorBlocks = useMemo(
-    () =>
-      displayPage.blocks.filter(
-        (b) =>
-          (b.blockFormat === "h2" || b.blockFormat === "h3" || b.type === "section") &&
-          b.value.trim() !== ""
-      ),
-    [displayPage.blocks]
+  const anchorTargets = useMemo<AnchorTarget[]>(
+    () => {
+      const allPages = pages ?? [];
+      const hasCurrentPage = allPages.some((p) => p.id === displayPage.id);
+      const pagesForAnchors = hasCurrentPage ? allPages : [displayPage, ...allPages];
+      return pagesForAnchors.flatMap((page) =>
+        page.blocks
+          .filter(
+            (b) =>
+              (b.blockFormat === "h2" || b.blockFormat === "h3" || b.type === "section") &&
+              b.value.trim() !== ""
+          )
+          .map((b) => ({
+            id: b.id,
+            label: b.value,
+            pageId: page.id,
+            pageTitle: page.title || "Untitled",
+            kind: (b.blockFormat === "h2" ? "h2" : b.blockFormat === "h3" ? "h3" : "section") as AnchorTarget["kind"],
+          }))
+      );
+    },
+    [pages, displayPage]
   );
 
   const hasHalfBlock = displayPage.blocks.some((b) => b.blockWidth === "half");
@@ -128,7 +142,7 @@ export function PreviewBlocks({
                     <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: dotColor }} />
                     <span className="text-sm leading-6 text-neutral-700">
                       {canLink ? (
-                        <InlineWithLinks text={item} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} anchorBlocks={anchorBlocks} />
+                        <InlineWithLinks text={item} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} anchorTargets={anchorTargets} currentPageId={displayPage.id} />
                       ) : item}
                     </span>
                   </li>
@@ -156,7 +170,7 @@ export function PreviewBlocks({
                     </span>
                     <span className="text-sm leading-6 text-neutral-700">
                       {canLink ? (
-                        <InlineWithLinks text={item} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} anchorBlocks={anchorBlocks} />
+                        <InlineWithLinks text={item} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} anchorTargets={anchorTargets} currentPageId={displayPage.id} />
                       ) : item}
                     </span>
                   </li>
@@ -191,7 +205,9 @@ export function PreviewBlocks({
                         const target = href.slice("sherpa-link:".length);
                         const color = accentColor || "#2563eb";
                         const isPage = pages?.some((p) => p.id === target);
-                        const isAnchor = !isPage && anchorBlocks.some((b) => b.id === target);
+                        const anchorTarget = !isPage ? anchorTargets.find((t) => t.id === target) : undefined;
+                        const isSameCardAnchor = !!anchorTarget && anchorTarget.pageId === displayPage.id;
+                        const isCrossCardAnchor = !!anchorTarget && anchorTarget.pageId !== displayPage.id;
                         if (isPage && onNavigate) {
                           return (
                             <button
@@ -204,13 +220,32 @@ export function PreviewBlocks({
                             </button>
                           );
                         }
-                        if (isAnchor) {
+                        if (isSameCardAnchor) {
                           return (
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                              }}
+                              className="cursor-pointer font-bold underline underline-offset-2"
+                              style={{ color }}
+                            >
+                              {children}
+                            </button>
+                          );
+                        }
+                        if (isCrossCardAnchor && onNavigate) {
+                          const pageId = anchorTarget.pageId;
+                          return (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onNavigate(pageId);
+                                setTimeout(() => {
+                                  document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                }, 150);
                               }}
                               className="cursor-pointer font-bold underline underline-offset-2"
                               style={{ color }}
@@ -263,7 +298,8 @@ export function PreviewBlocks({
                     pages={pages!}
                     onNavigate={onNavigate!}
                     accentColor={accentColor}
-                    anchorBlocks={anchorBlocks}
+                    anchorTargets={anchorTargets}
+                    currentPageId={displayPage.id}
                   />
                 ) : (block.value || "Empty callout block")}
               </span>
@@ -358,7 +394,7 @@ export function PreviewBlocks({
   const summary = displayPage.summary.trim() ? (
     <p className="text-sm leading-6 text-neutral-600">
       {canLink ? (
-        <InlineWithLinks text={displayPage.summary} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} anchorBlocks={anchorBlocks} />
+        <InlineWithLinks text={displayPage.summary} pages={pages!} onNavigate={onNavigate!} accentColor={accentColor} anchorTargets={anchorTargets} currentPageId={displayPage.id} />
       ) : (
         displayPage.summary
       )}
