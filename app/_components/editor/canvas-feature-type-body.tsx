@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent } from "react";
+import { ChangeEvent, useRef } from "react";
 import {
   CanvasFeature,
   CanvasFeatureField,
@@ -8,6 +8,76 @@ import {
 } from "@/app/_lib/authoring-types";
 import { DropdownFeatureEditor } from "@/app/_components/editor/dropdown-feature-editor";
 import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
+
+const LOGO_SIZE_MIN = 24;
+const LOGO_SIZE_MAX = 400;
+
+function ImageResizePreview({
+  imageUrl,
+  logoSize,
+  onResize,
+  onRemove,
+}: {
+  imageUrl: string;
+  logoSize: number;
+  onResize: (newSize: number) => void;
+  onRemove: () => void;
+}) {
+  const startRef = useRef<{ y: number; size: number } | null>(null);
+
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
+    startRef.current = { y: e.clientY, size: logoSize };
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!startRef.current) return;
+    const delta = e.clientY - startRef.current.y;
+    const newSize = Math.max(LOGO_SIZE_MIN, Math.min(LOGO_SIZE_MAX, startRef.current.size + delta));
+    onResize(Math.round(newSize));
+  }
+
+  function handlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    (e.currentTarget as HTMLDivElement).releasePointerCapture(e.pointerId);
+    startRef.current = null;
+  }
+
+  return (
+    <div className="relative inline-block" style={{ maxWidth: "100%" }}>
+      <img
+        src={imageUrl}
+        alt="Image preview"
+        className="block rounded-lg border border-neutral-200 object-contain"
+        style={{ height: logoSize, maxWidth: "100%" }}
+      />
+      {/* Corner resize handle */}
+      <div
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        title="Drag to resize"
+        className="absolute bottom-0 right-0 flex h-3.5 w-3.5 translate-x-1/2 translate-y-1/2 cursor-se-resize items-center justify-center rounded-sm border border-neutral-300 bg-white shadow-sm"
+        aria-label="Resize image"
+      >
+        <svg width="7" height="7" viewBox="0 0 7 7" fill="none" aria-hidden="true">
+          <path d="M1 6L6 1M3.5 6L6 3.5" stroke="#9ca3af" strokeWidth="1.2" strokeLinecap="round"/>
+        </svg>
+      </div>
+      {/* Pixel readout */}
+      <div className="mt-1.5 text-center text-xs text-neutral-400">{logoSize}px</div>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="mt-1 block text-xs text-neutral-400 hover:text-red-500"
+      >
+        Remove
+      </button>
+    </div>
+  );
+}
 
 type Props = {
   feature: CanvasFeature;
@@ -66,34 +136,15 @@ export function CanvasFeatureTypeBody({
               />
             </label>
             {feature.imageUrl ? (
-              <div className="flex items-center gap-2">
-                <img src={feature.imageUrl} alt="Image" className="h-10 w-auto max-w-[120px] rounded-lg border border-neutral-200 object-contain p-1" />
-                <button
-                  type="button"
-                  onClick={() => onCanvasFeatureChange(feature.id, "imageUrl", "")}
-                  className="text-xs text-neutral-400 hover:text-red-500"
-                >
-                  Remove
-                </button>
+              <div className="space-y-2">
+                <ImageResizePreview
+                  imageUrl={feature.imageUrl}
+                  logoSize={feature.logoSize ?? 80}
+                  onResize={(newSize) => onCanvasFeatureChange(feature.id, "logoSize", String(newSize))}
+                  onRemove={() => onCanvasFeatureChange(feature.id, "imageUrl", "")}
+                />
               </div>
             ) : null}
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Size</div>
-              <div className="text-xs text-neutral-500">{feature.logoSize ?? 48}px</div>
-            </div>
-            <input
-              type="range"
-              min={24}
-              max={160}
-              step={4}
-              value={feature.logoSize ?? 48}
-              onChange={(e) => onCanvasFeatureChange(feature.id, "logoSize", e.target.value)}
-              aria-label="Image size"
-              aria-valuetext={`${feature.logoSize ?? 48}px`}
-              className="w-full accent-[#3B82F6]"
-            />
           </div>
           <div className="space-y-2">
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Behavior</div>

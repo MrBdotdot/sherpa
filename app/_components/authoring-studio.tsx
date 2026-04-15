@@ -437,6 +437,7 @@ export function AuthoringStudio({
       panels.setIsInspectorOpen(true);
       handleSelectCanvasFeature(featureId);
     },
+    onCanvasFeatureChange: handleCanvasFeatureChange,
     onContentCardPointerDown: handleContentCardPointerDown,
     onDeleteHotspot: handleDeleteHotspot,
     onDismissContent: handleDismissContent,

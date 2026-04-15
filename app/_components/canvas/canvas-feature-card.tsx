@@ -51,7 +51,7 @@ function ImageFeatureCard({
           src={feature.imageUrl}
           alt={feature.label}
           className="block w-auto max-w-none object-contain drop-shadow-sm"
-          style={{ height: feature.logoSize ?? 48 }}
+          style={{ height: feature.logoSize ?? 80 }}
         />
       </button>
       {hasLinks && open ? (

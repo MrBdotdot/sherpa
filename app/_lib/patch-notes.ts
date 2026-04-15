@@ -6,6 +6,15 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.23.9",
+    date: "2026-04-15",
+    changes: [
+      "Board image elements: drag the corner handle to resize directly on the canvas — no more slider",
+      "Inspector image preview now shows live size and has its own corner drag handle",
+      "Image element default size raised from 48px to 80px, max raised from 160px to 400px",
+    ],
+  },
+  {
     version: "v0.23.8",
     date: "2026-04-14",
     changes: [

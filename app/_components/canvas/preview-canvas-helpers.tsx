@@ -1,9 +1,57 @@
-import { memo } from "react";
-import { CanvasFeature, PageItem } from "@/app/_lib/authoring-types";
+import { memo, useRef } from "react";
+import { CanvasFeature, CanvasFeatureField, PageItem } from "@/app/_lib/authoring-types";
 import { getFeatureTypeLabel } from "@/app/_lib/label-utils";
 import { CanvasFeatureCard } from "@/app/_components/canvas/canvas-feature-card";
 import { CanvasDragBadge } from "@/app/_components/canvas/canvas-drag-badge";
 import { LocaleLanguage } from "@/app/_lib/localization";
+
+const LOGO_SIZE_MIN = 24;
+const LOGO_SIZE_MAX = 400;
+
+function BoardResizeHandle({
+  logoSize,
+  onResize,
+}: {
+  logoSize: number;
+  onResize: (newSize: number) => void;
+}) {
+  const startRef = useRef<{ y: number; size: number } | null>(null);
+
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
+    startRef.current = { y: e.clientY, size: logoSize };
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!startRef.current) return;
+    const delta = e.clientY - startRef.current.y;
+    const newSize = Math.max(LOGO_SIZE_MIN, Math.min(LOGO_SIZE_MAX, startRef.current.size + delta));
+    onResize(Math.round(newSize));
+  }
+
+  function handlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    (e.currentTarget as HTMLDivElement).releasePointerCapture(e.pointerId);
+    startRef.current = null;
+  }
+
+  return (
+    <div
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      title="Drag to resize"
+      className="absolute bottom-0 right-0 z-30 flex h-3.5 w-3.5 translate-x-1/2 translate-y-1/2 cursor-se-resize items-center justify-center rounded-sm border border-neutral-300 bg-white shadow-sm"
+      aria-label="Resize image"
+    >
+      <svg width="7" height="7" viewBox="0 0 7 7" fill="none" aria-hidden="true">
+        <path d="M1 6L6 1M3.5 6L6 3.5" stroke="#9ca3af" strokeWidth="1.2" strokeLinecap="round"/>
+      </svg>
+    </div>
+  );
+}
 
 export type FeatureDragState = {
   id: string;
@@ -95,6 +143,7 @@ export const FeaturePlacer = memo(function FeaturePlacer({
   dragThresholdRef,
   onCanvasFeaturePointerDown,
   onSelectCanvasFeature,
+  onCanvasFeatureChange,
   onLanguageChange,
   onSelectPage,
   onSearch,
@@ -111,6 +160,7 @@ export const FeaturePlacer = memo(function FeaturePlacer({
   dragThresholdRef?: React.RefObject<boolean>;
   onCanvasFeaturePointerDown: (event: React.PointerEvent<HTMLDivElement>, featureId: string) => void;
   onSelectCanvasFeature: (featureId: string) => void;
+  onCanvasFeatureChange?: (featureId: string, field: CanvasFeatureField, value: string) => void;
   onLanguageChange?: (languageCode: string) => void;
   onSelectPage: (id: string) => void;
   onSearch?: (query: string) => void;
@@ -141,7 +191,7 @@ export const FeaturePlacer = memo(function FeaturePlacer({
               }}
             />
           ) : null}
-          <div className={isLayoutEditMode ? "pointer-events-none" : ""}>
+          <div className={`relative ${isLayoutEditMode ? "pointer-events-none" : ""}`}>
             <CanvasFeatureCard
               accentColor={accentColor}
               feature={feature}
@@ -155,6 +205,12 @@ export const FeaturePlacer = memo(function FeaturePlacer({
               onLanguageChange={onLanguageChange}
               surfaceStyleClass={surfaceStyleClass}
             />
+            {isLayoutEditMode && feature.type === "image" && onCanvasFeatureChange ? (
+              <BoardResizeHandle
+                logoSize={feature.logoSize ?? 80}
+                onResize={(newSize) => onCanvasFeatureChange(feature.id, "logoSize", String(newSize))}
+              />
+            ) : null}
           </div>
         </div>
       ))}

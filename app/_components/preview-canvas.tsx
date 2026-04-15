@@ -15,6 +15,7 @@ const ModelViewer = dynamic(
 import { HotspotPin } from "@/app/_components/canvas/hotspot-pin";
 import { getExperienceStatusLabel } from "@/app/_lib/label-utils";
 import {
+  CanvasFeatureField,
   ExperienceStatus,
   LayoutMode,
   PageItem,
@@ -59,6 +60,7 @@ type PreviewCanvasProps = {
     featureId: string
   ) => void;
   onSelectCanvasFeature: (featureId: string) => void;
+  onCanvasFeatureChange?: (featureId: string, field: CanvasFeatureField, value: string) => void;
   onContentCardPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
   onDeleteHotspot: (pageId: string) => void;
   onDismissLayoutHelp: () => void;
@@ -127,6 +129,7 @@ export function PreviewCanvas({
   onPlace3dHotspot,
   onCanvasFeaturePointerDown,
   onSelectCanvasFeature,
+  onCanvasFeatureChange,
   onContentCardPointerDown,
   onDeleteHotspot,
   onDismissContent,
@@ -397,6 +400,7 @@ export function PreviewCanvas({
     dragThresholdRef,
     onCanvasFeaturePointerDown,
     onSelectCanvasFeature,
+    onCanvasFeatureChange,
     onLanguageChange,
     onSelectPage,
   };
