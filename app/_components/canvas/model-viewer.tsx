@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useRef, useState } from "react";
+import { Component, Suspense, useMemo, useRef, useState } from "react";
 import { Canvas, ThreeEvent, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, useGLTF, Environment, Html } from "@react-three/drei";
 import * as THREE from "three";
@@ -20,6 +20,36 @@ type HotspotMarker = {
   title?: string;
   isSelected: boolean;
 };
+
+// ── Error boundary ───────────────────────────────────────────────────────────
+
+class ModelLoadErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="absolute inset-0 flex items-center justify-center bg-neutral-900">
+          <div className="px-6 text-center">
+            <p className="text-sm font-medium text-white/70">Failed to load 3D model</p>
+            <p className="mt-1 text-[11px] text-white/40">
+              The file may be too large, corrupted, or an unsupported format.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ── Hotspot sphere marker (authoring mode) ───────────────────────────────────
 
@@ -348,6 +378,7 @@ export function ModelViewer({
   const useEnv = !!environment && environment !== "none";
 
   return (
+    <ModelLoadErrorBoundary>
     <div
       className="absolute inset-0 bg-neutral-900"
       onPointerDown={(e) => e.stopPropagation()}
@@ -448,5 +479,6 @@ export function ModelViewer({
         </div>
       )}
     </div>
+    </ModelLoadErrorBoundary>
   );
 }

@@ -253,6 +253,12 @@ export function OverviewTab({
                               onChange={(event) => {
                                 const file = event.target.files?.[0];
                                 if (!file) return;
+                                const MAX_MB = 50;
+                                if (file.size > MAX_MB * 1024 * 1024) {
+                                  alert(`This file is ${Math.round(file.size / 1024 / 1024)} MB. Please use a file under ${MAX_MB} MB.`);
+                                  event.target.value = "";
+                                  return;
+                                }
                                 const url = URL.createObjectURL(file);
                                 onSystemSettingChange("modelUrl", url);
                               }}

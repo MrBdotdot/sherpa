@@ -6,6 +6,14 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.23.2",
+    date: "2026-04-14",
+    changes: [
+      "Fix: 3D model upload no longer crashes the page on load failure or after page reload",
+      "Fix: uploading a 3D model file over 50 MB is now blocked with a clear error message",
+    ],
+  },
+  {
     version: "v0.23.1",
     date: "2026-04-14",
     changes: [
