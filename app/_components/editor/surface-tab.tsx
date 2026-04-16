@@ -117,6 +117,7 @@ function getLayoutLabel(layoutMode: LayoutMode) {
 
 export function SurfaceTab({
   layoutMode,
+  onAddHotspot,
   onAddCanvasFeature,
   onCanvasFeatureChange,
   onCanvasFeatureImageUpload,
@@ -132,6 +133,7 @@ export function SurfaceTab({
   brandColors,
 }: {
   layoutMode: LayoutMode;
+  onAddHotspot: () => void;
   onAddCanvasFeature: (type: CanvasFeatureType) => void;
   onCanvasFeatureChange: (featureId: string, field: CanvasFeatureField, value: string) => void;
   onCanvasFeatureImageUpload: (featureId: string, event: ChangeEvent<HTMLInputElement>) => void;
@@ -312,6 +314,23 @@ export function SurfaceTab({
             </div>
             {/* Items */}
             <div className="py-2">
+              {/* Hotspot — always first */}
+              <button
+                type="button"
+                onClick={() => {
+                  onAddHotspot();
+                  setPickerOpen(false);
+                }}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-neutral-50"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500">
+                  <CanvasElementIcon type="hotspot" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-neutral-900">Hotspot</div>
+                  <div className="text-xs text-neutral-400">Pulsing pin that opens a content card</div>
+                </div>
+              </button>
               {CANVAS_ELEMENT_TYPES.map((item, i) => {
                 const isSingleton = item.type === "search" || item.type === "locale";
                 const alreadyExists = isSingleton && selectedPage.canvasFeatures.some((f) => f.type === item.type);
