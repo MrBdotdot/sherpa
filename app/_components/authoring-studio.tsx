@@ -157,7 +157,7 @@ export function AuthoringStudio({
     handleHotspotPointerDown, handleCanvasFeaturePointerDown,
     handleContentCardPointerDown, handleCanvasClick,
     handle3dHotspotPlace, handleDismissContent, handleTogglePreviewMode,
-    handleSelectCanvasFeature,
+    handleSelectCanvasFeature, handleAddHotspot,
   } = useDrag({
     pages, setPages, selectedPageId, setSelectedPageId,
     isPreviewMode, setIsPreviewMode, setIsContentModalOpen,
@@ -339,6 +339,7 @@ export function AuthoringStudio({
     hotspotPages: localizedHotspotPages,
     inspectorTab,
     onAddCanvasFeature: handleAddCanvasFeature,
+    onAddHotspot: handleAddHotspot,
     onAddBlock: handleAddBlock,
     onInsertBlock: handleInsertBlock,
     onAddSocialLink: handleAddSocialLink,
@@ -652,6 +653,7 @@ export function AuthoringStudio({
           extraEntries={extraPaletteEntries}
           onSelectPage={(id) => openPageEditor(id)}
           onAddCanvasFeature={handleAddCanvasFeature}
+          onAddHotspot={handleAddHotspot}
           onAddBlock={handleAddBlock}
           onCreatePage={() => {
             const id = handleCreatePageForButton();
