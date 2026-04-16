@@ -80,6 +80,564 @@ function ImageResizePreview({
   );
 }
 
+function ImageFeatureBody({
+  feature,
+  onCanvasFeatureChange,
+  onCanvasFeatureImageUpload,
+  pages,
+  onOpenPage,
+  onCreatePageForButton,
+}: {
+  feature: CanvasFeature;
+  onCanvasFeatureChange: (featureId: string, field: CanvasFeatureField, value: string) => void;
+  onCanvasFeatureImageUpload: (featureId: string, event: ChangeEvent<HTMLInputElement>) => void;
+  pages: PageItem[];
+  onOpenPage: (id: string) => void;
+  onCreatePageForButton: () => string;
+}) {
+  return (
+    <>
+      <div className="space-y-2">
+        <FieldLabel className="mb-0">Image</FieldLabel>
+        <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
+          Upload image
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(event) => onCanvasFeatureImageUpload(feature.id, event)}
+            className="hidden"
+          />
+        </label>
+        {feature.imageUrl ? (
+          <div className="space-y-2">
+            <ImageResizePreview
+              imageUrl={feature.imageUrl}
+              logoSize={feature.logoSize ?? 80}
+              onResize={(newSize) => onCanvasFeatureChange(feature.id, "logoSize", String(newSize))}
+              onRemove={() => onCanvasFeatureChange(feature.id, "imageUrl", "")}
+            />
+          </div>
+        ) : null}
+      </div>
+      <div className="space-y-2">
+        <FieldLabel className="mb-0">Behavior</FieldLabel>
+        <div className="flex gap-2">
+          {(["none", "link", "links"] as const).map((mode) => {
+            const isActive = mode === "none"
+              ? !feature.description || feature.description === "none"
+              : feature.description === mode;
+            return (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => onCanvasFeatureChange(feature.id, "description", mode === "none" ? "" : mode)}
+                aria-pressed={isActive}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                  isActive
+                    ? "border-[#3B82F6] bg-[#3B82F6] text-white"
+                    : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
+                }`}
+              >
+                {mode === "none" ? "None" : mode === "link" ? "Goes to a link" : "Shows link list"}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      {feature.description === "link" ? (
+        <InputField
+          type="text"
+          value={feature.linkUrl}
+          onChange={(event) => onCanvasFeatureChange(feature.id, "linkUrl", event.target.value)}
+          placeholder="Destination URL"
+          aria-label="Destination URL"
+        />
+      ) : feature.description === "links" ? (
+        <div className="space-y-2">
+          <FieldLabel className="mb-0">Links, one per line</FieldLabel>
+          <TextareaField
+            size="xs"
+            className="py-3 font-mono"
+            value={feature.optionsText}
+            onChange={(event) => onCanvasFeatureChange(feature.id, "optionsText", event.target.value)}
+            placeholder={"Landing Page|https://...\nInstagram|https://...\n---\nPortfolio|https://...\n~Designed by Name. Open to work."}
+            aria-label="Links, one per line"
+            rows={6}
+          />
+          <div className="text-xs leading-5 text-neutral-500">
+            Label or Label|URL · Use <code className="rounded bg-neutral-100 px-1">---</code> for a divider · Start a line with <code className="rounded bg-neutral-100 px-1">~</code> for attribution text
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function QrFeatureBody({
+  feature,
+  onCanvasFeatureChange,
+  onCanvasFeatureImageUpload,
+}: {
+  feature: CanvasFeature;
+  onCanvasFeatureChange: (featureId: string, field: CanvasFeatureField, value: string) => void;
+  onCanvasFeatureImageUpload: (featureId: string, event: ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <>
+      <div className="space-y-2">
+        <FieldLabel className="mb-0">QR image</FieldLabel>
+        <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
+          Upload QR image
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(event) => onCanvasFeatureImageUpload(feature.id, event)}
+            className="hidden"
+          />
+        </label>
+        {feature.imageUrl ? (
+          <div className="flex items-center gap-2">
+            <img src={feature.imageUrl} alt="QR" className="h-12 w-12 rounded-lg border border-neutral-200 object-contain p-0.5" />
+            <button
+              type="button"
+              onClick={() => onCanvasFeatureChange(feature.id, "imageUrl", "")}
+              className="text-xs text-neutral-500 hover:text-red-500"
+            >
+              Remove
+            </button>
+          </div>
+        ) : null}
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <FieldLabel className="mb-0">Size</FieldLabel>
+          <div className="text-xs text-neutral-500">{feature.qrSize ?? 120}px</div>
+        </div>
+        <input
+          type="range"
+          min={60}
+          max={240}
+          step={4}
+          value={feature.qrSize ?? 120}
+          onChange={(e) => onCanvasFeatureChange(feature.id, "qrSize", e.target.value)}
+          aria-label="QR code size"
+          aria-valuetext={`${feature.qrSize ?? 120}px`}
+          className="w-full accent-[#3B82F6]"
+        />
+      </div>
+      <div className="space-y-2">
+        <FieldLabel className="mb-0">Background color</FieldLabel>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={feature.qrBgColor || "#ffffff"}
+            onChange={(e) => onCanvasFeatureChange(feature.id, "qrBgColor", e.target.value)}
+            aria-label="QR background color"
+            className="h-8 w-10 cursor-pointer rounded border border-neutral-300 bg-white p-0.5"
+          />
+          <MonoInput
+            size="xs"
+            type="text"
+            value={feature.qrBgColor || ""}
+            onChange={(e) => onCanvasFeatureChange(feature.id, "qrBgColor", e.target.value)}
+            placeholder="None"
+            aria-label="QR background color hex"
+          />
+          {feature.qrBgColor ? (
+            <button
+              type="button"
+              onClick={() => onCanvasFeatureChange(feature.id, "qrBgColor", "")}
+              className="shrink-0 text-xs text-neutral-500 hover:text-red-500"
+            >
+              Clear
+            </button>
+          ) : null}
+        </div>
+        {feature.qrBgColor ? (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-neutral-500">Opacity</div>
+              <div className="text-xs text-neutral-500">{Math.round((feature.qrBgOpacity ?? 1) * 100)}%</div>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={feature.qrBgOpacity ?? 1}
+              onChange={(e) => onCanvasFeatureChange(feature.id, "qrBgOpacity", e.target.value)}
+              aria-label="QR background opacity"
+              className="w-full accent-[#3B82F6]"
+            />
+          </div>
+        ) : null}
+      </div>
+    </>
+  );
+}
+
+function HeadingFeatureBody({
+  feature,
+  brandColors,
+  onCanvasFeatureChange,
+}: {
+  feature: CanvasFeature;
+  brandColors?: string[];
+  onCanvasFeatureChange: (featureId: string, field: CanvasFeatureField, value: string) => void;
+}) {
+  return (
+    <>
+      <TextareaField
+        value={feature.description}
+        onChange={(event) => onCanvasFeatureChange(feature.id, "description", event.target.value)}
+        placeholder="Optional subtitle"
+        aria-label="Subtitle"
+        rows={2}
+      />
+      <div className="space-y-2">
+        <FieldLabel className="mb-0">Size</FieldLabel>
+        <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
+          {(["small", "medium", "large"] as const).map((size) => {
+            const isActive = (feature.headingSize ?? "large") === size;
+            return (
+              <button
+                key={size}
+                type="button"
+                onClick={() => onCanvasFeatureChange(feature.id, "headingSize", size)}
+                aria-pressed={isActive}
+                className={`flex-1 rounded-lg py-1.5 text-xs font-medium capitalize transition-all ${
+                  isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
+                }`}
+              >
+                {size}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div className="space-y-2">
+        <FieldLabel className="mb-0">Color</FieldLabel>
+        {brandColors && brandColors.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5">
+            {brandColors.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => onCanvasFeatureChange(feature.id, "headingColor", c)}
+                aria-label={`Set heading color to ${c}`}
+                title={c}
+                className="h-6 w-6 rounded-lg border-2 transition"
+                style={{ backgroundColor: c, borderColor: feature.headingColor === c ? "#000" : "transparent" }}
+              />
+            ))}
+          </div>
+        ) : null}
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={feature.headingColor || "#0a0a0a"}
+            onChange={(e) => onCanvasFeatureChange(feature.id, "headingColor", e.target.value)}
+            aria-label="Heading color"
+            className="h-8 w-10 cursor-pointer rounded border border-neutral-300 bg-white p-0.5"
+          />
+          <MonoInput
+            size="xs"
+            type="text"
+            value={feature.headingColor || ""}
+            onChange={(e) => onCanvasFeatureChange(feature.id, "headingColor", e.target.value)}
+            placeholder="Auto"
+            aria-label="Heading color hex"
+          />
+          {feature.headingColor ? (
+            <button
+              type="button"
+              onClick={() => onCanvasFeatureChange(feature.id, "headingColor", "")}
+              className="shrink-0 text-xs text-neutral-500 hover:text-red-500"
+            >
+              Clear
+            </button>
+          ) : null}
+        </div>
+      </div>
+      <div className="space-y-2">
+        <FieldLabel className="mb-0">
+          Links below heading, one per line
+        </FieldLabel>
+        <TextareaField
+          size="xs"
+          className="py-3 font-mono"
+          value={feature.optionsText}
+          onChange={(event) => onCanvasFeatureChange(feature.id, "optionsText", event.target.value)}
+          placeholder={"How to Play|/how-to-play\nFull Rules|/rules"}
+          aria-label="Links below heading, one per line"
+          rows={3}
+        />
+        <div className="text-xs leading-5 text-neutral-500">Format: Label or Label|URL. Leave empty for heading only.</div>
+      </div>
+    </>
+  );
+}
+
+function ButtonFeatureBody({
+  feature,
+  brandColors,
+  pages,
+  onCanvasFeatureChange,
+  onOpenPage,
+  onCreatePageForButton,
+}: {
+  feature: CanvasFeature;
+  brandColors?: string[];
+  pages: PageItem[];
+  onCanvasFeatureChange: (featureId: string, field: CanvasFeatureField, value: string) => void;
+  onOpenPage: (id: string) => void;
+  onCreatePageForButton: () => string;
+}) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <FieldLabel className="mb-1.5">Style</FieldLabel>
+        <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
+          {(["primary", "secondary", "tertiary"] as const).map((v) => {
+            const isActive = (feature.buttonVariant ?? "secondary") === v;
+            return (
+              <button
+                key={v}
+                type="button"
+                onClick={() => onCanvasFeatureChange(feature.id, "buttonVariant", v)}
+                aria-pressed={isActive}
+                className={`flex-1 rounded-lg py-1.5 text-xs font-medium capitalize transition-all ${
+                  isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
+                }`}
+              >
+                {v}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div>
+        <FieldLabel className="mb-1.5">Button color</FieldLabel>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={feature.buttonBgColor || (
+              (feature.buttonVariant ?? "secondary") === "secondary" ? "#ffffff"
+              : brandColors?.[0] || "#111827"
+            )}
+            onChange={(e) => onCanvasFeatureChange(feature.id, "buttonBgColor", e.target.value)}
+            aria-label="Button color"
+            className="h-8 w-10 cursor-pointer rounded-lg border border-neutral-300 p-0.5"
+          />
+          {feature.buttonBgColor ? (
+            <button
+              type="button"
+              onClick={() => onCanvasFeatureChange(feature.id, "buttonBgColor", "")}
+              className="text-xs text-neutral-500 hover:text-neutral-700"
+            >
+              Use accent
+            </button>
+          ) : null}
+        </div>
+      </div>
+      <div>
+        <FieldLabel className="mb-1.5">Destination</FieldLabel>
+        <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
+          {(["external", "page"] as const).map((mode) => {
+            const isActive = (feature.buttonLinkMode ?? "external") === mode;
+            return (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => onCanvasFeatureChange(feature.id, "buttonLinkMode", mode)}
+                aria-pressed={isActive}
+                className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
+                  isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
+                }`}
+              >
+                {mode === "external" ? "External link" : "Content block"}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      {(feature.buttonLinkMode ?? "external") === "external" ? (
+        <InputField
+          type="text"
+          value={feature.linkUrl}
+          onChange={(event) => onCanvasFeatureChange(feature.id, "linkUrl", event.target.value)}
+          placeholder="https://..."
+          aria-label="Button URL"
+        />
+      ) : (
+        <div className="space-y-2">
+          <FieldLabel className="mb-0">Links to container</FieldLabel>
+          <div className="overflow-hidden rounded-xl border border-neutral-200">
+            {feature.linkUrl ? (
+              <div className="flex items-center justify-between px-3 py-2.5">
+                <span className="text-sm font-medium text-neutral-800">
+                  {pages.find((p) => p.id === feature.linkUrl)?.title || "Untitled"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onCanvasFeatureChange(feature.id, "linkUrl", "")}
+                  className="text-xs text-neutral-500 hover:text-neutral-700"
+                >
+                  Change
+                </button>
+              </div>
+            ) : (
+              <PageLinkPicker
+                pages={pages.filter((p) => p.kind !== "home")}
+                onSelect={(pageId) => onCanvasFeatureChange(feature.id, "linkUrl", pageId)}
+              />
+            )}
+          </div>
+          {feature.linkUrl ? (
+            <button
+              type="button"
+              onClick={() => onOpenPage(feature.linkUrl)}
+              className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-medium text-neutral-600 transition hover:border-neutral-300 hover:bg-white hover:text-neutral-900"
+            >
+              Edit content →
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => {
+              const newId = onCreatePageForButton();
+              onCanvasFeatureChange(feature.id, "linkUrl", newId);
+            }}
+            className="w-full rounded-xl border border-dashed border-neutral-300 py-2.5 text-xs font-medium text-neutral-500 hover:border-neutral-400 hover:text-neutral-700 transition"
+          >
+            + Create content block
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PageButtonFeatureBody({
+  feature,
+  pages,
+  onCanvasFeatureChange,
+  onOpenPage,
+}: {
+  feature: CanvasFeature;
+  pages: PageItem[];
+  onCanvasFeatureChange: (featureId: string, field: CanvasFeatureField, value: string) => void;
+  onOpenPage: (id: string) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <FieldLabel className="mb-0">Links to container</FieldLabel>
+      <div className="overflow-hidden rounded-xl border border-neutral-200">
+        {feature.linkUrl ? (
+          <div className="flex items-center justify-between px-3 py-2.5">
+            <span className="text-sm font-medium text-neutral-800">
+              {pages.find((p) => p.id === feature.linkUrl)?.title || "Untitled"}
+            </span>
+            <button
+              type="button"
+              onClick={() => onCanvasFeatureChange(feature.id, "linkUrl", "")}
+              className="text-xs text-neutral-500 hover:text-neutral-700"
+            >
+              Change
+            </button>
+          </div>
+        ) : (
+          <PageLinkPicker
+            pages={pages.filter((p) => p.kind !== "home")}
+            onSelect={(pageId) => onCanvasFeatureChange(feature.id, "linkUrl", pageId)}
+          />
+        )}
+      </div>
+      {feature.linkUrl ? (
+        <button
+          type="button"
+          onClick={() => onOpenPage(feature.linkUrl)}
+          className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-medium text-neutral-600 transition hover:border-neutral-300 hover:bg-white hover:text-neutral-900"
+        >
+          Edit content →
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function AnchorPinFeatureBody({
+  feature,
+  pages,
+  onCanvasFeatureChange,
+}: {
+  feature: CanvasFeature;
+  pages: PageItem[];
+  onCanvasFeatureChange: (featureId: string, field: CanvasFeatureField, value: string) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <FieldLabel className="mb-1.5">Destination</FieldLabel>
+        <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
+          {(["card", "section"] as const).map((mode) => {
+            const isActive = (!feature.description || feature.description === "card" ? "card" : "section") === mode;
+            return (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => onCanvasFeatureChange(feature.id, "description", mode)}
+                aria-pressed={isActive}
+                className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
+                  isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
+                }`}
+              >
+                {mode === "card" ? "Link to card" : "Link to section"}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      {(!feature.description || feature.description === "card") ? (
+        <div className="space-y-1.5">
+          <FieldLabel className="mb-0">Card</FieldLabel>
+          <div className="overflow-hidden rounded-xl border border-neutral-200">
+            {feature.linkUrl ? (
+              <div className="flex items-center justify-between px-3 py-2.5">
+                <span className="text-sm font-medium text-neutral-800">
+                  {pages.find((p) => p.id === feature.linkUrl)?.title || "Untitled"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onCanvasFeatureChange(feature.id, "linkUrl", "")}
+                  className="text-xs text-neutral-500 hover:text-neutral-700"
+                >
+                  Change
+                </button>
+              </div>
+            ) : (
+              <PageLinkPicker
+                pages={pages.filter((p) => p.kind !== "home")}
+                onSelect={(pageId) => onCanvasFeatureChange(feature.id, "linkUrl", pageId)}
+              />
+            )}
+          </div>
+        </div>
+      ) : (
+        <SectionPicker
+          pages={pages}
+          targetPageId={feature.linkUrl}
+          targetSectionId={feature.optionsText}
+          onSelect={(pageId, sectionId) => {
+            onCanvasFeatureChange(feature.id, "linkUrl", pageId);
+            onCanvasFeatureChange(feature.id, "optionsText", sectionId);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 type Props = {
   feature: CanvasFeature;
   brandColors?: string[];
@@ -125,429 +683,54 @@ export function CanvasFeatureTypeBody({
 
       {/* Image */}
       {feature.type === "image" ? (
-        <>
-          <div className="space-y-2">
-            <FieldLabel className="mb-0">Image</FieldLabel>
-            <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
-              Upload image
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(event) => onCanvasFeatureImageUpload(feature.id, event)}
-                className="hidden"
-              />
-            </label>
-            {feature.imageUrl ? (
-              <div className="space-y-2">
-                <ImageResizePreview
-                  imageUrl={feature.imageUrl}
-                  logoSize={feature.logoSize ?? 80}
-                  onResize={(newSize) => onCanvasFeatureChange(feature.id, "logoSize", String(newSize))}
-                  onRemove={() => onCanvasFeatureChange(feature.id, "imageUrl", "")}
-                />
-              </div>
-            ) : null}
-          </div>
-          <div className="space-y-2">
-            <FieldLabel className="mb-0">Behavior</FieldLabel>
-            <div className="flex gap-2">
-              {(["none", "link", "links"] as const).map((mode) => {
-                const isActive = mode === "none"
-                  ? !feature.description || feature.description === "none"
-                  : feature.description === mode;
-                return (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => onCanvasFeatureChange(feature.id, "description", mode === "none" ? "" : mode)}
-                    aria-pressed={isActive}
-                    className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                      isActive
-                        ? "border-[#3B82F6] bg-[#3B82F6] text-white"
-                        : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
-                    }`}
-                  >
-                    {mode === "none" ? "None" : mode === "link" ? "Goes to a link" : "Shows link list"}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          {feature.description === "link" ? (
-            <InputField
-              type="text"
-              value={feature.linkUrl}
-              onChange={(event) => onCanvasFeatureChange(feature.id, "linkUrl", event.target.value)}
-              placeholder="Destination URL"
-              aria-label="Destination URL"
-            />
-          ) : feature.description === "links" ? (
-            <div className="space-y-2">
-              <FieldLabel className="mb-0">Links, one per line</FieldLabel>
-              <TextareaField
-                size="xs"
-                className="py-3 font-mono"
-                value={feature.optionsText}
-                onChange={(event) => onCanvasFeatureChange(feature.id, "optionsText", event.target.value)}
-                placeholder={"Landing Page|https://...\nInstagram|https://...\n---\nPortfolio|https://...\n~Designed by Name. Open to work."}
-                aria-label="Links, one per line"
-                rows={6}
-              />
-              <div className="text-xs leading-5 text-neutral-500">
-                Label or Label|URL · Use <code className="rounded bg-neutral-100 px-1">---</code> for a divider · Start a line with <code className="rounded bg-neutral-100 px-1">~</code> for attribution text
-              </div>
-            </div>
-          ) : null}
-        </>
+        <ImageFeatureBody
+          feature={feature}
+          onCanvasFeatureChange={onCanvasFeatureChange}
+          onCanvasFeatureImageUpload={onCanvasFeatureImageUpload}
+          pages={pages}
+          onOpenPage={onOpenPage}
+          onCreatePageForButton={onCreatePageForButton}
+        />
       ) : null}
 
       {/* QR code */}
       {feature.type === "qr" ? (
-        <>
-          <div className="space-y-2">
-            <FieldLabel className="mb-0">QR image</FieldLabel>
-            <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
-              Upload QR image
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(event) => onCanvasFeatureImageUpload(feature.id, event)}
-                className="hidden"
-              />
-            </label>
-            {feature.imageUrl ? (
-              <div className="flex items-center gap-2">
-                <img src={feature.imageUrl} alt="QR" className="h-12 w-12 rounded-lg border border-neutral-200 object-contain p-0.5" />
-                <button
-                  type="button"
-                  onClick={() => onCanvasFeatureChange(feature.id, "imageUrl", "")}
-                  className="text-xs text-neutral-500 hover:text-red-500"
-                >
-                  Remove
-                </button>
-              </div>
-            ) : null}
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <FieldLabel className="mb-0">Size</FieldLabel>
-              <div className="text-xs text-neutral-500">{feature.qrSize ?? 120}px</div>
-            </div>
-            <input
-              type="range"
-              min={60}
-              max={240}
-              step={4}
-              value={feature.qrSize ?? 120}
-              onChange={(e) => onCanvasFeatureChange(feature.id, "qrSize", e.target.value)}
-              aria-label="QR code size"
-              aria-valuetext={`${feature.qrSize ?? 120}px`}
-              className="w-full accent-[#3B82F6]"
-            />
-          </div>
-          <div className="space-y-2">
-            <FieldLabel className="mb-0">Background color</FieldLabel>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={feature.qrBgColor || "#ffffff"}
-                onChange={(e) => onCanvasFeatureChange(feature.id, "qrBgColor", e.target.value)}
-                aria-label="QR background color"
-                className="h-8 w-10 cursor-pointer rounded border border-neutral-300 bg-white p-0.5"
-              />
-              <MonoInput
-                size="xs"
-                type="text"
-                value={feature.qrBgColor || ""}
-                onChange={(e) => onCanvasFeatureChange(feature.id, "qrBgColor", e.target.value)}
-                placeholder="None"
-                aria-label="QR background color hex"
-              />
-              {feature.qrBgColor ? (
-                <button
-                  type="button"
-                  onClick={() => onCanvasFeatureChange(feature.id, "qrBgColor", "")}
-                  className="shrink-0 text-xs text-neutral-500 hover:text-red-500"
-                >
-                  Clear
-                </button>
-              ) : null}
-            </div>
-            {feature.qrBgColor ? (
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <div className="text-xs text-neutral-500">Opacity</div>
-                  <div className="text-xs text-neutral-500">{Math.round((feature.qrBgOpacity ?? 1) * 100)}%</div>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  value={feature.qrBgOpacity ?? 1}
-                  onChange={(e) => onCanvasFeatureChange(feature.id, "qrBgOpacity", e.target.value)}
-                  aria-label="QR background opacity"
-                  className="w-full accent-[#3B82F6]"
-                />
-              </div>
-            ) : null}
-          </div>
-        </>
+        <QrFeatureBody
+          feature={feature}
+          onCanvasFeatureChange={onCanvasFeatureChange}
+          onCanvasFeatureImageUpload={onCanvasFeatureImageUpload}
+        />
       ) : null}
 
       {/* Heading */}
       {feature.type === "heading" ? (
-        <>
-          <TextareaField
-            value={feature.description}
-            onChange={(event) => onCanvasFeatureChange(feature.id, "description", event.target.value)}
-            placeholder="Optional subtitle"
-            aria-label="Subtitle"
-            rows={2}
-          />
-          <div className="space-y-2">
-            <FieldLabel className="mb-0">Size</FieldLabel>
-            <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
-              {(["small", "medium", "large"] as const).map((size) => {
-                const isActive = (feature.headingSize ?? "large") === size;
-                return (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => onCanvasFeatureChange(feature.id, "headingSize", size)}
-                    aria-pressed={isActive}
-                    className={`flex-1 rounded-lg py-1.5 text-xs font-medium capitalize transition-all ${
-                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <div className="space-y-2">
-            <FieldLabel className="mb-0">Color</FieldLabel>
-            {brandColors && brandColors.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {brandColors.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => onCanvasFeatureChange(feature.id, "headingColor", c)}
-                    aria-label={`Set heading color to ${c}`}
-                    title={c}
-                    className="h-6 w-6 rounded-lg border-2 transition"
-                    style={{ backgroundColor: c, borderColor: feature.headingColor === c ? "#000" : "transparent" }}
-                  />
-                ))}
-              </div>
-            ) : null}
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={feature.headingColor || "#0a0a0a"}
-                onChange={(e) => onCanvasFeatureChange(feature.id, "headingColor", e.target.value)}
-                aria-label="Heading color"
-                className="h-8 w-10 cursor-pointer rounded border border-neutral-300 bg-white p-0.5"
-              />
-              <MonoInput
-                size="xs"
-                type="text"
-                value={feature.headingColor || ""}
-                onChange={(e) => onCanvasFeatureChange(feature.id, "headingColor", e.target.value)}
-                placeholder="Auto"
-                aria-label="Heading color hex"
-              />
-              {feature.headingColor ? (
-                <button
-                  type="button"
-                  onClick={() => onCanvasFeatureChange(feature.id, "headingColor", "")}
-                  className="shrink-0 text-xs text-neutral-500 hover:text-red-500"
-                >
-                  Clear
-                </button>
-              ) : null}
-            </div>
-          </div>
-          <div className="space-y-2">
-            <FieldLabel className="mb-0">
-              Links below heading, one per line
-            </FieldLabel>
-            <TextareaField
-              size="xs"
-              className="py-3 font-mono"
-              value={feature.optionsText}
-              onChange={(event) => onCanvasFeatureChange(feature.id, "optionsText", event.target.value)}
-              placeholder={"How to Play|/how-to-play\nFull Rules|/rules"}
-              aria-label="Links below heading, one per line"
-              rows={3}
-            />
-            <div className="text-xs leading-5 text-neutral-500">Format: Label or Label|URL. Leave empty for heading only.</div>
-          </div>
-        </>
+        <HeadingFeatureBody
+          feature={feature}
+          brandColors={brandColors}
+          onCanvasFeatureChange={onCanvasFeatureChange}
+        />
       ) : null}
 
       {/* Button */}
       {feature.type === "button" ? (
-        <div className="space-y-3">
-          <div>
-            <FieldLabel className="mb-1.5">Style</FieldLabel>
-            <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
-              {(["primary", "secondary", "tertiary"] as const).map((v) => {
-                const isActive = (feature.buttonVariant ?? "secondary") === v;
-                return (
-                  <button
-                    key={v}
-                    type="button"
-                    onClick={() => onCanvasFeatureChange(feature.id, "buttonVariant", v)}
-                    aria-pressed={isActive}
-                    className={`flex-1 rounded-lg py-1.5 text-xs font-medium capitalize transition-all ${
-                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
-                    }`}
-                  >
-                    {v}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <div>
-            <FieldLabel className="mb-1.5">Button color</FieldLabel>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={feature.buttonBgColor || (
-                  (feature.buttonVariant ?? "secondary") === "secondary" ? "#ffffff"
-                  : brandColors?.[0] || "#111827"
-                )}
-                onChange={(e) => onCanvasFeatureChange(feature.id, "buttonBgColor", e.target.value)}
-                aria-label="Button color"
-                className="h-8 w-10 cursor-pointer rounded-lg border border-neutral-300 p-0.5"
-              />
-              {feature.buttonBgColor ? (
-                <button
-                  type="button"
-                  onClick={() => onCanvasFeatureChange(feature.id, "buttonBgColor", "")}
-                  className="text-xs text-neutral-500 hover:text-neutral-700"
-                >
-                  Use accent
-                </button>
-              ) : null}
-            </div>
-          </div>
-          <div>
-            <FieldLabel className="mb-1.5">Destination</FieldLabel>
-            <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
-              {(["external", "page"] as const).map((mode) => {
-                const isActive = (feature.buttonLinkMode ?? "external") === mode;
-                return (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => onCanvasFeatureChange(feature.id, "buttonLinkMode", mode)}
-                    aria-pressed={isActive}
-                    className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
-                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
-                    }`}
-                  >
-                    {mode === "external" ? "External link" : "Content block"}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          {(feature.buttonLinkMode ?? "external") === "external" ? (
-            <InputField
-              type="text"
-              value={feature.linkUrl}
-              onChange={(event) => onCanvasFeatureChange(feature.id, "linkUrl", event.target.value)}
-              placeholder="https://..."
-              aria-label="Button URL"
-            />
-          ) : (
-            <div className="space-y-2">
-              <FieldLabel className="mb-0">Links to container</FieldLabel>
-              <div className="overflow-hidden rounded-xl border border-neutral-200">
-                {feature.linkUrl ? (
-                  <div className="flex items-center justify-between px-3 py-2.5">
-                    <span className="text-sm font-medium text-neutral-800">
-                      {pages.find((p) => p.id === feature.linkUrl)?.title || "Untitled"}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => onCanvasFeatureChange(feature.id, "linkUrl", "")}
-                      className="text-xs text-neutral-500 hover:text-neutral-700"
-                    >
-                      Change
-                    </button>
-                  </div>
-                ) : (
-                  <PageLinkPicker
-                    pages={pages.filter((p) => p.kind !== "home")}
-                    onSelect={(pageId) => onCanvasFeatureChange(feature.id, "linkUrl", pageId)}
-                  />
-                )}
-              </div>
-              {feature.linkUrl ? (
-                <button
-                  type="button"
-                  onClick={() => onOpenPage(feature.linkUrl)}
-                  className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-medium text-neutral-600 transition hover:border-neutral-300 hover:bg-white hover:text-neutral-900"
-                >
-                  Edit content →
-                </button>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => {
-                  const newId = onCreatePageForButton();
-                  onCanvasFeatureChange(feature.id, "linkUrl", newId);
-                }}
-                className="w-full rounded-xl border border-dashed border-neutral-300 py-2.5 text-xs font-medium text-neutral-500 hover:border-neutral-400 hover:text-neutral-700 transition"
-              >
-                + Create content block
-              </button>
-            </div>
-          )}
-        </div>
+        <ButtonFeatureBody
+          feature={feature}
+          brandColors={brandColors}
+          pages={pages}
+          onCanvasFeatureChange={onCanvasFeatureChange}
+          onOpenPage={onOpenPage}
+          onCreatePageForButton={onCreatePageForButton}
+        />
       ) : null}
 
       {/* Page button */}
       {feature.type === "page-button" ? (
-        <div className="space-y-3">
-          <FieldLabel className="mb-0">Links to container</FieldLabel>
-          <div className="overflow-hidden rounded-xl border border-neutral-200">
-            {feature.linkUrl ? (
-              <div className="flex items-center justify-between px-3 py-2.5">
-                <span className="text-sm font-medium text-neutral-800">
-                  {pages.find((p) => p.id === feature.linkUrl)?.title || "Untitled"}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => onCanvasFeatureChange(feature.id, "linkUrl", "")}
-                  className="text-xs text-neutral-500 hover:text-neutral-700"
-                >
-                  Change
-                </button>
-              </div>
-            ) : (
-              <PageLinkPicker
-                pages={pages.filter((p) => p.kind !== "home")}
-                onSelect={(pageId) => onCanvasFeatureChange(feature.id, "linkUrl", pageId)}
-              />
-            )}
-          </div>
-          {feature.linkUrl ? (
-            <button
-              type="button"
-              onClick={() => onOpenPage(feature.linkUrl)}
-              className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs font-medium text-neutral-600 transition hover:border-neutral-300 hover:bg-white hover:text-neutral-900"
-            >
-              Edit content →
-            </button>
-          ) : null}
-        </div>
+        <PageButtonFeatureBody
+          feature={feature}
+          pages={pages}
+          onCanvasFeatureChange={onCanvasFeatureChange}
+          onOpenPage={onOpenPage}
+        />
       ) : null}
 
       {/* Dropdown */}
@@ -568,65 +751,11 @@ export function CanvasFeatureTypeBody({
 
       {/* Anchor pin */}
       {feature.type === "anchor-pin" ? (
-        <div className="space-y-3">
-          <div>
-            <FieldLabel className="mb-1.5">Destination</FieldLabel>
-            <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
-              {(["card", "section"] as const).map((mode) => {
-                const isActive = (!feature.description || feature.description === "card" ? "card" : "section") === mode;
-                return (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => onCanvasFeatureChange(feature.id, "description", mode)}
-                    aria-pressed={isActive}
-                    className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
-                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
-                    }`}
-                  >
-                    {mode === "card" ? "Link to card" : "Link to section"}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          {(!feature.description || feature.description === "card") ? (
-            <div className="space-y-1.5">
-              <FieldLabel className="mb-0">Card</FieldLabel>
-              <div className="overflow-hidden rounded-xl border border-neutral-200">
-                {feature.linkUrl ? (
-                  <div className="flex items-center justify-between px-3 py-2.5">
-                    <span className="text-sm font-medium text-neutral-800">
-                      {pages.find((p) => p.id === feature.linkUrl)?.title || "Untitled"}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => onCanvasFeatureChange(feature.id, "linkUrl", "")}
-                      className="text-xs text-neutral-500 hover:text-neutral-700"
-                    >
-                      Change
-                    </button>
-                  </div>
-                ) : (
-                  <PageLinkPicker
-                    pages={pages.filter((p) => p.kind !== "home")}
-                    onSelect={(pageId) => onCanvasFeatureChange(feature.id, "linkUrl", pageId)}
-                  />
-                )}
-              </div>
-            </div>
-          ) : (
-            <SectionPicker
-              pages={pages}
-              targetPageId={feature.linkUrl}
-              targetSectionId={feature.optionsText}
-              onSelect={(pageId, sectionId) => {
-                onCanvasFeatureChange(feature.id, "linkUrl", pageId);
-                onCanvasFeatureChange(feature.id, "optionsText", sectionId);
-              }}
-            />
-          )}
-        </div>
+        <AnchorPinFeatureBody
+          feature={feature}
+          pages={pages}
+          onCanvasFeatureChange={onCanvasFeatureChange}
+        />
       ) : null}
 
       {/* Disclaimer */}
