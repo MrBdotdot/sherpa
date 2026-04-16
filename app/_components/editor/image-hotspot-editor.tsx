@@ -3,6 +3,7 @@
 import React from "react";
 import { ContentBlock, ImageBlockHotspot } from "@/app/_lib/authoring-types";
 import { createImageHotspot } from "@/app/_lib/authoring-utils";
+import { InputField, TextareaField } from "@/app/_components/editor/editor-ui";
 
 export function ImageHotspotEditor({
   block,
@@ -82,19 +83,21 @@ export function ImageHotspotEditor({
               Remove
             </button>
           </div>
-          <input
+          <InputField
             type="text"
             value={h.label}
             onChange={(e) => updateHotspot(h.id, { label: e.target.value })}
             placeholder="Label (e.g. Start Zone)"
-            className="w-full rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
+            size="sm"
+            className="px-2.5"
           />
-          <textarea
+          <TextareaField
             value={h.content}
             onChange={(e) => updateHotspot(h.id, { content: e.target.value })}
             placeholder="Description shown when tapped"
             rows={2}
-            className="w-full resize-none rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
+            size="sm"
+            className="px-2.5"
           />
         </div>
       ))}

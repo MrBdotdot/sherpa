@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { CanvasFeature, PageItem, TranslationMap } from "@/app/_lib/authoring-types";
+import { InputField, TextareaField } from "@/app/_components/editor/editor-ui";
 import {
   KNOWN_LANGUAGES,
   LocaleLanguage,
@@ -138,7 +139,7 @@ export function SpreadsheetModal({
               </button>
               {pickerOpen ? (
                 <div className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-72 rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl">
-                  <input
+                  <InputField
                     type="text"
                     value={languageQuery}
                     onChange={(event) => setLanguageQuery(event.target.value)}
@@ -152,7 +153,7 @@ export function SpreadsheetModal({
                       }
                     }}
                     placeholder="Search languages"
-                    className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500"
+                    size="sm"
                     autoFocus
                   />
                   <div className="mt-2 max-h-56 overflow-y-auto rounded-xl border border-neutral-100 bg-neutral-50 p-1">
@@ -177,13 +178,14 @@ export function SpreadsheetModal({
             </div>
 
             {/* Filter */}
-            <input
+            <InputField
               type="text"
               value={filter}
               onChange={(event) => setFilter(event.target.value)}
               placeholder="Filter rows"
               aria-label="Filter translation rows"
-              className="w-56 rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500"
+              size="sm"
+              className="w-56"
             />
 
             <button
