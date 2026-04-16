@@ -608,20 +608,13 @@ export function BlockEditor({
         <CalloutBlockEditor
           block={block}
           label={label}
-          onBlockVariantChange={onBlockVariantChange}
-          onBlockChange={onBlockChange}
         />
       ) : block.type === "image" ? (
         <ImageBlockEditor
           block={block}
-          onBlockChange={onBlockChange}
-          onBlockFitChange={onBlockFitChange}
-          onBlockImagePositionChange={onBlockImagePositionChange}
-          onBlockPropsChange={onBlockPropsChange}
-          onBlockImageUpload={onBlockImageUpload}
         />
       ) : block.type === "consent" ? (
-        <ConsentBlockEditor block={block} onBlockChange={onBlockChange} />
+        <ConsentBlockEditor block={block} />
       ) : block.type === "tabs" ? (
         <TabsBlockEditor
           block={block}
@@ -630,7 +623,7 @@ export function BlockEditor({
           onBlockChange={onBlockChange}
         />
       ) : block.type === "section" ? (
-        <SectionBlockEditor block={block} onBlockChange={onBlockChange} />
+        <SectionBlockEditor block={block} />
       ) : block.type === "step-rail" ? (
         <StepRailBlockEditor
           block={block}

@@ -5,18 +5,17 @@ import { ContentBlock, ImageFit } from "@/app/_lib/authoring-types";
 import { FocalPointPicker } from "@/app/_components/editor/focal-point-picker";
 import { FieldLabel, InputField, TextareaField } from "@/app/_components/editor/editor-ui";
 import { ImageHotspotEditor } from "@/app/_components/editor/image-hotspot-editor";
+import { useBlockEditorContext } from "@/app/_components/editor/block-editor-context";
 
 export function CalloutBlockEditor({
   block,
   label,
-  onBlockVariantChange,
-  onBlockChange,
 }: {
   block: ContentBlock;
   label: string;
-  onBlockVariantChange: (blockId: string, variant: ContentBlock["variant"]) => void;
-  onBlockChange: (blockId: string, value: string) => void;
 }) {
+  const { onBlockVariantChange, onBlockChange } = useBlockEditorContext();
+
   return (
     <div className="space-y-3">
       <div>
@@ -52,19 +51,11 @@ export function CalloutBlockEditor({
 
 export function ImageBlockEditor({
   block,
-  onBlockChange,
-  onBlockFitChange,
-  onBlockImagePositionChange,
-  onBlockPropsChange,
-  onBlockImageUpload,
 }: {
   block: ContentBlock;
-  onBlockChange: (blockId: string, value: string) => void;
-  onBlockFitChange: (blockId: string, fit: ImageFit) => void;
-  onBlockImagePositionChange: (blockId: string, x: number, y: number) => void;
-  onBlockPropsChange: (blockId: string, patch: Partial<ContentBlock>) => void;
-  onBlockImageUpload: (blockId: string, event: ChangeEvent<HTMLInputElement>) => void;
 }) {
+  const { onBlockChange, onBlockFitChange, onBlockImagePositionChange, onBlockPropsChange, onBlockImageUpload } = useBlockEditorContext();
+
   return (
     <div className="space-y-3">
       <InputField
@@ -162,11 +153,10 @@ export function ImageBlockEditor({
 
 export function ConsentBlockEditor({
   block,
-  onBlockChange,
 }: {
   block: ContentBlock;
-  onBlockChange: (blockId: string, value: string) => void;
 }) {
+  const { onBlockChange } = useBlockEditorContext();
   const consentConfig: Record<string, string | boolean> = (() => {
     try { return JSON.parse(block.value); } catch { return {}; }
   })();
@@ -214,11 +204,11 @@ export function ConsentBlockEditor({
 
 export function SectionBlockEditor({
   block,
-  onBlockChange,
 }: {
   block: ContentBlock;
-  onBlockChange: (blockId: string, value: string) => void;
 }) {
+  const { onBlockChange } = useBlockEditorContext();
+
   return (
     <div>
       <FieldLabel className="mb-1.5">Section label</FieldLabel>
