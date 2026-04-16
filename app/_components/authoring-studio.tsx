@@ -16,7 +16,7 @@ import { AccountPanel } from "@/app/_components/account-panel";
 import { GameSwitcherModal, type GameEntry } from "@/app/_components/game-switcher-modal";
 import { CommandPalette } from "@/app/_components/command-palette";
 import { createCanvasFeature, createInitialPages, getHomePageId } from "@/app/_lib/authoring-utils";
-import { CanvasFeature, ExperienceStatus, InspectorTab, LayoutMode, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
+import { CanvasFeature, ExperienceStatus, Guide, InspectorTab, LayoutMode, PageItem, SystemSettings } from "@/app/_lib/authoring-types";
 import { supabase } from "@/app/_lib/supabase";
 import { useSearchParams } from "next/navigation";
 import { UserMetadata } from "@/app/_lib/user-profile";
@@ -196,7 +196,7 @@ export function AuthoringStudio({
   const {
     handleAddCanvasFeature, handleCanvasFeatureChange,
     handleCanvasFeatureImageUpload, handleCanvasFeatureVisibilityChange,
-    handleGameIconUpload, handleRemoveCanvasFeature, handleAddPageButton,
+    handleGameIconUpload, handleModelUpload, handleRemoveCanvasFeature, handleAddPageButton,
     handleSystemSettingChange,
   } = useCanvasFeatureHandlers({
     pages, setPages, pushPagesHistory, updateSelectedPage, setSystemSettings,
@@ -361,6 +361,7 @@ export function AuthoringStudio({
     onDeleteRequest: () => modals.setShowDeleteModal(true),
     onHeroUpload: handlePageHeroUpload,
     onGameIconUpload: handleGameIconUpload,
+    onModelUpload: handleModelUpload,
     onHotspotPointerDown: handleHotspotPointerDown,
     onDisplayStyleChange: handleDisplayStyleChange,
     onInspectorTabChange: (tab: InspectorTab) => {
@@ -381,11 +382,6 @@ export function AuthoringStudio({
     onSelectPage: handleSelectPage,
     onSocialLinkChange: handleSocialLinkChange,
     onSystemSettingChange: handleSystemSettingChange,
-    onBggImport: (data: { name: string; complexity: number; bggId: string }) => {
-      setCurrentGameName(data.name);
-      setPages((prev) => prev.map((p) => p.kind === "home" ? { ...p, title: data.name } : p));
-      setSystemSettings((prev) => ({ ...prev, bggId: data.bggId, bggComplexity: data.complexity }));
-    },
     onTitleChange: handleTitleChange,
     onContentTintChange: handleContentTintChange,
     onBlockWidthChange: handleBlockWidthChange,
@@ -438,6 +434,10 @@ export function AuthoringStudio({
     onLanguageChange: setActiveLanguageCode,
     pages,
     systemSettings,
+    guides: systemSettings.guides ?? [],
+    guideNavPosition: systemSettings.guideNavPosition ?? "left",
+    onGuidesChange: (g: Guide[]) => handleSystemSettingChange("guides", g),
+    onNavPositionChange: (pos: "left" | "top") => handleSystemSettingChange("guideNavPosition", pos),
   } as const;
 
   const sharedCanvasProps = {

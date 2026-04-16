@@ -7,6 +7,7 @@ import { OverviewTab } from "@/app/_components/editor/overview-tab";
 import { SurfaceTab } from "@/app/_components/editor/surface-tab";
 import { ContentTab } from "@/app/_components/editor/content-tab";
 import { ExperienceTab } from "@/app/_components/editor/experience-tab";
+import { GuideTab } from "@/app/_components/editor/guide-tab";
 import {
   CanvasFeature,
   CanvasFeatureField,
@@ -14,6 +15,7 @@ import {
   ContentBlock,
   ContentBlockType,
   DisplayStyleKey,
+  Guide,
   InspectorTab,
   ImageFit,
   LayoutMode,
@@ -76,6 +78,7 @@ type PageEditorModalProps = {
   onDeleteRequest: () => void;
   onHeroUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onGameIconUpload: (event: ChangeEvent<HTMLInputElement>) => void;
+  onModelUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onHotspotPointerDown: (
     event: React.PointerEvent<HTMLButtonElement>,
     page: PageItem
@@ -110,7 +113,6 @@ type PageEditorModalProps = {
     field: K,
     value: SystemSettings[K]
   ) => void;
-  onBggImport: (data: { name: string; complexity: number; bggId: string }) => void;
   onTitleChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onOpenPage: (id: string) => void;
   onLanguageChange?: (languageCode: string) => void;
@@ -129,6 +131,10 @@ type PageEditorModalProps = {
   surfacePreviewPage: PageItem;
   systemSettings: SystemSettings;
   pages: PageItem[];
+  guides: Guide[];
+  guideNavPosition: "left" | "top";
+  onGuidesChange: (g: Guide[]) => void;
+  onNavPositionChange: (pos: "left" | "top") => void;
   studioDarkMode?: boolean;
 };
 
@@ -137,6 +143,7 @@ function getTabLabel(tab: InspectorTab, pageKind: PageItem["kind"]): string {
   if (tab === "overview") return "Content";
   if (tab === "board") return "Elements";
   if (tab === "settings") return "Settings";
+  if (tab === "guide") return "Guide";
   return tab;
 }
 
@@ -172,6 +179,7 @@ export function PageEditorModal({
   onDeleteRequest,
   onHeroUpload,
   onGameIconUpload,
+  onModelUpload,
   onHotspotPointerDown,
   onDisplayStyleChange,
   onInspectorTabChange,
@@ -196,7 +204,6 @@ export function PageEditorModal({
   onSelectPage,
   onSocialLinkChange,
   onSystemSettingChange,
-  onBggImport,
   onTitleChange,
   isPortraitMode,
   onOpenPage,
@@ -216,6 +223,10 @@ export function PageEditorModal({
   surfacePreviewPage,
   systemSettings,
   pages,
+  guides,
+  guideNavPosition,
+  onGuidesChange,
+  onNavPositionChange,
   studioDarkMode = false,
 }: PageEditorModalProps) {
   const dk = studioDarkMode;
@@ -242,10 +253,14 @@ export function PageEditorModal({
   const titleId = `editor-title-${selectedPage.id}`;
   const boardBadge = selectedPage.canvasFeatures.length;
   const settingsBadge = 0;
-  const visibleTabs: InspectorTab[] = ["overview", "board", "settings"];
+  const visibleTabs: InspectorTab[] =
+    selectedPage.kind === "home"
+      ? ["overview", "board", "settings", "guide"]
+      : ["overview", "board", "settings"];
   const activeTab: InspectorTab =
     inspectorTab === "settings" ? "settings"
     : inspectorTab === "board" ? "board"
+    : inspectorTab === "guide" && selectedPage.kind === "home" ? "guide"
     : "overview";
 
   const panelContent = (
@@ -370,6 +385,7 @@ export function PageEditorModal({
                 onContentTintChange={onContentTintChange}
                 onDisplayStyleChange={onDisplayStyleChange}
                 onHeroUpload={onHeroUpload}
+                onModelUpload={onModelUpload}
                 onPageButtonPlacementChange={onPageButtonPlacementChange}
                 onPageHeroUrlChange={onPageHeroUrlChange}
                 onResetPagePosition={onResetPagePosition}
@@ -533,6 +549,14 @@ export function PageEditorModal({
               isPortraitMode={isPortraitMode}
               brandColors={systemSettings.brandColors ?? []}
             />
+          ) : activeTab === "guide" ? (
+            <GuideTab
+              guides={guides}
+              pages={pages}
+              navPosition={guideNavPosition}
+              onGuidesChange={onGuidesChange}
+              onNavPositionChange={onNavPositionChange}
+            />
           ) : (
             <ExperienceTab
               currentGameName={currentGameName}
@@ -544,7 +568,6 @@ export function PageEditorModal({
               onLocaleTranslationChange={onLocaleTranslationChange}
               onOpenSpreadsheet={() => setSheetOpen(true)}
               onSystemSettingChange={onSystemSettingChange}
-              onBggImport={onBggImport}
               pages={pages}
               systemSettings={systemSettings}
             />
