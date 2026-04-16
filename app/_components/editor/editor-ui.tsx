@@ -8,7 +8,7 @@ const FIELD_BASE =
   "focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 " +
   "disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed";
 
-const FIELD_SIZE: Record<string, string> = {
+const FIELD_SIZE: Record<"xs" | "sm" | "md" | "lg", string> = {
   xs: "px-3 py-2 text-xs",
   sm: "px-3 py-2 text-sm",
   md: "px-3 py-2.5 text-sm",
@@ -98,9 +98,7 @@ export function EditorSection({
 }) {
   return (
     <section id={id} className="border-b border-neutral-200 px-5 py-5 last:border-b-0">
-      <div className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
-        {title}
-      </div>
+      <FieldLabel className="mb-3">{title}</FieldLabel>
       {children}
     </section>
   );
