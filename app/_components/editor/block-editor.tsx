@@ -416,8 +416,7 @@ export function BlockEditor({
                       aria-label="Custom color"
                     />
                     <MonoInput
-                      size="xs"
-                      className="flex-1 px-2 py-1"
+                      className="flex-1 px-2 py-1 text-xs"
                       type="text"
                       value={customColor}
                       onChange={(e) => setCustomColor(e.target.value)}
@@ -580,8 +579,7 @@ export function BlockEditor({
         <div>
           <TextareaField
             ref={textareaRef}
-            size="lg"
-            className="leading-6"
+            className="py-3 leading-6"
             value={block.value}
             onChange={handleTextareaChange}
             onKeyDown={handleTextareaKeyDown}

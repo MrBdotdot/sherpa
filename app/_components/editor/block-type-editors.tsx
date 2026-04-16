@@ -39,7 +39,7 @@ export function CalloutBlockEditor({
           ))}
         </div>
       </div>
-      <TextareaField size="lg" className="leading-6"
+      <TextareaField className="py-3 leading-6"
         value={block.value}
         onChange={(event) => onBlockChange(block.id, event.target.value)}
         placeholder="Add a rule clarification, exception, or helpful tip"
@@ -179,7 +179,7 @@ export function ConsentBlockEditor({
     <div className="space-y-4">
       <div>
         <FieldLabel className="mb-1.5">Consent statement</FieldLabel>
-        <TextareaField size="lg" className="leading-6"
+        <TextareaField className="py-3 leading-6"
           value={(consentConfig.statement as string) ?? ""}
           onChange={(e) => updateConsentField("statement", e.target.value)}
           placeholder="I agree that [Your Company] may use photos, video, and audio recordings of my likeness for marketing and promotional purposes."
