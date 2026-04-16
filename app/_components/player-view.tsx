@@ -130,7 +130,7 @@ export function PlayerView({
       <div className="flex h-screen items-center justify-center bg-neutral-950">
         <div className="text-center">
           <div className="text-xl font-semibold text-white">Experience not found</div>
-          <div className="mt-2 text-sm text-neutral-400">
+          <div className="mt-2 text-sm text-neutral-500">
             This link may be invalid or the experience is not published.
           </div>
         </div>

@@ -140,7 +140,7 @@ export function BlockPickerModal({
             type="button"
             onClick={onClose}
             aria-label="Close picker"
-            className="rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+            className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-600"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
@@ -154,7 +154,7 @@ export function BlockPickerModal({
             <div key={group.label}>
               {gi > 0 && <div className="mx-4 my-1 border-t border-neutral-100" />}
               <div className="px-2 pb-1 pt-2">
-                <div className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
+                <div className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                   {group.label}
                 </div>
                 {group.items.map((item) => (
@@ -176,7 +176,7 @@ export function BlockPickerModal({
                     </div>
                     <div>
                       <div className="text-sm font-medium text-neutral-900">{item.label}</div>
-                      <div className="text-xs text-neutral-400">{item.description}</div>
+                      <div className="text-xs text-neutral-500">{item.description}</div>
                     </div>
                   </button>
                 ))}

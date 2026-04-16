@@ -152,7 +152,7 @@ export function SpreadsheetModal({
                       }
                     }}
                     placeholder="Search languages"
-                    className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400"
+                    className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500"
                     autoFocus
                   />
                   <div className="mt-2 max-h-56 overflow-y-auto rounded-xl border border-neutral-100 bg-neutral-50 p-1">
@@ -183,7 +183,7 @@ export function SpreadsheetModal({
               onChange={(event) => setFilter(event.target.value)}
               placeholder="Filter rows"
               aria-label="Filter translation rows"
-              className="w-56 rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400"
+              className="w-56 rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500"
             />
 
             <button
@@ -201,7 +201,7 @@ export function SpreadsheetModal({
           <table className="min-w-full border-separate border-spacing-0">
             <thead className="sticky top-0 z-10 bg-white">
               <tr>
-                <th className="sticky left-0 z-20 min-w-[260px] border-b border-r border-neutral-200 bg-white px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-600">
+                <th className="sticky left-0 z-20 min-w-[260px] border-b border-r border-neutral-200 bg-white px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.16em] text-neutral-600">
                   Field
                 </th>
                 {languages.map((language, index) => (
@@ -212,7 +212,7 @@ export function SpreadsheetModal({
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="text-sm font-semibold text-neutral-900">{language.label}</div>
-                        <div className="mt-1 flex items-center gap-2 text-[11px] text-neutral-600">
+                        <div className="mt-1 flex items-center gap-2 text-xs text-neutral-600">
                           <span>{language.code}</span>
                           {index === 0 ? (
                             <span className="rounded-full bg-[#3B82F6] px-2 py-0.5 font-semibold text-white">
@@ -227,20 +227,20 @@ export function SpreadsheetModal({
                             <button
                               type="button"
                               onClick={() => onPromoteLanguageToDefault(language.code)}
-                              className="rounded-lg border border-neutral-200 px-2.5 py-1 text-[11px] font-medium text-neutral-600 hover:bg-neutral-50"
+                              className="rounded-lg border border-neutral-200 px-2.5 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-50"
                             >
                               Set as default
                             </button>
                             <button
                               type="button"
                               onClick={() => onRemoveLanguage(language.code)}
-                              className="rounded-lg border border-neutral-200 px-2.5 py-1 text-[11px] font-medium text-neutral-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                              className="rounded-lg border border-neutral-200 px-2.5 py-1 text-xs font-medium text-neutral-600 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
                             >
                               Remove
                             </button>
                           </>
                         ) : (
-                          <div className="text-[11px] text-neutral-600">Current text</div>
+                          <div className="text-xs text-neutral-600">Current text</div>
                         )}
                       </div>
                     </div>
@@ -271,7 +271,7 @@ export function SpreadsheetModal({
                         }}
                         placeholder={index === 0 ? "Default text" : row.sourceText}
                         rows={3}
-                        className={`w-full resize-y rounded-xl border px-3 py-2 text-sm leading-6 text-neutral-900 outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 ${
+                        className={`w-full resize-y rounded-xl border px-3 py-2 text-sm leading-6 text-neutral-900 outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 ${
                           index === 0 ? "border-neutral-300 bg-neutral-50" : "border-neutral-200"
                         }`}
                       />

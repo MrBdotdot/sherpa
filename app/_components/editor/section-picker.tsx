@@ -34,14 +34,14 @@ export function SectionPicker({
             <div className="truncate text-sm font-medium text-neutral-800">
               {selectedSection?.value ?? "Unknown section"}
             </div>
-            <div className="text-[11px] text-neutral-400">
+            <div className="text-xs text-neutral-500">
               {targetPage?.title || "Untitled"} · {kindLabel}
             </div>
           </div>
           <button
             type="button"
             onClick={() => { onSelect("", ""); setExpandedPageId(null); }}
-            className="ml-3 shrink-0 text-xs text-neutral-400 hover:text-neutral-700"
+            className="ml-3 shrink-0 text-xs text-neutral-500 hover:text-neutral-700"
           >
             Change
           </button>
@@ -53,7 +53,7 @@ export function SectionPicker({
   // ── Picker: accordion card list ───────────────────────────────────────
   if (nonHomePages.length === 0) {
     return (
-      <p className="text-xs leading-5 text-neutral-400">No cards available to link to.</p>
+      <p className="text-xs leading-5 text-neutral-500">No cards available to link to.</p>
     );
   }
 
@@ -79,14 +79,14 @@ export function SectionPicker({
                   <div className="truncate text-sm font-medium text-neutral-800">
                     {p.title || "Untitled"}
                   </div>
-                  <div className="text-[11px] capitalize text-neutral-400">
+                  <div className="text-xs capitalize text-neutral-500">
                     {hasSections ? `${sections.length} section${sections.length === 1 ? "" : "s"}` : "No sections"}
                   </div>
                 </div>
                 <svg
                   width="12" height="12" viewBox="0 0 12 12" fill="none"
                   aria-hidden="true"
-                  className={`ml-2 shrink-0 text-neutral-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                  className={`ml-2 shrink-0 text-neutral-500 transition-transform ${isExpanded ? "rotate-180" : ""}`}
                 >
                   <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -108,12 +108,12 @@ export function SectionPicker({
                           className="w-full rounded-lg py-2 pl-5 pr-2.5 text-left text-sm transition hover:bg-white"
                         >
                           <div className="truncate font-medium text-neutral-800">{s.value}</div>
-                          <div className="text-[11px] text-neutral-400">{kindLabel}</div>
+                          <div className="text-xs text-neutral-500">{kindLabel}</div>
                         </button>
                       </li>
                     );
                   }) : (
-                    <li className="py-2 pl-5 pr-2.5 text-xs text-neutral-400">
+                    <li className="py-2 pl-5 pr-2.5 text-xs text-neutral-500">
                       No section headings in this card.
                     </li>
                   )}

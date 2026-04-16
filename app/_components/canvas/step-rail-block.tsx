@@ -58,7 +58,7 @@ export function SectionBlock({ block, accentColor }: { block: ContentBlock; acce
       )}
       {label ? (
         <>
-          <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">{label}</span>
+          <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">{label}</span>
           <div className="h-px flex-1 bg-neutral-200" />
         </>
       ) : (
@@ -249,7 +249,7 @@ export function StepRailBlock({ block }: { block: ContentBlock }) {
             >
               <SRStepIcon step={step} active={activeStepId === step.id} index={i} iconShape={data.iconShape} showPing={data.showPing} />
               {step.label && (
-                <span className="max-w-[52px] text-center text-[9px] font-medium leading-tight text-neutral-600">
+                <span className="max-w-[52px] text-center text-[10px] font-medium leading-tight text-neutral-600">
                   {step.label}
                 </span>
               )}
@@ -280,7 +280,7 @@ export function StepRailBlock({ block }: { block: ContentBlock }) {
           >
             <SRStepIcon step={step} active={activeStepId === step.id} index={i} iconShape={data.iconShape} showPing={data.showPing} />
             {step.label && (
-              <span className="max-w-[56px] text-center text-[9px] font-medium leading-tight text-neutral-700">
+              <span className="max-w-[56px] text-center text-[10px] font-medium leading-tight text-neutral-700">
                 {step.label}
               </span>
             )}

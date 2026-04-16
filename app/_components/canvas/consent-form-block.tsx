@@ -132,7 +132,7 @@ export function ConsentFormBlock({
       ) : null}
 
       <div>
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
+        <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
           Full name <span aria-hidden="true" className="text-red-500">*</span>
         </label>
         <input
@@ -141,12 +141,12 @@ export function ConsentFormBlock({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Type your full name"
-          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
         />
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
+        <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
           Date
         </label>
         <div className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-500">
@@ -156,15 +156,15 @@ export function ConsentFormBlock({
 
       {config.requireEmail ? (
         <div>
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
-            Email <span className="font-normal normal-case text-neutral-400">(optional)</span>
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
+            Email <span className="font-normal normal-case text-neutral-500">(optional)</span>
           </label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
-            className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+            className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
           />
         </div>
       ) : null}

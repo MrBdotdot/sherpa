@@ -94,8 +94,8 @@ export function SearchFeatureCard({
   const results = useMemo(() => searchPages(pages, query), [pages, query]);
   const isContrast = surfaceStyleClass.includes("text-white");
   const textClass = isContrast ? "text-white" : "text-neutral-800";
-  const placeholderClass = isContrast ? "placeholder:text-white/50" : "placeholder:text-neutral-400";
-  const dimClass = isContrast ? "text-white/40" : "text-neutral-400";
+  const placeholderClass = isContrast ? "placeholder:text-white/50" : "placeholder:text-neutral-500";
+  const dimClass = isContrast ? "text-white/40" : "text-neutral-500";
   const snippetClass = isContrast ? "text-white/80" : "text-neutral-700";
   const hoverClass = isContrast ? "hover:bg-white/10" : "hover:bg-neutral-50";
   const dividerClass = isContrast ? "border-t border-white/10" : "border-t border-neutral-100";

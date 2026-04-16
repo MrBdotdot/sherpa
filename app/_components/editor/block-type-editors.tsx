@@ -19,7 +19,7 @@ export function CalloutBlockEditor({
   return (
     <div className="space-y-3">
       <div>
-        <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Variant</div>
+        <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Variant</div>
         <div className="flex gap-2">
           {(["info", "warning", "tip"] as const).map((v) => (
             <button
@@ -44,7 +44,7 @@ export function CalloutBlockEditor({
         placeholder="Add a rule clarification, exception, or helpful tip"
         aria-label={label}
         rows={3}
-        className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 text-sm leading-6 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+        className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 text-sm leading-6 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
       />
     </div>
   );
@@ -73,14 +73,14 @@ export function ImageBlockEditor({
         onChange={(event) => onBlockChange(block.id, event.target.value)}
         placeholder="Paste image URL"
         aria-label="Image URL"
-        className="w-full rounded-lg border border-neutral-200 px-3 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+        className="w-full rounded-lg border border-neutral-200 px-3 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
       />
       <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
         Upload from computer
         <input type="file" accept="image/*" onChange={(event) => onBlockImageUpload(block.id, event)} className="hidden" />
       </label>
       <div>
-        <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Image fit</div>
+        <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Image fit</div>
         <div role="group" aria-label="Image fit" className="flex gap-1.5">
           {([
             { value: "cover", label: "Fill" },
@@ -93,7 +93,7 @@ export function ImageBlockEditor({
               type="button"
               onClick={() => onBlockFitChange(block.id, opt.value)}
               aria-pressed={(block.imageFit ?? "cover") === opt.value}
-              className={`flex-1 rounded-lg border py-1.5 text-[11px] font-medium transition ${
+              className={`flex-1 rounded-lg border py-1.5 text-xs font-medium transition ${
                 (block.imageFit ?? "cover") === opt.value
                   ? "border-[#3B82F6] bg-[#3B82F6] text-white"
                   : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
@@ -114,7 +114,7 @@ export function ImageBlockEditor({
       ) : null}
       <div>
         <div className="mb-1.5 flex items-center justify-between text-xs">
-          <span className="font-semibold uppercase tracking-[0.16em] text-neutral-400">Width</span>
+          <span className="font-semibold uppercase tracking-[0.16em] text-neutral-500">Width</span>
           <span className="font-medium text-neutral-500">
             {typeof block.imageSize === "number" ? `${block.imageSize}px` : "Full"}
           </span>
@@ -132,19 +132,19 @@ export function ImageBlockEditor({
           aria-label="Image width"
           className="w-full accent-[#3B82F6]"
         />
-        <div className="mt-1 flex justify-between text-[10px] text-neutral-400">
+        <div className="mt-1 flex justify-between text-[10px] text-neutral-500">
           <span>80px</span>
           <span>Full</span>
         </div>
       </div>
       <div>
-        <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Caption</div>
+        <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Caption</div>
         <input
           type="text"
           value={block.imageCaption ?? ""}
           onChange={(e) => onBlockPropsChange(block.id, { imageCaption: e.target.value || undefined })}
           placeholder="Optional caption below image"
-          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
         />
       </div>
       <label className="flex cursor-pointer items-center gap-3">
@@ -179,25 +179,25 @@ export function ConsentBlockEditor({
   return (
     <div className="space-y-4">
       <div>
-        <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Consent statement</div>
+        <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Consent statement</div>
         <textarea
           value={(consentConfig.statement as string) ?? ""}
           onChange={(e) => updateConsentField("statement", e.target.value)}
           placeholder="I agree that [Your Company] may use photos, video, and audio recordings of my likeness for marketing and promotional purposes."
           rows={4}
-          className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 text-sm leading-6 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+          className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 text-sm leading-6 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
         />
       </div>
       <div>
-        <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Web3Forms access key</div>
+        <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Web3Forms access key</div>
         <input
           type="text"
           value={(consentConfig.endpoint as string) ?? ""}
           onChange={(e) => updateConsentField("endpoint", e.target.value)}
           placeholder="Paste your Web3Forms access key"
-          className="w-full rounded-lg border border-neutral-200 px-3 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+          className="w-full rounded-lg border border-neutral-200 px-3 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
         />
-        <div className="mt-1.5 text-xs text-neutral-400">
+        <div className="mt-1.5 text-xs text-neutral-500">
           Get a free access key at web3forms.com. Submissions go to your registered email.
         </div>
       </div>

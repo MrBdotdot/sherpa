@@ -36,7 +36,7 @@ function BlocksContent({ blocks }: { blocks: DraftSection["blocks"] }) {
       {blocks.map((b, i) => {
         if (b.type === "section") {
           return (
-            <p key={i} className="mt-1.5 text-[11px] font-semibold text-neutral-600">
+            <p key={i} className="mt-1.5 text-xs font-semibold text-neutral-600">
               {b.value}
             </p>
           );
@@ -45,7 +45,7 @@ function BlocksContent({ blocks }: { blocks: DraftSection["blocks"] }) {
           return (
             <ul key={i} className="mt-1 space-y-0.5">
               {b.value.split("\n").filter(Boolean).map((line, j) => (
-                <li key={j} className="flex items-start gap-1.5 text-[11px] text-neutral-500">
+                <li key={j} className="flex items-start gap-1.5 text-xs text-neutral-500">
                   <span className="mt-[4px] h-1 w-1 shrink-0 rounded-full bg-neutral-400" />
                   {line}
                 </li>
@@ -55,13 +55,13 @@ function BlocksContent({ blocks }: { blocks: DraftSection["blocks"] }) {
         }
         if (b.type === "callout") {
           return (
-            <p key={i} className="mt-1 border-l-2 border-neutral-300 pl-2 text-[11px] italic text-neutral-500">
+            <p key={i} className="mt-1 border-l-2 border-neutral-300 pl-2 text-xs italic text-neutral-500">
               {b.value}
             </p>
           );
         }
         return (
-          <p key={i} className="mt-1 text-[11px] leading-relaxed text-neutral-500">
+          <p key={i} className="mt-1 text-xs leading-relaxed text-neutral-500">
             {b.value}
           </p>
         );
@@ -91,7 +91,7 @@ function BlockPreview({
         <button
           type="button"
           onClick={onToggle}
-          className="mt-1 text-[10px] text-neutral-400 transition-colors hover:text-neutral-600"
+          className="mt-1 text-[10px] text-neutral-500 transition-colors hover:text-neutral-600"
         >
           Show less ↑
         </button>
@@ -102,7 +102,7 @@ function BlockPreview({
   return (
     <div className="mt-1 flex items-baseline gap-1.5">
       {preview && (
-        <p className="flex-1 truncate text-[11px] leading-relaxed text-neutral-400">{preview}</p>
+        <p className="flex-1 truncate text-xs leading-relaxed text-neutral-500">{preview}</p>
       )}
       <button
         type="button"
@@ -274,7 +274,7 @@ export function ImportReviewScreen({
                   <button
                     type="button"
                     onClick={() => mergeUp(idx)}
-                    className="rounded px-2 py-0.5 text-[10px] text-neutral-300 transition-colors hover:bg-neutral-50 hover:text-neutral-500 group-hover:text-neutral-400"
+                    className="rounded px-2 py-0.5 text-[10px] text-neutral-300 transition-colors hover:bg-neutral-50 hover:text-neutral-500 group-hover:text-neutral-500"
                   >
                     Merge ↑
                   </button>
@@ -335,7 +335,7 @@ export function ImportReviewScreen({
                     onChange={(e) => updateTitle(row.id, e.target.value)}
                     onDragStart={(e) => e.stopPropagation()}
                     className={`flex-1 min-w-0 bg-transparent text-sm font-medium outline-none transition-colors border-b border-transparent hover:border-neutral-200 focus:border-[#1e3a8a] ${
-                      row.included ? "text-neutral-900" : "text-neutral-400"
+                      row.included ? "text-neutral-900" : "text-neutral-500"
                     }`}
                   />
 
@@ -347,7 +347,7 @@ export function ImportReviewScreen({
                       className={`px-2 py-1 transition-colors ${
                         row.kind === "page"
                           ? "bg-[#1e3a8a] text-white"
-                          : "bg-white text-neutral-400 hover:bg-neutral-50"
+                          : "bg-white text-neutral-500 hover:bg-neutral-50"
                       }`}
                     >
                       Card
@@ -358,7 +358,7 @@ export function ImportReviewScreen({
                       className={`border-l border-neutral-200 px-2 py-1 transition-colors ${
                         row.kind === "hotspot"
                           ? "bg-[#1e3a8a] text-white"
-                          : "bg-white text-neutral-400 hover:bg-neutral-50"
+                          : "bg-white text-neutral-500 hover:bg-neutral-50"
                       }`}
                     >
                       Hotspot
@@ -367,7 +367,7 @@ export function ImportReviewScreen({
 
                   {/* Drag handle */}
                   <span
-                    className="shrink-0 cursor-grab text-neutral-400 transition-colors hover:text-neutral-600 active:cursor-grabbing"
+                    className="shrink-0 cursor-grab text-neutral-500 transition-colors hover:text-neutral-600 active:cursor-grabbing"
                     aria-hidden="true"
                   >
                     <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
@@ -401,7 +401,7 @@ export function ImportReviewScreen({
         </span>
 
         {commitError && (
-          <p className="flex-1 text-right text-[11px] text-red-500">{commitError}</p>
+          <p className="flex-1 text-right text-xs text-red-500">{commitError}</p>
         )}
 
         <div className="flex shrink-0 gap-2">

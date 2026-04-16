@@ -24,7 +24,7 @@ export function BrandColorsEditor({
 
   return (
     <div>
-      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
         Brand palette
       </div>
       <div className="flex flex-wrap gap-2">
@@ -47,7 +47,7 @@ export function BrandColorsEditor({
               type="button"
               onClick={() => remove(index)}
               aria-label={`Remove brand color ${index + 1}`}
-              className="absolute -right-1 -top-1 hidden h-4 w-4 items-center justify-center rounded-full bg-neutral-800 text-[9px] text-white group-hover:flex"
+              className="absolute -right-1 -top-1 hidden h-4 w-4 items-center justify-center rounded-full bg-neutral-800 text-[10px] text-white group-hover:flex"
             >
               ×
             </button>
@@ -58,7 +58,7 @@ export function BrandColorsEditor({
             type="button"
             onClick={add}
             aria-label="Add brand color"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-dashed border-neutral-300 text-neutral-400 transition hover:border-neutral-500 hover:text-neutral-600"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-dashed border-neutral-300 text-neutral-500 transition hover:border-neutral-500 hover:text-neutral-600"
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
               <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

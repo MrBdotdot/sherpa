@@ -89,19 +89,19 @@ export function CarouselBlock({
             type="button"
             onClick={() => setCurrent((c) => Math.max(0, c - 1))}
             disabled={idx === 0}
-            className="rounded-lg p-1 text-neutral-400 transition hover:bg-neutral-100 disabled:opacity-30"
+            className="rounded-lg p-1 text-neutral-500 transition hover:bg-neutral-100 disabled:opacity-30"
             aria-label="Previous slide"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <path d="M9 11L5 7l4-4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-          <span className="min-w-[32px] text-center text-[10px] text-neutral-400">{idx + 1}/{slides.length}</span>
+          <span className="min-w-[32px] text-center text-[10px] text-neutral-500">{idx + 1}/{slides.length}</span>
           <button
             type="button"
             onClick={() => setCurrent((c) => Math.min(slides.length - 1, c + 1))}
             disabled={idx === slides.length - 1}
-            className="rounded-lg p-1 text-neutral-400 transition hover:bg-neutral-100 disabled:opacity-30"
+            className="rounded-lg p-1 text-neutral-500 transition hover:bg-neutral-100 disabled:opacity-30"
             aria-label="Next slide"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -132,7 +132,7 @@ export function CarouselBlock({
                   pages={pages}
                 />
               ) : (
-                <div className="text-sm text-neutral-400">Empty slide</div>
+                <div className="text-sm text-neutral-500">Empty slide</div>
               )}
             </div>
           ))}

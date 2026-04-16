@@ -94,7 +94,7 @@ export function CarouselBlockEditor({
         return (
           <div key={slide.id} className="overflow-hidden rounded-xl border border-neutral-200">
             <div className="flex items-center gap-2 border-b border-neutral-100 bg-neutral-50 px-3 py-2">
-              <span className="shrink-0 text-[10px] font-semibold text-neutral-400">{i + 1}</span>
+              <span className="shrink-0 text-[10px] font-semibold text-neutral-500">{i + 1}</span>
               <input
                 type="text"
                 value={slide.label}
@@ -102,7 +102,7 @@ export function CarouselBlockEditor({
                   updateSlides(slides.map((s, j) => j === i ? { ...s, label: e.target.value } : s))
                 }
                 placeholder={`Slide ${i + 1} label`}
-                className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-neutral-400"
+                className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-neutral-500"
               />
               {i > 0 && (
                 <button
@@ -113,7 +113,7 @@ export function CarouselBlockEditor({
                     updateSlides(next);
                   }}
                   aria-label={`Move slide ${i + 1} up`}
-                  className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-400 transition hover:bg-neutral-50"
+                  className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-500 transition hover:bg-neutral-50"
                 >
                   <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                     <path d="M7 11V3M3.5 6.5L7 3l3.5 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
@@ -129,7 +129,7 @@ export function CarouselBlockEditor({
                     updateSlides(next);
                   }}
                   aria-label={`Move slide ${i + 1} down`}
-                  className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-400 transition hover:bg-neutral-50"
+                  className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-500 transition hover:bg-neutral-50"
                 >
                   <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                     <path d="M7 3v8M3.5 7.5L7 11l3.5-3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
@@ -141,7 +141,7 @@ export function CarouselBlockEditor({
                   type="button"
                   onClick={() => updateSlides(slides.filter((_, j) => j !== i))}
                   aria-label={`Remove slide ${i + 1}`}
-                  className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+                  className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
                 >
                   <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                     <path d="M2 3.5h10M5.5 3.5V2.5a1 1 0 011-1h1a1 1 0 011 1v1M4 3.5l.7 7.5a1 1 0 001 .9h2.6a1 1 0 001-.9L10 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
@@ -165,7 +165,7 @@ export function CarouselBlockEditor({
                   />
                 ))
               ) : (
-                <div className="rounded-xl border border-dashed border-neutral-200 px-3 py-3 text-xs text-neutral-400">
+                <div className="rounded-xl border border-dashed border-neutral-200 px-3 py-3 text-xs text-neutral-500">
                   No content yet. Add a block below.
                 </div>
               )}
@@ -188,14 +188,14 @@ export function CarouselBlockEditor({
                     >
                       <div>
                         <div className="text-xs font-medium text-neutral-800">{item.label}</div>
-                        <div className="text-[11px] text-neutral-400">{item.desc}</div>
+                        <div className="text-xs text-neutral-500">{item.desc}</div>
                       </div>
                     </button>
                   ))}
                   <button
                     type="button"
                     onClick={() => setAddingToSlide(null)}
-                    className="w-full px-3 py-2 text-xs text-neutral-400 hover:text-neutral-600 transition"
+                    className="w-full px-3 py-2 text-xs text-neutral-500 hover:text-neutral-600 transition"
                   >
                     Cancel
                   </button>

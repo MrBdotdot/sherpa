@@ -67,11 +67,11 @@ function ImageResizePreview({
         </svg>
       </div>
       {/* Pixel readout */}
-      <div className="mt-1.5 text-center text-xs text-neutral-400">{logoSize}px</div>
+      <div className="mt-1.5 text-center text-xs text-neutral-500">{logoSize}px</div>
       <button
         type="button"
         onClick={onRemove}
-        className="mt-1 block text-xs text-neutral-400 hover:text-red-500"
+        className="mt-1 block text-xs text-neutral-500 hover:text-red-500"
       >
         Remove
       </button>
@@ -119,7 +119,7 @@ export function CanvasFeatureTypeBody({
             : feature.type === "anchor-pin" ? "Tooltip text"
             : "Element label"
           }
-          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
         />
       ) : null}
 
@@ -127,7 +127,7 @@ export function CanvasFeatureTypeBody({
       {feature.type === "image" ? (
         <>
           <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Image</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Image</div>
             <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
               Upload image
               <input
@@ -149,7 +149,7 @@ export function CanvasFeatureTypeBody({
             ) : null}
           </div>
           <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Behavior</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Behavior</div>
             <div className="flex gap-2">
               {(["none", "link", "links"] as const).map((mode) => {
                 const isActive = mode === "none"
@@ -180,20 +180,20 @@ export function CanvasFeatureTypeBody({
               onChange={(event) => onCanvasFeatureChange(feature.id, "linkUrl", event.target.value)}
               placeholder="Destination URL"
               aria-label="Destination URL"
-              className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
             />
           ) : feature.description === "links" ? (
             <div className="space-y-2">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Links, one per line</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Links, one per line</div>
               <textarea
                 value={feature.optionsText}
                 onChange={(event) => onCanvasFeatureChange(feature.id, "optionsText", event.target.value)}
                 placeholder={"Landing Page|https://...\nInstagram|https://...\n---\nPortfolio|https://...\n~Designed by Name. Open to work."}
                 aria-label="Links, one per line"
                 rows={6}
-                className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 font-mono text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+                className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 font-mono text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
               />
-              <div className="text-xs leading-5 text-neutral-400">
+              <div className="text-xs leading-5 text-neutral-500">
                 Label or Label|URL · Use <code className="rounded bg-neutral-100 px-1">---</code> for a divider · Start a line with <code className="rounded bg-neutral-100 px-1">~</code> for attribution text
               </div>
             </div>
@@ -205,7 +205,7 @@ export function CanvasFeatureTypeBody({
       {feature.type === "qr" ? (
         <>
           <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">QR image</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">QR image</div>
             <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
               Upload QR image
               <input
@@ -221,7 +221,7 @@ export function CanvasFeatureTypeBody({
                 <button
                   type="button"
                   onClick={() => onCanvasFeatureChange(feature.id, "imageUrl", "")}
-                  className="text-xs text-neutral-400 hover:text-red-500"
+                  className="text-xs text-neutral-500 hover:text-red-500"
                 >
                   Remove
                 </button>
@@ -230,7 +230,7 @@ export function CanvasFeatureTypeBody({
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Size</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Size</div>
               <div className="text-xs text-neutral-500">{feature.qrSize ?? 120}px</div>
             </div>
             <input
@@ -246,7 +246,7 @@ export function CanvasFeatureTypeBody({
             />
           </div>
           <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Background color</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Background color</div>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -261,13 +261,13 @@ export function CanvasFeatureTypeBody({
                 onChange={(e) => onCanvasFeatureChange(feature.id, "qrBgColor", e.target.value)}
                 placeholder="None"
                 aria-label="QR background color hex"
-                className="w-full rounded-lg border border-neutral-200 px-3 py-2 font-mono text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border border-neutral-200 px-3 py-2 font-mono text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
               />
               {feature.qrBgColor ? (
                 <button
                   type="button"
                   onClick={() => onCanvasFeatureChange(feature.id, "qrBgColor", "")}
-                  className="shrink-0 text-xs text-neutral-400 hover:text-red-500"
+                  className="shrink-0 text-xs text-neutral-500 hover:text-red-500"
                 >
                   Clear
                 </button>
@@ -276,7 +276,7 @@ export function CanvasFeatureTypeBody({
             {feature.qrBgColor ? (
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <div className="text-xs text-neutral-400">Opacity</div>
+                  <div className="text-xs text-neutral-500">Opacity</div>
                   <div className="text-xs text-neutral-500">{Math.round((feature.qrBgOpacity ?? 1) * 100)}%</div>
                 </div>
                 <input
@@ -304,10 +304,10 @@ export function CanvasFeatureTypeBody({
             placeholder="Optional subtitle"
             aria-label="Subtitle"
             rows={2}
-            className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+            className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
           />
           <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Size</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Size</div>
             <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
               {(["small", "medium", "large"] as const).map((size) => {
                 const isActive = (feature.headingSize ?? "large") === size;
@@ -318,7 +318,7 @@ export function CanvasFeatureTypeBody({
                     onClick={() => onCanvasFeatureChange(feature.id, "headingSize", size)}
                     aria-pressed={isActive}
                     className={`flex-1 rounded-lg py-1.5 text-xs font-medium capitalize transition-all ${
-                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-600"
+                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
                     }`}
                   >
                     {size}
@@ -328,7 +328,7 @@ export function CanvasFeatureTypeBody({
             </div>
           </div>
           <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Color</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Color</div>
             {brandColors && brandColors.length > 0 ? (
               <div className="flex flex-wrap gap-1.5">
                 {brandColors.map((c) => (
@@ -358,13 +358,13 @@ export function CanvasFeatureTypeBody({
                 onChange={(e) => onCanvasFeatureChange(feature.id, "headingColor", e.target.value)}
                 placeholder="Auto"
                 aria-label="Heading color hex"
-                className="w-full rounded-lg border border-neutral-200 px-3 py-2 font-mono text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border border-neutral-200 px-3 py-2 font-mono text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
               />
               {feature.headingColor ? (
                 <button
                   type="button"
                   onClick={() => onCanvasFeatureChange(feature.id, "headingColor", "")}
-                  className="shrink-0 text-xs text-neutral-400 hover:text-red-500"
+                  className="shrink-0 text-xs text-neutral-500 hover:text-red-500"
                 >
                   Clear
                 </button>
@@ -372,7 +372,7 @@ export function CanvasFeatureTypeBody({
             </div>
           </div>
           <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
               Links below heading, one per line
             </div>
             <textarea
@@ -381,9 +381,9 @@ export function CanvasFeatureTypeBody({
               placeholder={"How to Play|/how-to-play\nFull Rules|/rules"}
               aria-label="Links below heading, one per line"
               rows={3}
-              className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 font-mono text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+              className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 font-mono text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
             />
-            <div className="text-xs leading-5 text-neutral-400">Format: Label or Label|URL. Leave empty for heading only.</div>
+            <div className="text-xs leading-5 text-neutral-500">Format: Label or Label|URL. Leave empty for heading only.</div>
           </div>
         </>
       ) : null}
@@ -392,7 +392,7 @@ export function CanvasFeatureTypeBody({
       {feature.type === "button" ? (
         <div className="space-y-3">
           <div>
-            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Style</div>
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Style</div>
             <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
               {(["primary", "secondary", "tertiary"] as const).map((v) => {
                 const isActive = (feature.buttonVariant ?? "secondary") === v;
@@ -403,7 +403,7 @@ export function CanvasFeatureTypeBody({
                     onClick={() => onCanvasFeatureChange(feature.id, "buttonVariant", v)}
                     aria-pressed={isActive}
                     className={`flex-1 rounded-lg py-1.5 text-xs font-medium capitalize transition-all ${
-                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-600"
+                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
                     }`}
                   >
                     {v}
@@ -413,7 +413,7 @@ export function CanvasFeatureTypeBody({
             </div>
           </div>
           <div>
-            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Button color</div>
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Button color</div>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -429,7 +429,7 @@ export function CanvasFeatureTypeBody({
                 <button
                   type="button"
                   onClick={() => onCanvasFeatureChange(feature.id, "buttonBgColor", "")}
-                  className="text-xs text-neutral-400 hover:text-neutral-700"
+                  className="text-xs text-neutral-500 hover:text-neutral-700"
                 >
                   Use accent
                 </button>
@@ -437,7 +437,7 @@ export function CanvasFeatureTypeBody({
             </div>
           </div>
           <div>
-            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Destination</div>
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Destination</div>
             <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
               {(["external", "page"] as const).map((mode) => {
                 const isActive = (feature.buttonLinkMode ?? "external") === mode;
@@ -448,7 +448,7 @@ export function CanvasFeatureTypeBody({
                     onClick={() => onCanvasFeatureChange(feature.id, "buttonLinkMode", mode)}
                     aria-pressed={isActive}
                     className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
-                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-600"
+                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
                     }`}
                   >
                     {mode === "external" ? "External link" : "Content block"}
@@ -464,11 +464,11 @@ export function CanvasFeatureTypeBody({
               onChange={(event) => onCanvasFeatureChange(feature.id, "linkUrl", event.target.value)}
               placeholder="https://..."
               aria-label="Button URL"
-              className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
             />
           ) : (
             <div className="space-y-2">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Links to container</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Links to container</div>
               <div className="overflow-hidden rounded-xl border border-neutral-200">
                 {feature.linkUrl ? (
                   <div className="flex items-center justify-between px-3 py-2.5">
@@ -478,7 +478,7 @@ export function CanvasFeatureTypeBody({
                     <button
                       type="button"
                       onClick={() => onCanvasFeatureChange(feature.id, "linkUrl", "")}
-                      className="text-xs text-neutral-400 hover:text-neutral-700"
+                      className="text-xs text-neutral-500 hover:text-neutral-700"
                     >
                       Change
                     </button>
@@ -517,7 +517,7 @@ export function CanvasFeatureTypeBody({
       {/* Page button */}
       {feature.type === "page-button" ? (
         <div className="space-y-3">
-          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
             Links to container
           </div>
           <div className="overflow-hidden rounded-xl border border-neutral-200">
@@ -529,7 +529,7 @@ export function CanvasFeatureTypeBody({
                 <button
                   type="button"
                   onClick={() => onCanvasFeatureChange(feature.id, "linkUrl", "")}
-                  className="text-xs text-neutral-400 hover:text-neutral-700"
+                  className="text-xs text-neutral-500 hover:text-neutral-700"
                 >
                   Change
                 </button>
@@ -564,7 +564,7 @@ export function CanvasFeatureTypeBody({
 
       {/* Search */}
       {feature.type === "search" ? (
-        <p className="text-xs leading-5 text-neutral-400">
+        <p className="text-xs leading-5 text-neutral-500">
           Searches all page titles, summaries, and block content. Results show breadcrumb paths and click directly to the matching page. The label above becomes the search bar placeholder text.
         </p>
       ) : null}
@@ -573,7 +573,7 @@ export function CanvasFeatureTypeBody({
       {feature.type === "anchor-pin" ? (
         <div className="space-y-3">
           <div>
-            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Destination</div>
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Destination</div>
             <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
               {(["card", "section"] as const).map((mode) => {
                 const isActive = (!feature.description || feature.description === "card" ? "card" : "section") === mode;
@@ -584,7 +584,7 @@ export function CanvasFeatureTypeBody({
                     onClick={() => onCanvasFeatureChange(feature.id, "description", mode)}
                     aria-pressed={isActive}
                     className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
-                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-600"
+                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
                     }`}
                   >
                     {mode === "card" ? "Link to card" : "Link to section"}
@@ -595,7 +595,7 @@ export function CanvasFeatureTypeBody({
           </div>
           {(!feature.description || feature.description === "card") ? (
             <div className="space-y-1.5">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Card</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Card</div>
               <div className="overflow-hidden rounded-xl border border-neutral-200">
                 {feature.linkUrl ? (
                   <div className="flex items-center justify-between px-3 py-2.5">
@@ -605,7 +605,7 @@ export function CanvasFeatureTypeBody({
                     <button
                       type="button"
                       onClick={() => onCanvasFeatureChange(feature.id, "linkUrl", "")}
-                      className="text-xs text-neutral-400 hover:text-neutral-700"
+                      className="text-xs text-neutral-500 hover:text-neutral-700"
                     >
                       Change
                     </button>
@@ -640,7 +640,7 @@ export function CanvasFeatureTypeBody({
           placeholder="Legal or event-specific copy"
           aria-label="Disclaimer text"
           rows={3}
-          className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+          className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
         />
       ) : null}
 

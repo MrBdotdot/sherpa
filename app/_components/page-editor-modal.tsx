@@ -280,9 +280,9 @@ export function PageEditorModal({
                 onClick={() => onInspectorTabChange(tab)}
                 className={`-mb-px flex items-center gap-1.5 border-b-2 px-4 py-3 text-xs font-medium transition ${
                   activeTab === tab
-                    ? "border-[#3B82F6] text-[#3B82F6]"
+                    ? "border-[#3B82F6] text-[var(--color-primary-text)]"
                     : dk
-                    ? "border-transparent text-neutral-400 hover:text-neutral-200"
+                    ? "border-transparent text-neutral-500 hover:text-neutral-200"
                     : "border-transparent text-neutral-500 hover:text-neutral-800"
                 }`}
               >
@@ -292,7 +292,7 @@ export function PageEditorModal({
                     aria-label={`${badge} item${badge !== 1 ? "s" : ""}`}
                     className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none ${
                       activeTab === tab
-                        ? "bg-[#3B82F6]/10 text-[#3B82F6]"
+                        ? "bg-[#3B82F6]/10 text-[var(--color-primary-text)]"
                         : "bg-neutral-100 text-neutral-500"
                     }`}
                   >
@@ -320,7 +320,7 @@ export function PageEditorModal({
               value={selectedPage.title}
               onChange={onTitleChange}
               placeholder="Card name"
-              className="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
+              className="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
             />
             {selectedPage.kind !== "home" ? (
               <button
@@ -335,7 +335,7 @@ export function PageEditorModal({
               </button>
             ) : null}
           </div>
-          <div className="mt-1 text-xs text-neutral-400">
+          <div className="mt-1 text-xs text-neutral-500">
             {getPageRoleDescription(selectedPage.kind)}
           </div>
         </div>
@@ -379,7 +379,7 @@ export function PageEditorModal({
               />
               {selectedPage.kind === "hotspot" ? (
                 <div className="border-t border-neutral-200 px-5 py-4 space-y-3">
-                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Hotspot behavior</div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Hotspot behavior</div>
                   <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
                     {(["card", "section"] as const).map((mode) => {
                       const isActive = (!selectedPage.hotspotMode || selectedPage.hotspotMode === "card" ? "card" : "section") === mode;
@@ -401,7 +401,7 @@ export function PageEditorModal({
                             }
                           }}
                           className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-all ${
-                            isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-600"
+                            isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
                           }`}
                         >
                           {mode === "card" ? "Opens card" : "Goes to section"}
@@ -440,7 +440,7 @@ export function PageEditorModal({
                     const current = cardSections.find((s) => s.id === selectedPage.hotspotScrollSectionId);
                     return (
                       <div className="space-y-1.5">
-                        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Jump to section</div>
+                        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Jump to section</div>
                         <div className="overflow-hidden rounded-xl border border-neutral-200">
                           {current ? (
                             <div className="flex items-center justify-between px-3 py-2.5">
@@ -448,7 +448,7 @@ export function PageEditorModal({
                               <button
                                 type="button"
                                 onClick={() => onHotspotScrollSectionChange(undefined)}
-                                className="text-xs text-neutral-400 hover:text-neutral-700"
+                                className="text-xs text-neutral-500 hover:text-neutral-700"
                               >
                                 Clear
                               </button>
@@ -463,7 +463,7 @@ export function PageEditorModal({
                                     className="w-full rounded-lg px-2.5 py-2 text-left text-sm transition hover:bg-neutral-50"
                                   >
                                     <div className="truncate font-medium text-neutral-800">{s.value}</div>
-                                    <div className="text-[11px] capitalize text-neutral-400">
+                                    <div className="text-xs capitalize text-neutral-500">
                                       {s.type === "section" ? "Section" : s.blockFormat === "h2" ? "H2" : "H3"}
                                     </div>
                                   </button>

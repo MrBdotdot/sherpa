@@ -129,7 +129,7 @@ export function ContentModule({
   if (ctype === "external-link") {
     const linkUrl = page.publicUrl || page.socialLinks[0]?.url || "";
     const contrastText = effectiveSurfaceStyle === "contrast" ? "text-white" : "text-neutral-900";
-    const dimText = effectiveSurfaceStyle === "contrast" ? "text-neutral-400" : "text-neutral-500";
+    const dimText = effectiveSurfaceStyle === "contrast" ? "text-neutral-500" : "text-neutral-500";
     return (
       <div
         className={`absolute z-30 ${animClass}`}
@@ -149,9 +149,9 @@ export function ContentModule({
             {page.title || "External link"}
           </div>
           {linkUrl ? (
-            <div className={`mt-1 truncate text-[11px] ${dimText}`}>{linkUrl}</div>
+            <div className={`mt-1 truncate text-xs ${dimText}`}>{linkUrl}</div>
           ) : null}
-          <div className={`mt-3 rounded-xl border px-3 py-2 text-[11px] font-medium ${
+          <div className={`mt-3 rounded-xl border px-3 py-2 text-xs font-medium ${
             systemSettings.surfaceStyle === "contrast"
               ? "border-white/15 text-neutral-300"
               : "border-neutral-200 text-neutral-500"
@@ -209,8 +209,8 @@ export function ContentModule({
               onClick={(e) => { e.stopPropagation(); onNavigateBack(); }}
               className={`-ml-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition ${
                 systemSettings.surfaceStyle === "contrast"
-                  ? "text-neutral-400 hover:bg-white/10 hover:text-white"
-                  : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+                  ? "text-neutral-500 hover:bg-white/10 hover:text-white"
+                  : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700"
               }`}
               aria-label="Back"
             >
@@ -233,8 +233,8 @@ export function ContentModule({
             onClick={(e) => { e.stopPropagation(); onDismissContent(); }}
             className={`-mr-1 -mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition ${
               systemSettings.surfaceStyle === "contrast"
-                ? "text-neutral-400 hover:bg-white/10 hover:text-white"
-                : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+                ? "text-neutral-500 hover:bg-white/10 hover:text-white"
+                : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-600"
             }`}
             aria-label="Close"
           >

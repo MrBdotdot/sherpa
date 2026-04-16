@@ -79,7 +79,7 @@ export function ProfileSection({ userEmail, metadata, onMetadataChange }: Profil
         </div>
         <div>
           <div className="text-sm font-medium text-neutral-900">{displayName || `${firstName} ${lastName}`.trim() || "Your name"}</div>
-          <div className="text-xs text-neutral-400">{userEmail}</div>
+          <div className="text-xs text-neutral-500">{userEmail}</div>
           <button
             type="button"
             onClick={() => photoInputRef.current?.click()}
@@ -106,7 +106,7 @@ export function ProfileSection({ userEmail, metadata, onMetadataChange }: Profil
           <div className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-500">
             {userEmail}
           </div>
-          <p className="text-[11px] text-neutral-400">Contact support to change your email address.</p>
+          <p className="text-xs text-neutral-500">Contact support to change your email address.</p>
         </FieldRow>
       </div>
 
@@ -115,7 +115,7 @@ export function ProfileSection({ userEmail, metadata, onMetadataChange }: Profil
       </div>
 
       <Divider />
-      <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Change password</div>
+      <div className="text-xs font-medium text-neutral-500 uppercase tracking-[0.12em] mb-3">Change password</div>
       <div className="space-y-4">
         <FieldRow label="New password">
           <TextInput type="password" placeholder="Min 8 characters" value={newPassword} onChange={setNewPassword} />
@@ -185,7 +185,7 @@ export function BusinessSection({ metadata, onStudioNameChange }: BusinessSectio
           <select
             value={country}
             onChange={(e) => setCountry(e.target.value)}
-            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
+            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-500 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
           >
             <option value="">Select a country</option>
             {COUNTRIES.map((c) => <option key={c}>{c}</option>)}
@@ -253,9 +253,9 @@ export function SecuritySection({ metadata }: SecuritySectionProps) {
         <SaveButton onSave={handleSave} saveState={saveState} />
       </div>
       <Divider />
-      <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Data & privacy</div>
+      <div className="text-xs font-medium text-neutral-500 uppercase tracking-[0.12em] mb-3">Data & privacy</div>
       <div className="space-y-3">
-        <div className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm text-neutral-400">
+        <div className="w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm text-neutral-500">
           Download my data <span className="text-xs">(coming soon)</span>
         </div>
         <div className="w-full rounded-xl border border-red-100 px-4 py-3 text-sm text-red-400">
@@ -323,7 +323,7 @@ export function NotificationsSection({ metadata }: NotificationsSectionProps) {
     <div>
       <SectionHeader title="Notifications" description="Choose which emails you receive." />
 
-      <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Rules & content</div>
+      <div className="text-xs font-medium text-neutral-500 uppercase tracking-[0.12em] mb-3">Rules & content</div>
       <div className="space-y-4">
         <Toggle label="Rules changes" description="Email when a collaborator edits or adds content to any experience." checked={notifs.rulesChanges} onChange={set("rulesChanges")} />
         <Toggle label="Publishing changes" description="Email when an experience is published, unpublished, or archived." checked={notifs.publishingChanges} onChange={set("publishingChanges")} />
@@ -331,14 +331,14 @@ export function NotificationsSection({ metadata }: NotificationsSectionProps) {
       </div>
 
       <Divider />
-      <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Team</div>
+      <div className="text-xs font-medium text-neutral-500 uppercase tracking-[0.12em] mb-3">Team</div>
       <div className="space-y-4">
         <Toggle label="Team invitations" description="Email when someone is invited to or removed from a workspace." checked={notifs.teamInvitations} onChange={set("teamInvitations")} />
         <Toggle label="Role changes" description="Email when a team member's access level changes." checked={notifs.roleChanges} onChange={set("roleChanges")} />
       </div>
 
       <Divider />
-      <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Billing</div>
+      <div className="text-xs font-medium text-neutral-500 uppercase tracking-[0.12em] mb-3">Billing</div>
       <div className="space-y-4">
         <Toggle label="Billing & subscription" description="Receipts, renewal reminders, and payment failure alerts." checked={notifs.billing} onChange={set("billing")} />
         <Toggle label="Plan changes" description="Email when your subscription is upgraded, downgraded, or cancelled." checked={notifs.planChanges} onChange={set("planChanges")} />
@@ -364,7 +364,7 @@ export function SessionsSection({ userDisplayName, userAvatarUrl, userInitial }:
     <div>
       <SectionHeader title="Session history" description="Your active sessions and recent account activity." />
 
-      <div className="text-xs font-medium text-neutral-400 uppercase tracking-[0.12em] mb-3">Active sessions</div>
+      <div className="text-xs font-medium text-neutral-500 uppercase tracking-[0.12em] mb-3">Active sessions</div>
       <div className="mb-6 rounded-xl border border-neutral-200 px-4 py-3">
         <div className="flex items-center gap-3">
           {userAvatarUrl ? (
@@ -381,16 +381,16 @@ export function SessionsSection({ userDisplayName, userAvatarUrl, userInitial }:
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-neutral-900">Current browser session</span>
-              <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-emerald-700">
+              <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
                 Active now
               </span>
             </div>
-            <div className="mt-0.5 text-xs text-neutral-400">{userDisplayName}</div>
+            <div className="mt-0.5 text-xs text-neutral-500">{userDisplayName}</div>
           </div>
         </div>
       </div>
 
-      <div className="rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-3 text-xs text-neutral-400 leading-5">
+      <div className="rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-3 text-xs text-neutral-500 leading-5">
         Full session history and remote session revocation are coming in a future update.
       </div>
     </div>
@@ -554,7 +554,7 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
         <SectionHeader title="Team & access" description="Invite collaborators and manage their permissions." />
         <div className="rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-5 text-center">
           <p className="text-sm font-medium text-neutral-700 mb-1">Team collaboration requires Pro or Studio</p>
-          <p className="text-xs text-neutral-400 mb-4">Pro includes 1 collaborator seat. Studio is unlimited.</p>
+          <p className="text-xs text-neutral-500 mb-4">Pro includes 1 collaborator seat. Studio is unlimited.</p>
           <button className="rounded-full bg-neutral-900 px-5 py-2 text-xs font-semibold text-white hover:bg-neutral-800">
             See plans
           </button>
@@ -569,10 +569,10 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
 
       {/* Game selector */}
       {games.length === 0 ? (
-        <p className="text-sm text-neutral-400 mb-4">No games yet.</p>
+        <p className="text-sm text-neutral-500 mb-4">No games yet.</p>
       ) : (
         <div className="mb-4">
-          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
             Manage team for
           </label>
           <select
@@ -602,7 +602,7 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
               )}
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium text-neutral-900">{userDisplayName || userEmail}</div>
-                <div className="text-xs text-neutral-400">{userEmail}</div>
+                <div className="text-xs text-neutral-500">{userEmail}</div>
               </div>
               <span className="rounded-full bg-blue-500 px-2.5 py-1 text-[10px] font-semibold text-white">Owner</span>
             </div>
@@ -615,7 +615,7 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium text-neutral-900">{memberLabel(member)}</div>
-                  <div className="text-xs text-neutral-400">{member.email}</div>
+                  <div className="text-xs text-neutral-500">{member.email}</div>
                 </div>
                 <select
                   value={member.role}
@@ -637,12 +637,12 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
             {/* Pending invitations */}
             {invitations.map((inv) => (
               <div key={inv.id} className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3 last:border-0">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-semibold text-neutral-400">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-semibold text-neutral-500">
                   ?
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-sm text-neutral-500 italic">{inv.email}</div>
-                  <div className="text-xs text-neutral-400">Invite pending · {inv.role}</div>
+                  <div className="text-xs text-neutral-500">Invite pending · {inv.role}</div>
                 </div>
                 <button
                   onClick={() => handleResendInvitation(inv.id)}
@@ -666,7 +666,7 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
               onChange={(e) => setInviteEmail(e.target.value)}
               placeholder="Email address"
               required
-              className="flex-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-300"
+              className="flex-1 rounded-lg border border-neutral-200 px-3 py-2 text-sm placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-300"
             />
             <select
               value={inviteRole}
@@ -691,7 +691,7 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
 
           {/* Seat counter (Pro only) */}
           {maxCollaborators === 1 && (
-            <p className="mb-4 text-right text-xs text-neutral-400">
+            <p className="mb-4 text-right text-xs text-neutral-500">
               {totalCollaborators} of 1 collaborator seat used ·{" "}
               <span className="cursor-pointer text-violet-600 hover:underline">Upgrade to Studio for unlimited</span>
             </p>
@@ -699,7 +699,7 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
 
           {/* Danger zone */}
           <div className="mt-6 border-t border-neutral-100 pt-4">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">Danger zone</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">Danger zone</p>
             {!showTransfer ? (
               <button
                 onClick={() => setShowTransfer(true)}
@@ -716,7 +716,7 @@ export function TeamSection({ userDisplayName, userEmail, userAvatarUrl, userIni
                   onChange={(e) => setTransferEmail(e.target.value)}
                   placeholder="New owner's email address"
                   required
-                  className="mb-3 w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-400 focus:outline-none"
+                  className="mb-3 w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus:outline-none"
                 />
                 <label className="mb-3 flex items-center gap-2 text-sm text-neutral-700">
                   <input
@@ -801,7 +801,7 @@ export function LanguageSection({ metadata }: LanguageSectionProps) {
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
             disabled
-            className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-400 outline-none cursor-not-allowed"
+            className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm text-neutral-500 outline-none cursor-not-allowed"
           >
             {LANGUAGE_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -812,7 +812,7 @@ export function LanguageSection({ metadata }: LanguageSectionProps) {
           </span>
         </div>
       </FieldRow>
-      <p className="mt-3 text-xs text-neutral-400">
+      <p className="mt-3 text-xs text-neutral-500">
         Multi-language authoring interface support is on the roadmap. Your published experience can already be localized from the canvas editor.
       </p>
     </div>
@@ -831,16 +831,16 @@ export function TermsSection() {
       <SectionHeader title="Terms of service" description="Last updated March 1, 2026." />
       <div className="prose-sm space-y-4 text-sm text-neutral-700 leading-6">
         <p>By using Sherpa, you agree to the following terms. These terms govern your access to and use of Sherpa&apos;s authoring tools, APIs, and related services.</p>
-        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">1. Acceptance</div>
+        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500 pt-2">1. Acceptance</div>
         <p>By creating an account or using the Service, you accept these Terms. If you do not agree, do not use the Service.</p>
-        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">2. Content ownership</div>
+        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500 pt-2">2. Content ownership</div>
         <p>You retain all intellectual property rights in the content you upload to Sherpa, including game rules, images, and brand assets. By uploading content, you grant Sherpa a limited, non-exclusive license to store, display, and serve that content solely for the purpose of providing the Service to you.</p>
         <p>Sherpa will not sell, license, or otherwise transfer your content to third parties, and will not use your content to train AI models without your explicit written consent.</p>
-        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">3. Acceptable use</div>
+        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500 pt-2">3. Acceptable use</div>
         <p>You agree not to use the Service to upload content that infringes on third-party intellectual property, violates applicable law, or is otherwise harmful or deceptive.</p>
-        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">4. Termination</div>
+        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500 pt-2">4. Termination</div>
         <p>Either party may terminate the service relationship at any time. Upon termination, you may export your content. Sherpa will retain data for 30 days following termination before deletion.</p>
-        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">5. Disclaimer</div>
+        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500 pt-2">5. Disclaimer</div>
         <p className="italic text-neutral-500">This is a draft terms summary for internal review. Consult qualified legal counsel before using in a paid production context.</p>
       </div>
     </div>
@@ -855,15 +855,15 @@ export function PrivacySection() {
       <SectionHeader title="Privacy policy" description="Last updated March 1, 2026." />
       <div className="prose-sm space-y-4 text-sm text-neutral-700 leading-6">
         <p>Sherpa takes your privacy seriously. This policy describes what data we collect, how we use it, and your rights regarding that data.</p>
-        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">Data we collect</div>
+        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500 pt-2">Data we collect</div>
         <p>We collect account information (name, email, password), usage data (sessions, actions taken in the authoring tool), and content you upload (images, text, configuration data).</p>
-        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">How we use it</div>
+        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500 pt-2">How we use it</div>
         <p>Data is used to operate the Service, send transactional emails you&apos;ve opted into, and improve the product. We do not sell your personal data or use your uploaded content for advertising.</p>
-        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">Your rights</div>
+        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500 pt-2">Your rights</div>
         <p>Depending on your jurisdiction, you may have rights to access, correct, or delete your data. To exercise these rights, contact support. GDPR users may also request data portability.</p>
-        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">Data retention</div>
+        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500 pt-2">Data retention</div>
         <p>We retain account data while your account is active and for 30 days after deletion, unless a longer period is required by law.</p>
-        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 pt-2">Contact</div>
+        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500 pt-2">Contact</div>
         <p>Questions? Email <span className="font-medium text-neutral-900">privacy@sherpa.app</span>.</p>
         <p className="italic text-neutral-500">This is a draft privacy policy for internal review. Consult qualified legal counsel before using in a paid production context.</p>
       </div>

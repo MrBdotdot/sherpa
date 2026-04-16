@@ -58,7 +58,7 @@ export function CanvasFeatureEditor({
     <div
       ref={containerRef}
       className={`rounded-2xl border bg-white p-4 transition ${
-        isSelected ? "border-[#3B82F6] ring-2 ring-[#3B82F6]/10" : "border-neutral-200"
+        isSelected ? "border-[#3B82F6] ring-2 ring-[#3B82F6]/25" : "border-neutral-200"
       }`}
     >
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -94,7 +94,7 @@ export function CanvasFeatureEditor({
         {/* Portrait zone toggle — only shown in portrait layout mode */}
         {isPortraitMode ? (
           <div className="space-y-1.5 border-t border-neutral-100 pt-3">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
               Portrait zone
             </div>
             <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">

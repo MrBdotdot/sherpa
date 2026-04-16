@@ -69,7 +69,7 @@ function CreateWizard({ userId, onBack, onDone }: CreateWizardProps) {
           <button
             type="button"
             onClick={onBack}
-            className="rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+            className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-600"
             aria-label="Back"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -89,7 +89,7 @@ function CreateWizard({ userId, onBack, onDone }: CreateWizardProps) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); }}
-          className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none placeholder:text-neutral-400 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 focus:bg-white"
+          className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none placeholder:text-neutral-500 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 focus:bg-white"
         />
         <label htmlFor="create-default-language" className="mb-1.5 mt-4 block text-xs font-medium text-neutral-500">
           Default language
@@ -98,7 +98,7 @@ function CreateWizard({ userId, onBack, onDone }: CreateWizardProps) {
           id="create-default-language"
           value={defaultLanguageCode}
           onChange={(event) => setDefaultLanguageCode(event.target.value)}
-          className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 focus:bg-white"
+          className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 focus:bg-white"
           aria-describedby="create-default-language-help"
         >
           {KNOWN_LANGUAGES.map((language) => (
@@ -279,7 +279,7 @@ export function GameSwitcherModal({
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+                  className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-600"
                   aria-label="Close"
                 >
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -293,16 +293,16 @@ export function GameSwitcherModal({
                   placeholder="Search games..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none placeholder:text-neutral-400 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 focus:bg-white"
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none placeholder:text-neutral-500 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 focus:bg-white"
                 />
               </div>
             </div>
 
             <div className="max-h-80 overflow-y-auto p-2">
               {games === null ? (
-                <div className="px-3 py-6 text-center text-sm text-neutral-400">Loading...</div>
+                <div className="px-3 py-6 text-center text-sm text-neutral-500">Loading...</div>
               ) : filteredGames.length === 0 ? (
-                <div className="px-3 py-6 text-center text-sm text-neutral-400">
+                <div className="px-3 py-6 text-center text-sm text-neutral-500">
                   {query ? "No games match your search" : "No games yet - create one below"}
                 </div>
               ) : (
@@ -354,7 +354,7 @@ export function GameSwitcherModal({
                               {game.title}
                             </span>
                             {isCurrent && !isExpanded && (
-                              <span className="shrink-0 rounded-full bg-[#3B82F6] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
+                              <span className="shrink-0 rounded-full bg-[#3B82F6] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
                                 Current
                               </span>
                             )}
@@ -394,7 +394,7 @@ export function GameSwitcherModal({
                             </div>
                             <div>
                               <div className="text-sm font-medium text-neutral-900">Edit rules</div>
-                              <div className="text-xs text-neutral-400">Open this game in the editor</div>
+                              <div className="text-xs text-neutral-500">Open this game in the editor</div>
                             </div>
                           </button>
 
@@ -414,7 +414,7 @@ export function GameSwitcherModal({
                             </div>
                             <div>
                               <div className="text-sm font-medium text-neutral-900">View analytics</div>
-                              <div className="text-xs text-neutral-400">Sessions, hotspot performance, devices</div>
+                              <div className="text-xs text-neutral-500">Sessions, hotspot performance, devices</div>
                             </div>
                           </button>
 
@@ -435,7 +435,7 @@ export function GameSwitcherModal({
                             </div>
                             <div>
                               <div className="text-sm font-medium text-red-600">Delete game</div>
-                              <div className="text-xs text-neutral-400">Delete all cards and content. This cannot be undone.</div>
+                              <div className="text-xs text-neutral-500">Delete all cards and content. This cannot be undone.</div>
                             </div>
                           </button>
                         </div>

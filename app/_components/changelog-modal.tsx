@@ -32,13 +32,13 @@ export function ChangelogModal({
             <h2 id="changelog-title" className="text-base font-semibold text-neutral-900">
               What&apos;s new
             </h2>
-            <div className="mt-0.5 text-xs text-neutral-400">Current version: {APP_VERSION}</div>
+            <div className="mt-0.5 text-xs text-neutral-500">Current version: {APP_VERSION}</div>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close changelog"
-            className="rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+            className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-600"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
@@ -51,10 +51,10 @@ export function ChangelogModal({
             {PATCH_NOTES.map((release) => (
               <div key={release.version}>
                 <div className="mb-3 flex items-baseline gap-2.5">
-                  <span className="rounded-full bg-[#3B82F6] px-2.5 py-0.5 text-[11px] font-semibold text-white">
+                  <span className="rounded-full bg-[#3B82F6] px-2.5 py-0.5 text-xs font-semibold text-white">
                     {release.version}
                   </span>
-                  <span className="text-xs text-neutral-400">{release.date}</span>
+                  <span className="text-xs text-neutral-500">{release.date}</span>
                 </div>
                 <ul className="space-y-2">
                   {release.changes.map((change, i) => (

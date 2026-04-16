@@ -181,7 +181,7 @@ export default function ResetPasswordPage() {
                     required
                     minLength={8}
                     autoComplete="new-password"
-                    className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
+                    className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-500 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
                   />
                 </div>
                 <div>
@@ -195,7 +195,7 @@ export default function ResetPasswordPage() {
                     required
                     minLength={8}
                     autoComplete="new-password"
-                    className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
+                    className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-500 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
                   />
                 </div>
                 <button
@@ -221,7 +221,7 @@ export default function ResetPasswordPage() {
               </p>
               <Link
                 href="/"
-                className="text-xs font-medium text-neutral-400 underline hover:text-neutral-600"
+                className="text-xs font-medium text-neutral-500 underline hover:text-neutral-600"
               >
                 Back to sign in
               </Link>

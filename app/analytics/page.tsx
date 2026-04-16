@@ -125,11 +125,11 @@ function StatCard({
   delta?: number | null;
   sub?: string;
 }) {
-  const trendColor = !delta ? "text-neutral-400" : delta > 0 ? "text-emerald-600" : "text-red-500";
+  const trendColor = !delta ? "text-neutral-500" : delta > 0 ? "text-emerald-600" : "text-red-500";
   const trendIcon = !delta ? null : delta > 0 ? "↑" : "↓";
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-4">
-      <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">{label}</div>
+      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">{label}</div>
       <div className="mt-1.5 flex items-baseline gap-2">
         <div className="text-2xl font-bold text-neutral-900">{value}</div>
         {trendIcon && delta != null && (
@@ -138,7 +138,7 @@ function StatCard({
           </span>
         )}
       </div>
-      {sub && <div className="mt-0.5 text-xs text-neutral-400">{sub}</div>}
+      {sub && <div className="mt-0.5 text-xs text-neutral-500">{sub}</div>}
     </div>
   );
 }
@@ -202,7 +202,7 @@ function DateRangePicker({
           onChange={(e) => setCustomFrom(e.target.value)}
           className="rounded-lg border border-neutral-200 px-2 py-1.5 text-xs text-neutral-700 outline-none focus:border-sky-400"
         />
-        <span className="text-xs text-neutral-400">→</span>
+        <span className="text-xs text-neutral-500">→</span>
         <input
           type="date"
           value={customTo}
@@ -309,7 +309,7 @@ function HeatmapOverlay({
                     }
                   >
                     <div className="text-xs font-semibold text-neutral-900">{h.title}</div>
-                    <div className="mt-0.5 text-[11px] text-neutral-500">
+                    <div className="mt-0.5 text-xs text-neutral-500">
                       {h.clicks.toLocaleString()} clicks
                       {totalClicks > 0 && ` · ${h.pctOfTotal}% of total`}
                       {h.avgDurationSeconds > 0 && ` · ${formatDuration(h.avgDurationSeconds)} avg`}
@@ -323,7 +323,7 @@ function HeatmapOverlay({
 
         {/* Legend */}
         <div className="flex flex-wrap items-center gap-4 border-t border-neutral-100 px-5 py-3">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-neutral-400">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-neutral-500">
             Click density
           </span>
           {([
@@ -480,7 +480,7 @@ function AnalyticsDashboard() {
             </button>
             <div className="h-5 w-px bg-neutral-200" />
             <div>
-              {studio && <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-400">{studio}</div>}
+              {studio && <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">{studio}</div>}
               <div className="text-base font-semibold text-neutral-900">{gameName}</div>
             </div>
           </div>
@@ -558,7 +558,7 @@ function AnalyticsDashboard() {
         {/* Sessions over time */}
         <div className="rounded-2xl border border-neutral-200 bg-white p-5">
           <div className="mb-1 text-sm font-semibold text-neutral-900">Sessions over time</div>
-          <div className="mb-4 text-xs text-neutral-400">
+          <div className="mb-4 text-xs text-neutral-500">
             {sessions ? `${totalSessions.toLocaleString()} total in range` : "Loading…"}
           </div>
           {sessions ? (
@@ -578,17 +578,17 @@ function AnalyticsDashboard() {
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
             <div className="mb-1 text-sm font-semibold text-neutral-900">Hotspot performance</div>
-            <div className="mb-4 text-xs text-neutral-400">Ranked by total clicks</div>
+            <div className="mb-4 text-xs text-neutral-500">Ranked by total clicks</div>
             {hotspots ? (
               <div className="space-y-3">
                 {hotspots.map((h, i) => (
                   <div key={h.title}>
                     <div className="mb-1 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="shrink-0 text-[11px] font-semibold text-neutral-300">#{i + 1}</span>
+                        <span className="shrink-0 text-xs font-semibold text-neutral-300">#{i + 1}</span>
                         <span className="truncate text-sm font-medium text-neutral-800">{h.title}</span>
                       </div>
-                      <div className="shrink-0 flex items-center gap-3 text-xs text-neutral-400">
+                      <div className="shrink-0 flex items-center gap-3 text-xs text-neutral-500">
                         <span className="font-semibold text-neutral-700">{h.clicks.toLocaleString()}</span>
                         <span>{formatDuration(h.avgDurationSeconds)}</span>
                       </div>
@@ -611,7 +611,7 @@ function AnalyticsDashboard() {
           <div className="space-y-4">
             <div className="rounded-2xl border border-neutral-200 bg-white p-5">
               <div className="mb-1 text-sm font-semibold text-neutral-900">Device breakdown</div>
-              <div className="mb-3 text-xs text-neutral-400">How players access the experience</div>
+              <div className="mb-3 text-xs text-neutral-500">How players access the experience</div>
               {devices ? (
                 <div className="flex items-center gap-5">
                   <DonutChart segments={devices} />
@@ -632,7 +632,7 @@ function AnalyticsDashboard() {
 
             <div className="rounded-2xl border border-neutral-200 bg-white p-5">
               <div className="mb-1 text-sm font-semibold text-neutral-900">Top navigation paths</div>
-              <div className="mb-3 text-xs text-neutral-400">Most common 2-step journeys</div>
+              <div className="mb-3 text-xs text-neutral-500">Most common 2-step journeys</div>
               {paths ? (
                 <div className="space-y-2">
                   {paths.map((p) => (
@@ -660,7 +660,7 @@ function AnalyticsDashboard() {
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
             <div className="mb-1 text-sm font-semibold text-neutral-900">Exit cards</div>
-            <div className="mb-4 text-xs text-neutral-400">
+            <div className="mb-4 text-xs text-neutral-500">
               Last card players viewed before leaving — high exits with short dwell time may indicate confusion
             </div>
             {exitCards ? (
@@ -668,14 +668,14 @@ function AnalyticsDashboard() {
                 <div className="space-y-3">
                   {exitCards.map((c, i) => (
                     <div key={c.title} className="flex items-center gap-3">
-                      <span className="shrink-0 text-[11px] font-semibold text-neutral-300">#{i + 1}</span>
+                      <span className="shrink-0 text-xs font-semibold text-neutral-300">#{i + 1}</span>
                       <span className="min-w-0 flex-1 truncate text-sm text-neutral-800">{c.title}</span>
                       <span className="shrink-0 text-sm font-semibold text-neutral-700">{c.exits.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-neutral-400">No data yet for this range.</p>
+                <p className="text-xs text-neutral-500">No data yet for this range.</p>
               )
             ) : (
               <div className="space-y-3">
@@ -686,7 +686,7 @@ function AnalyticsDashboard() {
 
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
             <div className="mb-1 text-sm font-semibold text-neutral-900">Search terms</div>
-            <div className="mb-4 text-xs text-neutral-400">
+            <div className="mb-4 text-xs text-neutral-500">
               What players are searching for — high-frequency terms that don't match a hotspot name suggest a labelling gap
             </div>
             {searchTerms ? (
@@ -700,7 +700,7 @@ function AnalyticsDashboard() {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-neutral-400">No search events recorded yet.</p>
+                <p className="text-xs text-neutral-500">No search events recorded yet.</p>
               )
             ) : (
               <div className="space-y-2">
@@ -714,7 +714,7 @@ function AnalyticsDashboard() {
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
             <div className="mb-1 text-sm font-semibold text-neutral-900">Peak usage</div>
-            <div className="mb-4 text-xs text-neutral-400">Sessions by hour of day (UTC)</div>
+            <div className="mb-4 text-xs text-neutral-500">Sessions by hour of day (UTC)</div>
             {peakUsage ? (
               <div className="flex items-end gap-0.5 h-20">
                 {peakUsage.map(({ hour, sessions: s }) => {
@@ -727,7 +727,7 @@ function AnalyticsDashboard() {
                         style={{ height: `${height}%` }}
                       />
                       {hour % 6 === 0 && (
-                        <div className="absolute -bottom-4 text-[9px] text-neutral-400">{hour}:00</div>
+                        <div className="absolute -bottom-4 text-[10px] text-neutral-500">{hour}:00</div>
                       )}
                     </div>
                   );
@@ -740,7 +740,7 @@ function AnalyticsDashboard() {
 
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
             <div className="mb-1 text-sm font-semibold text-neutral-900">Language distribution</div>
-            <div className="mb-4 text-xs text-neutral-400">Language switches by players</div>
+            <div className="mb-4 text-xs text-neutral-500">Language switches by players</div>
             {languages ? (
               languages.length > 0 ? (
                 <div className="space-y-2">
@@ -760,7 +760,7 @@ function AnalyticsDashboard() {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-neutral-400">No language switches recorded yet.</p>
+                <p className="text-xs text-neutral-500">No language switches recorded yet.</p>
               )
             ) : (
               <div className="space-y-2">

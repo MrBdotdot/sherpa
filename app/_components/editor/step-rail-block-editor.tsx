@@ -201,7 +201,7 @@ export function StepRailBlockEditor({
     <div className="space-y-3">
       {/* Layout */}
       <div>
-        <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Layout</div>
+        <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Layout</div>
         <div className="flex gap-2">
           {(["vertical", "horizontal"] as const).map((o) => (
             <button
@@ -223,7 +223,7 @@ export function StepRailBlockEditor({
 
       {/* Icon shape */}
       <div>
-        <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">Icon shape</div>
+        <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Icon shape</div>
         <div className="flex flex-wrap gap-1.5">
           {SR_ICON_SHAPES.map((s) => (
             <button
@@ -231,7 +231,7 @@ export function StepRailBlockEditor({
               type="button"
               onClick={() => updateConfig({ ...data, iconShape: s.value })}
               aria-pressed={data.iconShape === s.value}
-              className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium transition ${
+              className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition ${
                 data.iconShape === s.value
                   ? "border-[#3B82F6] bg-[#3B82F6] text-white"
                   : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
@@ -273,14 +273,14 @@ export function StepRailBlockEditor({
             onChange={(e) => renameStep(i, e.target.value)}
             placeholder={`Step ${i + 1}`}
             aria-label={`Step ${i + 1} label`}
-            className="min-w-0 flex-1 bg-transparent text-sm font-medium text-neutral-800 outline-none placeholder:text-neutral-400"
+            className="min-w-0 flex-1 bg-transparent text-sm font-medium text-neutral-800 outline-none placeholder:text-neutral-500"
           />
           {i > 0 && (
             <button
               type="button"
               onClick={() => reorderStep(i, i - 1)}
               aria-label={`Move step ${i + 1} up`}
-              className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-400 transition hover:bg-white hover:text-neutral-600"
+              className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-500 transition hover:bg-white hover:text-neutral-600"
             >
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <path d="M7 11V3M3.5 6.5L7 3l3.5 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
@@ -292,7 +292,7 @@ export function StepRailBlockEditor({
               type="button"
               onClick={() => reorderStep(i, i + 1)}
               aria-label={`Move step ${i + 1} down`}
-              className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-400 transition hover:bg-white hover:text-neutral-600"
+              className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-500 transition hover:bg-white hover:text-neutral-600"
             >
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <path d="M7 3v8M3.5 7.5L7 11l3.5-3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
@@ -304,7 +304,7 @@ export function StepRailBlockEditor({
               type="button"
               onClick={() => removeStep(i)}
               aria-label={`Remove step ${i + 1}`}
-              className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+              className="shrink-0 rounded border border-neutral-200 p-1 text-neutral-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
             >
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <path d="M2 3.5h10M5.5 3.5V2.5a1 1 0 011-1h1a1 1 0 011 1v1M4 3.5l.7 7.5a1 1 0 001 .9h2.6a1 1 0 001-.9L10 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
@@ -324,7 +324,7 @@ export function StepRailBlockEditor({
           + Add step
         </button>
       ) : (
-        <p className="text-center text-[11px] text-neutral-400">
+        <p className="text-center text-xs text-neutral-500">
           Maximum {SR_MAX_STEPS[data.orientation]} steps for {data.orientation} layout
         </p>
       )}

@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Primary accent — use --color-primary for fills/borders, --color-primary-text for small text */
+  --color-primary: #3B82F6;        /* blue-500 — 3.69:1 on white — ok for large text/UI fills */
+  --color-primary-text: #1d4ed8;   /* blue-700 — 5.74:1 on white — passes AA at any size */
 }
 
 @theme inline {
@@ -25,6 +28,15 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+/* Respect reduced-motion preferences — disables all animations/transitions */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Accessibility violation highlight — flashes the offending element */

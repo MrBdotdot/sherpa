@@ -105,14 +105,14 @@ export function TabsBlockEditor({
                   updateTabs(sections.map((s, j) => j === i ? { ...s, label: e.target.value } : s))
                 }
                 placeholder={`Tab ${i + 1} label`}
-                className="flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-neutral-400"
+                className="flex-1 bg-transparent text-sm font-medium outline-none placeholder:text-neutral-500"
               />
               {sections.length > 1 ? (
                 <button
                   type="button"
                   onClick={() => updateTabs(sections.filter((_, j) => j !== i))}
                   aria-label={`Remove tab ${i + 1}`}
-                  className="shrink-0 rounded-lg border border-neutral-200 p-1.5 text-neutral-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+                  className="shrink-0 rounded-lg border border-neutral-200 p-1.5 text-neutral-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
                 >
                   <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                     <path d="M2 3.5h10M5.5 3.5V2.5a1 1 0 011-1h1a1 1 0 011 1v1M4 3.5l.7 7.5a1 1 0 001 .9h2.6a1 1 0 001-.9L10 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
@@ -137,7 +137,7 @@ export function TabsBlockEditor({
                   />
                 ))
               ) : (
-                <div className="rounded-xl border border-dashed border-neutral-200 px-3 py-3 text-xs text-neutral-400">
+                <div className="rounded-xl border border-dashed border-neutral-200 px-3 py-3 text-xs text-neutral-500">
                   No blocks yet. Add one below.
                 </div>
               )}
@@ -161,14 +161,14 @@ export function TabsBlockEditor({
                     >
                       <div>
                         <div className="text-xs font-medium text-neutral-800">{item.label}</div>
-                        <div className="text-[11px] text-neutral-400">{item.desc}</div>
+                        <div className="text-xs text-neutral-500">{item.desc}</div>
                       </div>
                     </button>
                   ))}
                   <button
                     type="button"
                     onClick={() => setAddingToSection(null)}
-                    className="w-full px-3 py-2 text-xs text-neutral-400 hover:text-neutral-600 transition"
+                    className="w-full px-3 py-2 text-xs text-neutral-500 hover:text-neutral-600 transition"
                   >
                     Cancel
                   </button>

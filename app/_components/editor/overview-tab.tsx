@@ -61,7 +61,7 @@ export function OverviewTab({
 
                 {showTint ? (
                   <div className="space-y-3">
-                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
                       Background tint
                     </div>
                     <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-neutral-700">
@@ -104,7 +104,7 @@ export function OverviewTab({
                             }
                             placeholder="#ffffff"
                             aria-label="Background tint color hex value"
-                            className="w-full rounded-lg border border-neutral-200 px-4 py-3 font-mono text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+                            className="w-full rounded-lg border border-neutral-200 px-4 py-3 font-mono text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
                           />
                         </div>
                         <div className="space-y-1">
@@ -243,7 +243,7 @@ export function OverviewTab({
                             onChange={(event) => onSystemSettingChange("modelUrl", event.target.value)}
                             placeholder="Paste .glb or .gltf URL"
                             aria-label="3D model URL"
-                            className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+                            className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
                           />
                           <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
                             Upload .glb file
@@ -265,7 +265,7 @@ export function OverviewTab({
                               className="hidden"
                             />
                           </label>
-                          <p className="text-[11px] leading-4 text-neutral-400">
+                          <p className="text-xs leading-4 text-neutral-500">
                             Drag to orbit, scroll to zoom, and right-drag or two-finger to pan.
                           </p>
                           <div className="flex items-start justify-between gap-3 rounded-lg border border-neutral-200 px-3 py-2.5">
@@ -273,7 +273,7 @@ export function OverviewTab({
                               <div className="text-xs font-medium text-neutral-700">
                                 Cache model for offline
                               </div>
-                              <div className="mt-0.5 text-[11px] leading-4 text-neutral-400">
+                              <div className="mt-0.5 text-xs leading-4 text-neutral-500">
                                 {systemSettings.modelUrl
                                   ? "Stores the 3D model on the player's device"
                                   : "Set a model URL above to enable"}
@@ -328,7 +328,7 @@ export function OverviewTab({
                             }
                             placeholder="#1a1a2e"
                             aria-label="Background color hex value"
-                            className="w-full rounded-lg border border-neutral-200 px-4 py-3 font-mono text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+                            className="w-full rounded-lg border border-neutral-200 px-4 py-3 font-mono text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
                           />
                         </div>
                       ) : (
@@ -339,7 +339,7 @@ export function OverviewTab({
                             onChange={onPageHeroUrlChange}
                             placeholder="Paste image URL"
                             aria-label="Background image URL"
-                            className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+                            className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
                           />
                           <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
                             Upload from computer

@@ -212,7 +212,7 @@ export function CommandPalette({
     >
       <div className="w-full max-w-lg overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl">
         <div className="flex items-center gap-2 border-b border-neutral-100 px-4 py-3">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" className="shrink-0 text-neutral-400">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" className="shrink-0 text-neutral-500">
             <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.4" />
             <path d="M9.5 9.5L12.5 12.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
           </svg>
@@ -223,13 +223,13 @@ export function CommandPalette({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="min-w-0 flex-1 bg-transparent text-sm text-neutral-900 outline-none placeholder:text-neutral-400"
+            className="min-w-0 flex-1 bg-transparent text-sm text-neutral-900 outline-none placeholder:text-neutral-500"
           />
           {query && (
             <button
               type="button"
               onClick={() => setQuery("")}
-              className="shrink-0 text-xs text-neutral-400 hover:text-neutral-600"
+              className="shrink-0 text-xs text-neutral-500 hover:text-neutral-600"
             >
               Clear
             </button>
@@ -238,11 +238,11 @@ export function CommandPalette({
 
         <div className="max-h-[360px] overflow-y-auto py-2">
           {filteredItems.length === 0 && (
-            <div className="px-4 py-6 text-center text-sm text-neutral-400">No results</div>
+            <div className="px-4 py-6 text-center text-sm text-neutral-500">No results</div>
           )}
           {Array.from(groups.entries()).map(([group, groupItems]) => (
             <div key={group}>
-              <div className="px-4 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
+              <div className="px-4 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                 {group}
               </div>
               {groupItems.map((item) => {
@@ -273,7 +273,7 @@ export function CommandPalette({
           ))}
         </div>
 
-        <div className="flex items-center gap-3 border-t border-neutral-100 px-4 py-2 text-[11px] text-neutral-400">
+        <div className="flex items-center gap-3 border-t border-neutral-100 px-4 py-2 text-xs text-neutral-500">
           <span>↑↓ navigate</span>
           <span>↵ select</span>
           <span>esc close</span>

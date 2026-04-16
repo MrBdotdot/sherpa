@@ -131,7 +131,7 @@ export function OnboardingModal({
 
         {/* Video placeholder — swap for real embed when walkthrough is ready */}
         <div className="mb-4 flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl bg-neutral-100">
-          <div className="flex flex-col items-center gap-2 text-neutral-400">
+          <div className="flex flex-col items-center gap-2 text-neutral-500">
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
               <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="1.5" />
               <polygon points="13,10 24,16 13,22" fill="currentColor" opacity="0.6" />
@@ -147,7 +147,7 @@ export function OnboardingModal({
                 key={choice.id}
                 className="flex w-full items-center gap-4 rounded-2xl border border-neutral-100 px-4 py-3.5 opacity-40 cursor-not-allowed"
               >
-                <div className="shrink-0 text-neutral-400">{choice.icon}</div>
+                <div className="shrink-0 text-neutral-500">{choice.icon}</div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-neutral-900">{choice.title}</span>
@@ -155,7 +155,7 @@ export function OnboardingModal({
                       Coming soon
                     </span>
                   </div>
-                  <div className="mt-0.5 text-xs text-neutral-400">{choice.description}</div>
+                  <div className="mt-0.5 text-xs text-neutral-500">{choice.description}</div>
                 </div>
               </div>
             ) : (

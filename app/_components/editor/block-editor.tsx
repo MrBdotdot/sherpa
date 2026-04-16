@@ -311,7 +311,7 @@ export function BlockEditor({
                     aria-pressed={isActive}
                     title={opt.title}
                     className={`rounded px-2 py-1 text-[10px] font-semibold leading-none transition-all ${
-                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-600"
+                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
                     }`}
                   >
                     {opt.label}
@@ -328,7 +328,7 @@ export function BlockEditor({
                 type="button"
                 onClick={() => indentCurrentLine(false)}
                 title="Decrease indent"
-                className="rounded px-2 py-1 text-[10px] font-semibold leading-none text-neutral-400 hover:text-neutral-600"
+                className="rounded px-2 py-1 text-[10px] font-semibold leading-none text-neutral-500 hover:text-neutral-600"
               >
                 ←
               </button>
@@ -336,7 +336,7 @@ export function BlockEditor({
                 type="button"
                 onClick={() => indentCurrentLine(true)}
                 title="Increase indent"
-                className="rounded px-2 py-1 text-[10px] font-semibold leading-none text-neutral-400 hover:text-neutral-600"
+                className="rounded px-2 py-1 text-[10px] font-semibold leading-none text-neutral-500 hover:text-neutral-600"
               >
                 →
               </button>
@@ -386,7 +386,7 @@ export function BlockEditor({
                   className="w-52 rounded-xl border border-neutral-200 bg-white p-3 shadow-lg"
                   style={{ position: "fixed", top: colorPickerPos.top, right: colorPickerPos.right, zIndex: 9999 }}
                 >
-                  <div className="mb-2 text-[11px] font-semibold text-neutral-500">Text color</div>
+                  <div className="mb-2 text-xs font-semibold text-neutral-500">Text color</div>
                   <div className="mb-3 flex flex-wrap gap-1.5">
                     <button
                       type="button"
@@ -418,7 +418,7 @@ export function BlockEditor({
                       type="text"
                       value={customColor}
                       onChange={(e) => setCustomColor(e.target.value)}
-                      className="flex-1 rounded-lg border border-neutral-200 px-2 py-1 text-xs font-mono outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
+                      className="flex-1 rounded-lg border border-neutral-200 px-2 py-1 text-xs font-mono outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
                       placeholder="#hexcolor"
                       maxLength={7}
                     />
@@ -456,7 +456,7 @@ export function BlockEditor({
                   className="w-56 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg"
                   style={{ position: "fixed", top: linkPickerPos.top, right: linkPickerPos.right, zIndex: 9999 }}
                 >
-                  <div className="border-b border-neutral-100 px-3 py-2 text-[11px] font-semibold text-neutral-500">
+                  <div className="border-b border-neutral-100 px-3 py-2 text-xs font-semibold text-neutral-500">
                     Link to page
                   </div>
                   <PageLinkPicker pages={linkablePages} anchorTargets={anchorTargets} currentPageId={selectedPageId} onSelect={insertLink} />
@@ -482,7 +482,7 @@ export function BlockEditor({
                     aria-pressed={isActive}
                     title={`Align ${align}`}
                     className={`rounded p-1 transition-all ${
-                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-600"
+                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
                     }`}
                   >
                     {align === "left" ? (
@@ -523,7 +523,7 @@ export function BlockEditor({
                     aria-pressed={isActive}
                     title={`Align ${v}`}
                     className={`rounded p-1 transition-all ${
-                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-600"
+                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
                     }`}
                   >
                     {v === "top" ? (
@@ -561,7 +561,7 @@ export function BlockEditor({
                     aria-pressed={isActive}
                     title={w === "full" ? "Full width" : "Half width"}
                     className={`rounded px-1.5 py-1 text-[10px] font-semibold leading-none transition-all ${
-                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-600"
+                      isActive ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-600"
                     }`}
                   >
                     {w === "full" ? "Full" : "½"}
@@ -590,14 +590,14 @@ export function BlockEditor({
             placeholder={getTextareaPlaceholder(effectiveFormat)}
             aria-label={label}
             rows={effectiveFormat === "h2" || effectiveFormat === "h3" ? 2 : 5}
-            className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 text-sm leading-6 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+            className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 text-sm leading-6 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
           />
           {trigger.active && triggerPos ? createPortal(
             <div
               className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg"
               style={{ position: "fixed", top: triggerPos.top, right: triggerPos.right, minWidth: 220, zIndex: 9999 }}
             >
-              <div className="border-b border-neutral-100 px-3 py-1.5 text-[11px] font-semibold text-neutral-400">
+              <div className="border-b border-neutral-100 px-3 py-1.5 text-xs font-semibold text-neutral-500">
                 Link to page or heading{trigger.query ? `: "${trigger.query}"` : ""}
               </div>
               {triggerResults.length > 0 ? (
@@ -609,7 +609,7 @@ export function BlockEditor({
                   onMouseDownSelect={commitTrigger}
                 />
               ) : (
-                <div className="px-3 py-3 text-xs text-neutral-400">
+                <div className="px-3 py-3 text-xs text-neutral-500">
                   No matches found.
                 </div>
               )}
@@ -666,7 +666,7 @@ export function BlockEditor({
           onChange={(event) => onBlockChange(block.id, event.target.value)}
           placeholder="Paste video URL or file URL"
           aria-label="Video URL"
-          className="w-full rounded-lg border border-neutral-200 px-3 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+          className="w-full rounded-lg border border-neutral-200 px-3 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
         />
       )}
     </div>
@@ -684,15 +684,15 @@ function SectionBlockEditor({
 }) {
   return (
     <div>
-      <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Section label</div>
+      <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Section label</div>
       <input
         type="text"
         value={block.value}
         onChange={(e) => onBlockChange(block.id, e.target.value)}
         placeholder="e.g. Overview, Setup, Victory Conditions"
-        className="w-full rounded-lg border border-neutral-200 px-3 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+        className="w-full rounded-lg border border-neutral-200 px-3 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
       />
-      <div className="mt-1.5 text-xs text-neutral-400">
+      <div className="mt-1.5 text-xs text-neutral-500">
         This label appears as a divider in your content. The Step Rail links to this section by name.
       </div>
     </div>

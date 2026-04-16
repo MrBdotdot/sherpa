@@ -227,7 +227,7 @@ export function SurfaceTab({
       <div className="sticky top-0 z-10 -mx-5 bg-neutral-50 px-5 py-2">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
               {currentLayoutLabel} board
             </div>
             <div className="text-sm font-semibold text-neutral-900">
@@ -265,7 +265,7 @@ export function SurfaceTab({
           {elements.length > 0 ? (
             <div className="space-y-4">
               {pageButtons.length > 0 ? (
-                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                   Elements
                 </div>
               ) : null}
@@ -275,7 +275,7 @@ export function SurfaceTab({
           {pageButtons.length > 0 ? (
             <div className="space-y-4">
               {elements.length > 0 ? (
-                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                   Board buttons
                 </div>
               ) : null}
@@ -305,7 +305,7 @@ export function SurfaceTab({
                 type="button"
                 onClick={() => setPickerOpen(false)}
                 aria-label="Close picker"
-                className="rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+                className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-600"
               >
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
@@ -328,7 +328,7 @@ export function SurfaceTab({
                 </div>
                 <div>
                   <div className="text-sm font-medium text-neutral-900">Hotspot</div>
-                  <div className="text-xs text-neutral-400">Pulsing pin that opens a content card</div>
+                  <div className="text-xs text-neutral-500">Pulsing pin that opens a content card</div>
                 </div>
               </button>
               {CANVAS_ELEMENT_TYPES.map((item, i) => {
@@ -359,7 +359,7 @@ export function SurfaceTab({
                     </div>
                     <div>
                       <div className="text-sm font-medium text-neutral-900">{item.label}</div>
-                      <div className="text-xs text-neutral-400">
+                      <div className="text-xs text-neutral-500">
                         {alreadyExists ? "Already on this board" : item.description}
                       </div>
                     </div>

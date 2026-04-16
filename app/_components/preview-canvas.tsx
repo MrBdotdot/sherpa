@@ -430,7 +430,7 @@ export function PreviewCanvas({
   const headerDark = studioChrome?.darkMode ?? false;
   const headerBg    = headerDark ? "bg-neutral-900"   : "bg-[#fcfaf7]";
   const headerBord  = headerDark ? "border-neutral-700" : "border-[#e7dfd2]";
-  const headerLabel = headerDark ? "text-neutral-400" : "text-neutral-500";
+  const headerLabel = headerDark ? "text-neutral-500" : "text-neutral-500";
 
   function renderSaveStateIndicator({ dark = false }: { dark?: boolean } = {}) {
     if (saveState === "idle") return null;
@@ -441,7 +441,7 @@ export function PreviewCanvas({
 
     if (saveState === "saving") {
       return (
-        <div className={`flex items-center gap-1.5 text-[11px] ${savingClass}`} aria-live="polite" aria-label="Saving">
+        <div className={`flex items-center gap-1.5 text-xs ${savingClass}`} aria-live="polite" aria-label="Saving">
           <svg className="animate-spin" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
             <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="14 8" strokeLinecap="round" />
           </svg>
@@ -452,7 +452,7 @@ export function PreviewCanvas({
 
     if (saveState === "saved") {
       return (
-        <div className={`flex items-center gap-1.5 text-[11px] ${savedClass}`} aria-live="polite" aria-label="Saved">
+        <div className={`flex items-center gap-1.5 text-xs ${savedClass}`} aria-live="polite" aria-label="Saved">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
             <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -462,7 +462,7 @@ export function PreviewCanvas({
     }
 
     return (
-      <div className={`flex items-center gap-1.5 text-[11px] ${errorClass}`} aria-live="polite" aria-label="Save failed">
+      <div className={`flex items-center gap-1.5 text-xs ${errorClass}`} aria-live="polite" aria-label="Save failed">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
           <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5" />
           <path d="M6 3.5v3M6 8.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -477,7 +477,7 @@ export function PreviewCanvas({
       ? "border-neutral-700 bg-neutral-800/90"
       : "border-[#d8cfbf] bg-white";
     const inactiveClass = dark
-      ? "text-neutral-400 hover:bg-neutral-700 hover:text-neutral-100"
+      ? "text-neutral-500 hover:bg-neutral-700 hover:text-neutral-100"
       : "text-neutral-500 hover:bg-[#f7f3ea] hover:text-neutral-900";
 
     const publishToggle = canPublish ? (
@@ -515,7 +515,7 @@ export function PreviewCanvas({
         onClick={() => onExperienceStatusChange("published")}
         className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium shadow-sm ${
           dark
-            ? "border-neutral-700 bg-neutral-800 text-neutral-400"
+            ? "border-neutral-700 bg-neutral-800 text-neutral-500"
             : "border-neutral-200 bg-white text-neutral-500"
         }`}
       >
@@ -549,7 +549,7 @@ export function PreviewCanvas({
   const authoringHeaderContent = (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-center">
       <div className="min-w-0 flex-1">
-        <div className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${headerLabel}`}>
+        <div className={`text-xs font-semibold uppercase tracking-[0.16em] ${headerLabel}`}>
           Currently editing
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -569,7 +569,7 @@ export function PreviewCanvas({
             ) : (
               <div className="flex min-w-0 items-center gap-1.5">
                 {studioName ? (
-                  <span className={`shrink-0 text-xs font-medium ${headerDark ? "text-neutral-400" : "text-neutral-500"}`}>
+                  <span className={`shrink-0 text-xs font-medium ${headerDark ? "text-neutral-500" : "text-neutral-500"}`}>
                     {studioName} /
                   </span>
                 ) : null}
@@ -580,7 +580,7 @@ export function PreviewCanvas({
                   type="button"
                   onClick={startEditName}
                   title="Rename game"
-                  className="rounded-lg p-1 text-neutral-400 transition hover:bg-[#f1ebdf] hover:text-neutral-700"
+                  className="rounded-lg p-1 text-neutral-500 transition hover:bg-[#f1ebdf] hover:text-neutral-700"
                 >
                   <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
                     <path d="M1.5 8.5V9.5h1L8 4 7 3 1.5 8.5zM9.5 2.5a.707.707 0 000-1L8.5 0.5a.707.707 0 00-1 0L6.5 1.5 8.5 3.5 9.5 2.5z" fill="currentColor" />
@@ -735,7 +735,7 @@ export function PreviewCanvas({
         ) : (
           <div className="flex flex-wrap items-center gap-3">
             <div className="min-w-0 flex-1">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">Currently editing</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Currently editing</div>
               <div className="mt-1 flex flex-wrap items-center gap-2">
                 {activePage.kind === "home" ? (
                   editingName ? (
@@ -748,7 +748,7 @@ export function PreviewCanvas({
                         if (e.key === "Enter") commitName();
                         if (e.key === "Escape") setEditingName(false);
                       }}
-                      className="rounded-lg border border-neutral-200 px-2 py-0.5 text-sm font-semibold text-neutral-900 outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
+                      className="rounded-lg border border-neutral-200 px-2 py-0.5 text-sm font-semibold text-neutral-900 outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
                     />
                   ) : (
                     <div className="flex min-w-0 items-center gap-1.5">

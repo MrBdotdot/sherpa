@@ -26,7 +26,7 @@ export function FocalPointPicker({
 
   return (
     <div>
-      <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+      <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
         Drag to set the focal point
       </div>
       <div
@@ -51,7 +51,7 @@ export function FocalPointPicker({
           style={{ top: `${y}%` }}
         />
       </div>
-      <div className="mt-1 text-[10px] text-neutral-400">{x}% / {y}%</div>
+      <div className="mt-1 text-[10px] text-neutral-500">{x}% / {y}%</div>
     </div>
   );
 }

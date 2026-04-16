@@ -43,7 +43,7 @@ function ActionLinkEditor({
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-4">
       <div className="mb-3 flex items-center justify-between">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
           Action link
         </div>
         <button
@@ -80,7 +80,7 @@ function ActionLinkEditor({
           onChange={(e) => onChange(item.id, "label", e.target.value)}
           placeholder="Button label"
           aria-label="Action link label"
-          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
         />
         {mode === "email" ? (
           <input
@@ -89,7 +89,7 @@ function ActionLinkEditor({
             onChange={(e) => onChange(item.id, "url", e.target.value)}
             placeholder="name@example.com"
             aria-label="Email address"
-            className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+            className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
           />
         ) : mode === "external" ? (
           <input
@@ -98,7 +98,7 @@ function ActionLinkEditor({
             onChange={(e) => onChange(item.id, "url", e.target.value)}
             placeholder="https://..."
             aria-label="Action link URL"
-            className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+            className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
           />
         ) : (
           <div className="rounded-xl border border-neutral-200 overflow-hidden">
@@ -108,7 +108,7 @@ function ActionLinkEditor({
                 <button
                   type="button"
                   onClick={() => onChange(item.id, "linkPageId", "")}
-                  className="text-xs text-neutral-400 hover:text-neutral-700"
+                  className="text-xs text-neutral-500 hover:text-neutral-700"
                 >
                   Change
                 </button>
@@ -235,7 +235,7 @@ export function ContentTab({
       {/* Container visuals — display style + background tint */}
       {false ? (
         <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-4">
-        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
           Container appearance
         </div>
 
@@ -249,7 +249,7 @@ export function ContentTab({
 
         {showTint ? (
           <div className="space-y-3">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
               Background tint
             </div>
             <div className="flex items-center gap-3">
@@ -406,7 +406,7 @@ export function ContentTab({
           ))}
 
           {selectedPage.blocks.length >= 1 ? (
-            <HintBubble id="first-block" className="text-[11px]">
+            <HintBubble id="first-block" className="text-xs">
               Hover a block and drag the left handle to reorder
             </HintBubble>
           ) : null}

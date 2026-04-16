@@ -40,7 +40,7 @@ class ModelLoadErrorBoundary extends Component<
         <div className="absolute inset-0 flex items-center justify-center bg-neutral-900">
           <div className="px-6 text-center">
             <p className="text-sm font-medium text-white/70">Failed to load 3D model</p>
-            <p className="mt-1 text-[11px] text-white/40">
+            <p className="mt-1 text-xs text-white/40">
               The file may be too large, corrupted, or an unsupported format.
             </p>
           </div>
@@ -449,7 +449,7 @@ export function ModelViewer({
           </button>
 
           {/* Place / Orbit toggle */}
-          <div className="flex items-center overflow-hidden rounded-lg bg-black/50 backdrop-blur-sm text-[11px] font-semibold">
+          <div className="flex items-center overflow-hidden rounded-lg bg-black/50 backdrop-blur-sm text-xs font-semibold">
             <button
               type="button"
               onClick={() => setPlacingMode(false)}
@@ -471,7 +471,7 @@ export function ModelViewer({
       {/* Hint text — bottom center */}
       {isAuthoring && loaded && (
         <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2">
-          <p className="rounded-xl bg-black/50 px-3 py-1.5 text-[11px] font-medium text-white/70 backdrop-blur-sm whitespace-nowrap">
+          <p className="rounded-xl bg-black/50 px-3 py-1.5 text-xs font-medium text-white/70 backdrop-blur-sm whitespace-nowrap">
             {placingMode
               ? "Click model surface to place a hotspot · Switch to Orbit to look around"
               : "Drag to orbit · Scroll to zoom · Switch to Place to add hotspots"}

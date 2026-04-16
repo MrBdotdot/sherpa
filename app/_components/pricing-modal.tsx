@@ -84,7 +84,7 @@ export function PricingModal({ mode, onClose, onStartConventionMode, conventionL
           type="button"
           aria-label="Close"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+          className="absolute right-4 top-4 rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-600"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path
@@ -161,7 +161,7 @@ export function PricingModal({ mode, onClose, onStartConventionMode, conventionL
                 </span>
               </div>
               {proAnnualNote && (
-                <div className="mt-0.5 text-xs text-neutral-400">
+                <div className="mt-0.5 text-xs text-neutral-500">
                   {proAnnualNote}
                 </div>
               )}
@@ -176,7 +176,7 @@ export function PricingModal({ mode, onClose, onStartConventionMode, conventionL
                 <li key={feature} className="flex items-start gap-2 text-sm text-neutral-600">
                   <svg
                     aria-hidden="true"
-                    className="mt-0.5 shrink-0 text-neutral-400"
+                    className="mt-0.5 shrink-0 text-neutral-500"
                     width="14"
                     height="14"
                     viewBox="0 0 14 14"
@@ -222,7 +222,7 @@ export function PricingModal({ mode, onClose, onStartConventionMode, conventionL
                 </span>
               </div>
               {studioAnnualNote && (
-                <div className="mt-0.5 text-xs text-neutral-400">
+                <div className="mt-0.5 text-xs text-neutral-500">
                   {studioAnnualNote}
                 </div>
               )}
@@ -274,7 +274,7 @@ export function PricingModal({ mode, onClose, onStartConventionMode, conventionL
               $299{" "}
             </span>
             <span className="text-sm text-neutral-500">one-time</span>
-            <p className="mt-0.5 text-xs text-neutral-400">
+            <p className="mt-0.5 text-xs text-neutral-500">
               Single-user license. Need a team?{" "}
               <a
                 href="mailto:hello@sherpa.so"
@@ -297,7 +297,7 @@ export function PricingModal({ mode, onClose, onStartConventionMode, conventionL
         {/* Convention Mode — free alternative, upgrade-prompt only */}
         {mode === "upgrade-prompt" && onStartConventionMode ? (
           <div className="mt-5 border-t border-neutral-100 pt-5">
-            <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400 mb-3">
+            <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500 mb-3">
               Not ready to upgrade?
             </div>
             <div className="rounded-xl border border-neutral-200 p-4 space-y-3">

@@ -329,7 +329,7 @@ export function AuthoringStudio({
   const chromeBg    = dk ? "bg-neutral-900"   : "bg-[#fcfaf7]";
   const chromeBord  = dk ? "border-neutral-700" : "border-[#e7dfd2]";
   const chromeToggle = dk
-    ? "border-neutral-700 bg-neutral-900 text-neutral-400 hover:text-neutral-200"
+    ? "border-neutral-700 bg-neutral-900 text-neutral-500 hover:text-neutral-200"
     : "border-[#e7dfd2] bg-[#fcfaf7] text-neutral-500 hover:text-neutral-800";
   const chromeShadow = "shadow-[0_22px_60px_rgba(15,23,42,0.14)]";
   const chromeToggleShadow = "shadow-[0_18px_36px_rgba(15,23,42,0.14)]";
@@ -629,7 +629,7 @@ export function AuthoringStudio({
           className={`flex h-full flex-col overflow-hidden border-l ${chromeBord} ${chromeBg} ${chromeShadow}`}
         >
           <div className={`shrink-0 border-b ${chromeBord} px-5 py-4`}>
-            <div className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${dk ? "text-neutral-400" : "text-neutral-500"}`}>
+            <div className={`text-xs font-semibold uppercase tracking-[0.16em] ${dk ? "text-neutral-500" : "text-neutral-500"}`}>
               Editing Panel
             </div>
           </div>

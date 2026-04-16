@@ -184,7 +184,7 @@ export function PreviewBlocks({
             return (
               <HighlightableBlock key={block.id} id={block.id} accentColor={accentColor} className={`${alignClass(block)} ${blockClass}`}>
                 <h2 className="text-base font-bold text-neutral-900 leading-tight">
-                  {block.value || <span className="text-neutral-400 font-normal">Empty heading</span>}
+                  {block.value || <span className="text-neutral-500 font-normal">Empty heading</span>}
                 </h2>
               </HighlightableBlock>
             );
@@ -193,7 +193,7 @@ export function PreviewBlocks({
             return (
               <HighlightableBlock key={block.id} id={block.id} accentColor={accentColor} className={`${alignClass(block)} ${blockClass}`}>
                 <h3 className="text-sm font-semibold text-neutral-800 leading-snug">
-                  {block.value || <span className="text-neutral-400 font-normal">Empty heading</span>}
+                  {block.value || <span className="text-neutral-500 font-normal">Empty heading</span>}
                 </h3>
               </HighlightableBlock>
             );
@@ -251,7 +251,7 @@ export function PreviewBlocks({
                 {labeledItems.map(({ text, isIndented, label }, i) => (
                   <li key={i} className={`flex items-start gap-2.5 ${isIndented ? "pl-7" : ""}`}>
                     <span
-                      className={`shrink-0 flex items-center justify-center rounded-full font-bold text-white ${isIndented ? "mt-0.5 h-4 w-4 text-[9px] opacity-75" : "mt-0.5 h-5 w-5 text-[10px]"}`}
+                      className={`shrink-0 flex items-center justify-center rounded-full font-bold text-white ${isIndented ? "mt-0.5 h-4 w-4 text-[10px] opacity-75" : "mt-0.5 h-5 w-5 text-[10px]"}`}
                       style={{ backgroundColor: dotColor }}
                     >
                       {label}

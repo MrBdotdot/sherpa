@@ -239,7 +239,7 @@ export function RulebookImporterModal({
                 type="button"
                 onClick={handleBack}
                 aria-label="Back"
-                className="mt-0.5 rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+                className="mt-0.5 rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-600"
               >
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
@@ -266,7 +266,7 @@ export function RulebookImporterModal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="ml-4 rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+            className="ml-4 rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-600"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
@@ -296,7 +296,7 @@ export function RulebookImporterModal({
             ) : (
               <div className="flex flex-col gap-3">
                 {commitError && (
-                  <p className="text-[11px] text-red-500">{commitError}</p>
+                  <p className="text-xs text-red-500">{commitError}</p>
                 )}
                 <button
                   type="button"
@@ -330,7 +330,7 @@ export function RulebookImporterModal({
                   className={`border-b-2 px-3 py-2 text-xs font-semibold transition-colors ${
                     tab === t
                       ? "border-[#1e3a8a] text-[#1e3a8a]"
-                      : "border-transparent text-neutral-400 hover:text-neutral-600"
+                      : "border-transparent text-neutral-500 hover:text-neutral-600"
                   }`}
                 >
                   {t === "text" ? "Paste text" : "Upload PDF"}
@@ -366,7 +366,7 @@ export function RulebookImporterModal({
                 </div>
               ) : tab === "text" ? (
                 <textarea
-                  className="w-full flex-1 resize-none rounded-xl border border-neutral-200 px-3 py-2.5 text-xs leading-relaxed text-neutral-800 placeholder:text-neutral-400 focus:border-[#1e3a8a] focus:outline-none"
+                  className="w-full flex-1 resize-none rounded-xl border border-neutral-200 px-3 py-2.5 text-xs leading-relaxed text-neutral-800 placeholder:text-neutral-500 focus:border-[#1e3a8a] focus:outline-none"
                   placeholder="Paste your rulebook text here…"
                   value={text}
                   onChange={(e) => { setText(e.target.value); setErrorMsg(null); }}
@@ -385,7 +385,7 @@ export function RulebookImporterModal({
                     {pdfFile ? pdfFile.name : "Drop your PDF here"}
                   </span>
                   {!pdfFile && (
-                    <span className="text-[11px] text-neutral-400">or click to browse · PDF only · max 50MB</span>
+                    <span className="text-xs text-neutral-500">or click to browse · PDF only · max 50MB</span>
                   )}
                   <input
                     ref={fileInputRef}
@@ -404,9 +404,9 @@ export function RulebookImporterModal({
             {/* Hint / error */}
             <div className="mt-1.5 h-4">
               {errorMsg ? (
-                <p className="text-[11px] text-red-500">{errorMsg ?? "Something went wrong — please try again."}</p>
+                <p className="text-xs text-red-500">{errorMsg ?? "Something went wrong — please try again."}</p>
               ) : tab === "text" && !isBusy ? (
-                <p className="text-[11px] text-neutral-400">Tip: include headings for better section grouping.</p>
+                <p className="text-xs text-neutral-500">Tip: include headings for better section grouping.</p>
               ) : null}
             </div>
 

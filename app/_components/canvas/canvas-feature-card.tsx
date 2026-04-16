@@ -41,7 +41,7 @@ function ImageFeatureCard({
     return (
       <div className={`w-[180px] rounded-xl border border-dashed border-neutral-300 bg-white/90 p-3 shadow-sm ${fontThemeClass}`}>
         <div className="truncate text-xs font-semibold text-neutral-900">{feature.label}</div>
-        <div className="mt-2 rounded-lg border border-dashed border-neutral-300 px-3 py-3 text-[11px] text-neutral-400">
+        <div className="mt-2 rounded-lg border border-dashed border-neutral-300 px-3 py-3 text-xs text-neutral-500">
           Upload image
         </div>
       </div>
@@ -89,7 +89,7 @@ function ImageFeatureCard({
             );
           })}
           {subtext ? (
-            <div className="mt-1 line-clamp-2 border-t border-neutral-200 px-2 pt-2 text-[10px] leading-4 text-neutral-400">
+            <div className="mt-1 line-clamp-2 border-t border-neutral-200 px-2 pt-2 text-[10px] leading-4 text-neutral-500">
               {subtext}
             </div>
           ) : null}
@@ -167,7 +167,7 @@ function LocaleFeatureCard({
               </button>
             </li>
           )) : (
-            <li className="px-2 py-1.5 text-xs text-neutral-400">No languages defined</li>
+            <li className="px-2 py-1.5 text-xs text-neutral-500">No languages defined</li>
           )}
         </ul>
       ) : null}
@@ -239,7 +239,7 @@ export function CanvasFeatureCard({
             className="w-full rounded-md object-contain"
           />
         ) : (
-          <div className="rounded-md border border-dashed border-neutral-300 px-3 py-6 text-center text-[11px] text-neutral-400">
+          <div className="rounded-md border border-dashed border-neutral-300 px-3 py-6 text-center text-xs text-neutral-500">
             Upload QR image
           </div>
         )}
@@ -380,15 +380,15 @@ export function CanvasFeatureCard({
                 <span className="truncate">{label}</span>
                 {hasLink ? (
                   isPage ? (
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true" className="shrink-0 text-neutral-400"><path d="M2 5h6M5.5 2.5 8 5l-2.5 2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true" className="shrink-0 text-neutral-500"><path d="M2 5h6M5.5 2.5 8 5l-2.5 2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   ) : (
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true" className="shrink-0 text-neutral-400"><path d="M2.5 7.5 7.5 2.5M4 2.5h3.5v3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true" className="shrink-0 text-neutral-500"><path d="M2.5 7.5 7.5 2.5M4 2.5h3.5v3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   )
                 ) : null}
               </button>
             );
           }) : (
-            <div className="py-1.5 text-xs text-neutral-400">Add options</div>
+            <div className="py-1.5 text-xs text-neutral-500">Add options</div>
           )}
         </div>
       </div>
@@ -446,7 +446,7 @@ export function CanvasFeatureCard({
 
   return (
     <div className={`max-w-[220px] rounded-xl border border-neutral-200 bg-white p-3 shadow-sm ${fontThemeClass}`}>
-      <div className="line-clamp-3 text-[11px] italic leading-5 text-neutral-500">{feature.label || "Disclaimer text"}</div>
+      <div className="line-clamp-3 text-xs italic leading-5 text-neutral-500">{feature.label || "Disclaimer text"}</div>
     </div>
   );
 }

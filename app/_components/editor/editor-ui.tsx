@@ -9,7 +9,7 @@ export function EditorSection({
 }) {
   return (
     <section id={id} className="border-b border-neutral-200 px-5 py-5 last:border-b-0">
-      <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
         {title}
       </div>
       {children}
@@ -52,13 +52,13 @@ export function SelectField<T extends string>({
 }) {
   return (
     <label className="block">
-      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
         {label}
       </div>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value as T)}
-        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 font-sans text-sm text-neutral-900 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 font-sans text-sm text-neutral-900 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>

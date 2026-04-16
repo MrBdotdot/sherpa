@@ -59,7 +59,7 @@ export function NewContainerForm({
           className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-left hover:bg-neutral-50"
         >
           <div className="text-sm font-medium text-neutral-900">Blank</div>
-          <div className="mt-0.5 text-xs leading-4 text-neutral-400">Start with a blank card. Add your own content.</div>
+          <div className="mt-0.5 text-xs leading-4 text-neutral-500">Start with a blank card. Add your own content.</div>
         </button>
         {PAGE_TEMPLATES.map((template) => (
           <button
@@ -69,14 +69,14 @@ export function NewContainerForm({
             className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-left hover:bg-neutral-50"
           >
             <div className="text-sm font-medium text-neutral-900">{template.title}</div>
-            <div className="mt-0.5 text-xs leading-4 text-neutral-400">{template.description}</div>
+            <div className="mt-0.5 text-xs leading-4 text-neutral-500">{template.description}</div>
           </button>
         ))}
         {onCancel ? (
           <button
             type="button"
             onClick={onCancel}
-            className="w-full rounded-xl px-3 py-2 text-sm font-medium text-neutral-400 hover:text-neutral-600 transition"
+            className="w-full rounded-xl px-3 py-2 text-sm font-medium text-neutral-500 hover:text-neutral-600 transition"
           >
             Cancel
           </button>
@@ -93,22 +93,22 @@ export function NewContainerForm({
         onChange={(e) => setConfigTitle(e.target.value)}
         placeholder="Card name"
         autoFocus
-        className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+        className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
       />
       <div className="space-y-1.5">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
           How it opens
         </div>
         <select
           value={configDisplayStyle}
           onChange={(e) => setConfigDisplayStyle(e.target.value as DisplayStyleKey)}
-          className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 font-sans text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+          className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 font-sans text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
         >
           {DISPLAY_STYLE_OPTIONS.map((opt) => (
             <option key={opt.key} value={opt.key}>{opt.label}</option>
           ))}
         </select>
-        <div className="px-0.5 text-[10px] leading-4 text-neutral-400">
+        <div className="px-0.5 text-[10px] leading-4 text-neutral-500">
           {DISPLAY_STYLE_OPTIONS.find((o) => o.key === configDisplayStyle)?.description}
         </div>
       </div>
@@ -118,7 +118,7 @@ export function NewContainerForm({
         if (!showTint) return null;
         return (
           <div className="space-y-2">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
               Background color
             </div>
             <label className="flex items-center gap-2 cursor-pointer select-none text-sm text-neutral-700">
@@ -142,7 +142,7 @@ export function NewContainerForm({
                   <span className="text-xs text-neutral-500 font-mono">{configTintColor}</span>
                 </div>
                 <div className="space-y-1">
-                  <div className="flex items-center justify-between text-[10px] text-neutral-400">
+                  <div className="flex items-center justify-between text-[10px] text-neutral-500">
                     <span>Opacity</span>
                     <span>{configTintOpacity}%</span>
                   </div>
@@ -170,7 +170,7 @@ export function NewContainerForm({
       <button
         type="button"
         onClick={() => setCreateStep("template")}
-        className="w-full rounded-xl px-3 py-2 text-sm font-medium text-neutral-400 hover:text-neutral-600 transition"
+        className="w-full rounded-xl px-3 py-2 text-sm font-medium text-neutral-500 hover:text-neutral-600 transition"
       >
         Back
       </button>

@@ -196,7 +196,7 @@ export function searchPages(pages: PageItem[], query: string): SearchHit[] {
       (end < entry.text.length ? "…" : "");
 
     hits.push({ pageId: entry.pageId, sectionId: entry.sectionId, breadcrumb: entry.breadcrumb, matchSnippet: snippet });
-    if (hits.length >= 8) break;
+    if (hits.length >= 50) break;
   }
 
   return hits;

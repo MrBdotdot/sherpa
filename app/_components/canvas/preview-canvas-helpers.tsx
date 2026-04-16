@@ -85,7 +85,7 @@ export const EmptySurfaceGuidance = memo(function EmptySurfaceGuidance({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border border-neutral-300 px-2 py-1 text-[11px] font-medium text-neutral-600 hover:bg-neutral-50"
+          className="rounded-lg border border-neutral-300 px-2 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-50"
         >
           Close
         </button>

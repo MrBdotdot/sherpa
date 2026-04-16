@@ -51,7 +51,7 @@ export function DropdownFeatureEditor({ feature, pages, onCanvasFeatureChange }:
 
   return (
     <div className="space-y-2">
-      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Items</div>
+      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Items</div>
       {items.map((item, i) => (
         <div key={i} className="space-y-2 rounded-xl border border-neutral-200 p-3">
           <div className="flex items-center gap-2">
@@ -61,13 +61,13 @@ export function DropdownFeatureEditor({ feature, pages, onCanvasFeatureChange }:
               onChange={(e) => update(i, { label: e.target.value })}
               placeholder="Item label"
               aria-label={`Item ${i + 1} label`}
-              className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+              className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
             />
             <button
               type="button"
               onClick={() => remove(i)}
               aria-label={`Remove item ${i + 1}`}
-              className="shrink-0 text-xs text-neutral-400 hover:text-red-500"
+              className="shrink-0 text-xs text-neutral-500 hover:text-red-500"
             >
               ✕
             </button>
@@ -79,10 +79,10 @@ export function DropdownFeatureEditor({ feature, pages, onCanvasFeatureChange }:
                 type="button"
                 onClick={() => update(i, { linkType: mode, url: "" })}
                 aria-pressed={item.linkType === mode}
-                className={`flex-1 rounded-md py-1 text-[11px] font-medium transition-all ${
+                className={`flex-1 rounded-md py-1 text-xs font-medium transition-all ${
                   item.linkType === mode
                     ? "bg-white text-neutral-900 shadow-sm"
-                    : "text-neutral-400 hover:text-neutral-600"
+                    : "text-neutral-500 hover:text-neutral-600"
                 }`}
               >
                 {mode === "none" ? "No link" : mode === "external" ? "External" : "Page"}
@@ -96,7 +96,7 @@ export function DropdownFeatureEditor({ feature, pages, onCanvasFeatureChange }:
               onChange={(e) => update(i, { url: e.target.value })}
               placeholder="https://..."
               aria-label={`Item ${i + 1} URL`}
-              className="w-full rounded-lg border border-neutral-200 px-2.5 py-1.5 font-mono text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+              className="w-full rounded-lg border border-neutral-200 px-2.5 py-1.5 font-mono text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
             />
           ) : item.linkType === "page" ? (
             <div className="overflow-hidden rounded-xl border border-neutral-200">
@@ -108,7 +108,7 @@ export function DropdownFeatureEditor({ feature, pages, onCanvasFeatureChange }:
                   <button
                     type="button"
                     onClick={() => update(i, { url: "" })}
-                    className="text-xs text-neutral-400 hover:text-neutral-700"
+                    className="text-xs text-neutral-500 hover:text-neutral-700"
                   >
                     Change
                   </button>

@@ -85,7 +85,7 @@ export default function PlayPage() {
       <div className="flex h-screen flex-col items-center justify-center gap-6 bg-neutral-950 px-6 text-center">
         <div>
           <div className="text-xl font-semibold text-white">Experience not found</div>
-          <div className="mt-2 text-sm text-neutral-400">
+          <div className="mt-2 text-sm text-neutral-500">
             This link may be invalid or the experience is not published.
           </div>
         </div>

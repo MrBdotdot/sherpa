@@ -93,7 +93,7 @@ export function ExperienceTab({
 
           {/* Brand color */}
           <div>
-            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
               Brand color
             </div>
             <div className="flex items-center gap-2">
@@ -110,7 +110,7 @@ export function ExperienceTab({
                 onChange={(event) => onSystemSettingChange("accentColor", event.target.value)}
                 placeholder="#000000"
                 aria-label="Brand color hex value"
-                className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-3 py-2.5 font-mono text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+                className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-3 py-2.5 font-mono text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
               />
               {systemSettings.accentColor ? (
                 <button
@@ -131,7 +131,7 @@ export function ExperienceTab({
 
           {/* Game icon */}
           <div>
-            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
               Game icon
             </div>
             <div className="flex items-center gap-2">
@@ -235,7 +235,7 @@ export function ExperienceTab({
                 />
               </div>
               <div>
-                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
                   Content zone background
                 </div>
                 <div className="flex items-center gap-2">
@@ -252,7 +252,7 @@ export function ExperienceTab({
                     onChange={(event) => onSystemSettingChange("portraitBackground", event.target.value)}
                     placeholder="#1a1a2e"
                     aria-label="Portrait background color hex value"
-                    className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-3 py-2.5 font-mono text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+                    className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-3 py-2.5 font-mono text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -265,14 +265,14 @@ export function ExperienceTab({
       <EditorSection title="Behavior">
         <div className="space-y-4">
           <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Auto-open card</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Auto-open card</div>
             <p className="text-xs text-neutral-500 leading-relaxed">
               Open a specific card every time the experience loads. Useful for tutorial or guided experiences.
             </p>
             <select
               value={systemSettings.autoOpenPageId ?? ""}
               onChange={(e) => onSystemSettingChange("autoOpenPageId", e.target.value || undefined)}
-              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10"
+              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
               aria-label="Auto-open card"
             >
               <option value="">None — player starts on the board</option>
@@ -284,7 +284,7 @@ export function ExperienceTab({
             </select>
           </div>
           <div className="space-y-3">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Intro screen</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Intro screen</div>
             <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-neutral-700">
               <input
                 type="checkbox"
@@ -311,7 +311,7 @@ export function ExperienceTab({
                 }
                 placeholder="Paste YouTube URL"
                 aria-label="Intro video YouTube URL"
-                className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+                className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
               />
             ) : null}
           </div>
@@ -322,7 +322,7 @@ export function ExperienceTab({
       <EditorSection title="Languages">
         {localeFeature ? (
           <>
-            <p className="mb-4 text-xs text-neutral-400">
+            <p className="mb-4 text-xs text-neutral-500">
               {languageCount} language{languageCount === 1 ? "" : "s"} configured.
             </p>
             <LocaleFeatureEditor
@@ -347,7 +347,7 @@ export function ExperienceTab({
       <EditorSection title="Advanced">
         <div className="space-y-6">
           <div className="space-y-3">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">BoardGameGeek</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">BoardGameGeek</div>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -358,7 +358,7 @@ export function ExperienceTab({
                 }}
                 placeholder="BGG game ID"
                 aria-label="BGG game ID"
-                className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed"
+                className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
               />
               <button
                 type="button"
@@ -409,16 +409,16 @@ export function ExperienceTab({
             ) : null}
           </div>
           <div className="space-y-2">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Custom CSS</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Custom CSS</div>
             <textarea
               value={systemSettings.customCss ?? ""}
               onChange={(e) => onSystemSettingChange("customCss", e.target.value || undefined)}
               placeholder={`.sherpa-modal {\n  border-radius: 0;\n}\n\n.sherpa-button {\n  background: #ff6b00;\n}`}
               rows={10}
               spellCheck={false}
-              className="w-full resize-y rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 font-mono text-xs leading-relaxed text-neutral-800 placeholder:text-neutral-400 focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/10"
+              className="w-full resize-y rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 font-mono text-xs leading-relaxed text-neutral-800 placeholder:text-neutral-500 focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/25"
             />
-            <p className="text-[11px] leading-relaxed text-neutral-400">
+            <p className="text-xs leading-relaxed text-neutral-500">
               Scoped to <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-600">.sherpa-player</code>.
               Target <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-600">.sherpa-modal</code>,{" "}
               <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-600">.sherpa-button</code>,{" "}

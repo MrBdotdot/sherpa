@@ -332,7 +332,7 @@ export function AccountPanel({
               )}
               <div className="min-w-0">
                 <div className="truncate text-sm font-semibold text-neutral-900">{profile.displayName}</div>
-                <div className="truncate text-[11px] text-neutral-400">{userEmail}</div>
+                <div className="truncate text-xs text-neutral-500">{userEmail}</div>
               </div>
             </div>
           </div>
@@ -340,7 +340,7 @@ export function AccountPanel({
           <nav className="flex-1 overflow-y-auto px-2 py-3">
             {NAV_GROUPS.map((group) => (
               <div key={group.label} className="mb-4">
-                <div className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
+                <div className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
                   {group.label}
                 </div>
                 {group.items.map((item) => (
@@ -354,7 +354,7 @@ export function AccountPanel({
                         : "text-neutral-500 hover:bg-white/70 hover:text-neutral-700"
                     }`}
                   >
-                    <span className={activeSection === item.id ? "text-neutral-900" : "text-neutral-400"}>
+                    <span className={activeSection === item.id ? "text-neutral-900" : "text-neutral-500"}>
                       {item.icon}
                     </span>
                     {item.label}
@@ -381,13 +381,13 @@ export function AccountPanel({
         {/* Content */}
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex shrink-0 items-center justify-between border-b border-neutral-100 px-6 py-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
               Account settings
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+              className="rounded-lg p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-600"
               aria-label="Close"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">

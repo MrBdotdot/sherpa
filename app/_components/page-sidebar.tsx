@@ -92,11 +92,11 @@ function SidebarPageButton({
       <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${
         isSelected
           ? "border-[#3B82F6]/30 bg-[#3B82F6]/10 text-[#3B82F6]"
-          : "border-neutral-200 bg-white text-neutral-400"
+          : "border-neutral-200 bg-white text-neutral-500"
       }`}>
         {page.kind === "hotspot" ? <HotspotPinIcon /> : <CardPageIcon />}
       </div>
-      <span className={`truncate text-xs font-medium ${isSelected ? "text-[#3B82F6]" : "text-neutral-700"}`}>
+      <span className={`truncate text-xs font-medium ${isSelected ? "text-[var(--color-primary-text)]" : "text-neutral-700"}`}>
         {page.title || (page.kind === "hotspot" ? "Untitled hotspot" : "Untitled card")}
       </span>
     </button>
@@ -124,11 +124,11 @@ function SidebarFeatureItem({
       }`}
     >
       <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${
-        isSelected ? "border-[#3B82F6]/30 bg-[#3B82F6]/10 text-[#3B82F6]" : "border-neutral-200 bg-white text-neutral-400"
+        isSelected ? "border-[#3B82F6]/30 bg-[#3B82F6]/10 text-[#3B82F6]" : "border-neutral-200 bg-white text-neutral-500"
       }`}>
         <SidebarItemIcon type={feature.type} />
       </div>
-      <span className={`truncate text-xs font-medium ${isSelected ? "text-[#3B82F6]" : "text-neutral-700"}`}>
+      <span className={`truncate text-xs font-medium ${isSelected ? "text-[var(--color-primary-text)]" : "text-neutral-700"}`}>
         {feature.label || getFeatureTypeLabel(feature.type)}
       </span>
     </button>
@@ -174,7 +174,7 @@ function SidebarBlockItem({
         onDragEnd={onDragEnd}
         className="group flex w-full cursor-grab items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-neutral-50 active:cursor-grabbing"
       >
-        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-white text-neutral-400">
+        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-white text-neutral-500">
           <SidebarItemIcon type={block.type} />
         </div>
         <button
@@ -198,7 +198,7 @@ function SidebarTabItem({ label, onOpen }: { label: string; onOpen: () => void }
       onClick={onOpen}
       className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition hover:bg-neutral-50"
     >
-      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-white text-neutral-400">
+      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-white text-neutral-500">
         <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
           <rect x="1" y="5" width="11" height="7.5" rx="1.25" stroke="currentColor" strokeWidth="1.2"/>
           <rect x="1" y="1.5" width="4" height="3.75" rx="1" fill="currentColor"/>
@@ -238,11 +238,11 @@ function CollapsibleSection({
           aria-expanded={open}
           className="flex flex-1 items-center gap-1.5 rounded-lg text-left hover:opacity-70"
         >
-          <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
             {title}
           </span>
           {count !== undefined && count > 0 ? (
-            <span className="rounded-full bg-neutral-100 px-1.5 py-0.5 text-[9px] font-semibold text-neutral-400 leading-none">
+            <span className="rounded-full bg-neutral-100 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-600 leading-none">
               {count}
             </span>
           ) : null}
@@ -252,7 +252,7 @@ function CollapsibleSection({
       </div>
       {open ? (
         isEmpty ? (
-          <div className="rounded-2xl border border-dashed border-neutral-200 px-3 py-3 text-xs leading-5 text-neutral-400">
+          <div className="rounded-2xl border border-dashed border-neutral-200 px-3 py-3 text-xs leading-5 text-neutral-500">
             {emptyText}
           </div>
         ) : (
@@ -347,7 +347,7 @@ export function PageSidebar({
             <button
               type="button"
               onClick={() => onOpenChangelog?.()}
-              className={`rounded-full border px-2 py-0.5 text-xs ${dk ? "border-neutral-700 text-neutral-400 hover:border-neutral-600 hover:bg-neutral-800" : "border-neutral-200 text-neutral-500 hover:border-neutral-300 hover:bg-neutral-50"}`}
+              className={`rounded-full border px-2 py-0.5 text-xs ${dk ? "border-neutral-700 text-neutral-500 hover:border-neutral-600 hover:bg-neutral-800" : "border-neutral-200 text-neutral-500 hover:border-neutral-300 hover:bg-neutral-50"}`}
             >
               {APP_VERSION}
             </button>
@@ -414,7 +414,7 @@ export function PageSidebar({
                                 aria-expanded={isExpanded}
                                 aria-controls={expandId}
                                 aria-label={`${isExpanded ? "Collapse" : "Expand"} contents of ${hotspot.title || "this hotspot"}`}
-                                className="flex shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-neutral-400 transition hover:bg-white hover:text-neutral-700"
+                                className="flex shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-neutral-500 transition hover:bg-white hover:text-neutral-700"
                               >
                                 <ChevronIcon expanded={isExpanded} />
                               </button>
@@ -434,7 +434,7 @@ export function PageSidebar({
                                 <>
                                   {tabSections.length > 0 ? (
                                     <li>
-                                      <div className="pb-0.5 pt-1 px-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">Blocks</div>
+                                      <div className="pb-0.5 pt-1 px-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Blocks</div>
                                     </li>
                                   ) : null}
                                   {(() => {
@@ -536,7 +536,7 @@ export function PageSidebar({
                 type="button"
                 onClick={onAddPage}
                 title="Add a new card"
-                className="flex items-center gap-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1 text-[11px] font-semibold text-neutral-500 hover:bg-white hover:text-neutral-700 transition"
+                className="flex items-center gap-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1 text-xs font-semibold text-neutral-500 hover:bg-white hover:text-neutral-700 transition"
               >
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
                   <path d="M5 1v8M1 5h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -568,7 +568,7 @@ export function PageSidebar({
                         aria-expanded={isExpanded}
                         aria-controls={expandId}
                         aria-label={`${isExpanded ? "Collapse" : "Expand"} contents of ${page.title || "this card"}`}
-                        className="flex shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-neutral-400 transition hover:bg-white hover:text-neutral-700"
+                        className="flex shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-neutral-500 transition hover:bg-white hover:text-neutral-700"
                       >
                         <ChevronIcon expanded={isExpanded} />
                       </button>
@@ -590,7 +590,7 @@ export function PageSidebar({
                         <>
                           {hasFeatures ? (
                             <li>
-                              <div className="pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400 px-0.5">
+                              <div className="pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500 px-0.5">
                                 Tabs
                               </div>
                             </li>
@@ -609,7 +609,7 @@ export function PageSidebar({
                         <>
                           {(hasFeatures || tabSections.length > 0) ? (
                             <li>
-                              <div className="pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400 px-0.5">Blocks</div>
+                              <div className="pt-1 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500 px-0.5">Blocks</div>
                             </li>
                           ) : null}
                           {(() => {
@@ -655,7 +655,7 @@ export function PageSidebar({
           </CollapsibleSection>
           {navPages.length >= 1 ? (
             <div className="mt-2">
-              <HintBubble id="first-card" className="text-[11px]">
+              <HintBubble id="first-card" className="text-xs">
                 Click a card to open it and add content
               </HintBubble>
             </div>
@@ -686,11 +686,11 @@ export function PageSidebar({
             <div className={`truncate text-xs font-semibold ${dk ? "text-neutral-200" : "text-neutral-800"}`}>
               {currentGameName}
             </div>
-            <div className="text-[10px] text-neutral-400">Switch game</div>
+            <div className="text-[10px] text-neutral-500">Switch game</div>
           </div>
           {isLive ? (
             <span
-              className={`shrink-0 self-center rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${
+              className={`shrink-0 self-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
                 dk
                   ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
                   : "border-emerald-200 bg-emerald-50 text-emerald-700"
@@ -711,7 +711,7 @@ export function PageSidebar({
           rel="noopener noreferrer"
           className={`flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left transition ${dk ? "hover:bg-neutral-800" : "hover:bg-neutral-100"}`}
         >
-          <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${dk ? "bg-neutral-800 text-neutral-400" : "bg-neutral-100 text-neutral-500"}`}>
+          <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${dk ? "bg-neutral-800 text-neutral-500" : "bg-neutral-100 text-neutral-500"}`}>
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
               <path d="M1 2.5h11v7a1 1 0 01-1 1H2a1 1 0 01-1-1v-7z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
               <path d="M1 2.5l5.5 4.5L12 2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
@@ -719,7 +719,7 @@ export function PageSidebar({
           </div>
           <div className="min-w-0">
             <div className={`truncate text-xs font-medium ${dk ? "text-neutral-200" : "text-neutral-700"}`}>Send feedback</div>
-            <div className="truncate text-[10px] text-neutral-400">Report a bug or share ideas</div>
+            <div className="truncate text-[10px] text-neutral-500">Report a bug or share ideas</div>
           </div>
         </a>
 
@@ -742,7 +742,7 @@ export function PageSidebar({
           )}
           <div className="min-w-0">
             <div className={`truncate text-xs font-medium ${dk ? "text-neutral-200" : "text-neutral-700"}`}>{displayName}</div>
-            <div className="truncate text-[10px] text-neutral-400">
+            <div className="truncate text-[10px] text-neutral-500">
               {userEmail || "Signed-in account"}
             </div>
           </div>

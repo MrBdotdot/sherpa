@@ -61,14 +61,14 @@ function AcceptInviteContent() {
       {status === "loading" && (
         <>
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-700 border-t-white mb-4" />
-          <p className="text-neutral-400 text-sm">Accepting invitation…</p>
+          <p className="text-neutral-500 text-sm">Accepting invitation…</p>
         </>
       )}
 
       {status === "success" && (
         <>
           <div className="text-xl font-semibold text-white mb-2">You&apos;re in!</div>
-          <p className="text-neutral-400 text-sm">
+          <p className="text-neutral-500 text-sm">
             You now have access to the game. Redirecting to the studio…
           </p>
         </>
@@ -77,7 +77,7 @@ function AcceptInviteContent() {
       {status === "expired" && (
         <>
           <div className="text-xl font-semibold text-white mb-2">Invitation expired</div>
-          <p className="text-neutral-400 text-sm">
+          <p className="text-neutral-500 text-sm">
             This invite link expired after 7 days. Ask the game owner to send a new invitation.
           </p>
         </>
@@ -86,7 +86,7 @@ function AcceptInviteContent() {
       {status === "mismatch" && (
         <>
           <div className="text-xl font-semibold text-white mb-2">Wrong account</div>
-          <p className="text-neutral-400 text-sm">
+          <p className="text-neutral-500 text-sm">
             This invitation was sent to a different email address. Sign in with the correct account and try again.
           </p>
           <button
@@ -104,7 +104,7 @@ function AcceptInviteContent() {
       {status === "invalid" && (
         <>
           <div className="text-xl font-semibold text-white mb-2">Invalid invitation</div>
-          <p className="text-neutral-400 text-sm">
+          <p className="text-neutral-500 text-sm">
             This invitation link is invalid or has already been used.
           </p>
           <a

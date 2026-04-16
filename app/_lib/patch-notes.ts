@@ -6,6 +6,18 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.25.1",
+    date: "2026-04-15",
+    changes: [
+      "Design system audit: icon stroke weights normalised across the full icon set",
+      "Sidebar and editor text upgraded to neutral-500 (was neutral-400, failed WCAG AA)",
+      "Primary blue text now uses blue-700 token at small sizes for AA compliance",
+      "Focus rings bumped from 10% to 25% opacity for better visibility",
+      "Letter-spacing consolidated to two values (0.16em labels, 0.12em headers)",
+      "Added prefers-reduced-motion guard and primary color CSS custom properties",
+    ],
+  },
+  {
     version: "v0.25.0",
     date: "2026-04-15",
     changes: [

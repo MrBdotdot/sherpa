@@ -64,7 +64,7 @@ export function TabsBlock({
             type="button"
             onClick={() => setActiveIndex(i)}
             className={`-mb-px px-3 py-2 text-xs font-semibold whitespace-nowrap transition-colors border-b-2 ${
-              i === idx ? "" : "border-transparent text-neutral-400 hover:text-neutral-600"
+              i === idx ? "" : "border-transparent text-neutral-500 hover:text-neutral-600"
             }`}
             style={i === idx ? { borderColor: accentColor || "#171717", color: accentColor || "#171717" } : {}}
           >
@@ -83,7 +83,7 @@ export function TabsBlock({
             pages={pages}
           />
         ) : (
-          <div className="text-sm text-neutral-400">Empty tab</div>
+          <div className="text-sm text-neutral-500">Empty tab</div>
         )
       ) : null}
     </div>

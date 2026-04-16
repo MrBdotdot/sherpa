@@ -42,7 +42,7 @@ export function PageLinkPicker({
   return (
     <ul className="max-h-48 overflow-y-auto p-1">
       {hasAnchors && pages.length > 0 && (
-        <li className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-neutral-400">
+        <li className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
           Pages
         </li>
       )}
@@ -62,13 +62,13 @@ export function PageLinkPicker({
             }`}
           >
             <div className="truncate font-medium text-neutral-800">{p.title || "Untitled"}</div>
-            <div className="text-[11px] capitalize text-neutral-400">{p.kind}</div>
+            <div className="text-xs capitalize text-neutral-500">{p.kind}</div>
           </button>
         </li>
       ))}
       {sameCard.length > 0 && (
         <>
-          <li className={`px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-neutral-400${pages.length > 0 ? " mt-1" : ""}`}>
+          <li className={`px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-neutral-500${pages.length > 0 ? " mt-1" : ""}`}>
             On this card
           </li>
           {sameCard.map((t, i) => {
@@ -90,7 +90,7 @@ export function PageLinkPicker({
                   }`}
                 >
                   <div className="truncate font-medium text-neutral-800">{t.label}</div>
-                  <div className="text-[11px] text-neutral-400">{kindLabel}</div>
+                  <div className="text-xs text-neutral-500">{kindLabel}</div>
                 </button>
               </li>
             );
@@ -99,7 +99,7 @@ export function PageLinkPicker({
       )}
       {crossCardGroups.map((group) => (
         <React.Fragment key={group.pageId}>
-          <li className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-neutral-400 mt-1">
+          <li className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-neutral-500 mt-1">
             {group.pageTitle}
           </li>
           {group.items.map(({ target: t, idx }) => {
@@ -120,7 +120,7 @@ export function PageLinkPicker({
                   }`}
                 >
                   <div className="truncate font-medium text-neutral-800">{t.label}</div>
-                  <div className="text-[11px] text-neutral-400">{kindLabel}</div>
+                  <div className="text-xs text-neutral-500">{kindLabel}</div>
                 </button>
               </li>
             );
