@@ -4,6 +4,7 @@ import { ChangeEvent, useState } from "react";
 import { ContentBlock, ContentBlockType, ImageFit, PageItem } from "@/app/_lib/authoring-types";
 import { createBlock } from "@/app/_lib/authoring-utils";
 import { BlockEditor, type BlockFormat } from "@/app/_components/editor/block-editor";
+import { BlockEditorContext } from "@/app/_components/editor/block-editor-context";
 
 type TabSection = { id: string; label: string; blocks: ContentBlock[] };
 
@@ -125,16 +126,23 @@ export function TabsBlockEditor({
             <div className="space-y-3 p-3">
               {section.blocks.length > 0 ? (
                 section.blocks.map((b, bi) => (
-                  <BlockEditor
+                  <BlockEditorContext.Provider
                     key={b.id}
-                    block={b}
-                    index={bi}
-                    isFirst={bi === 0}
-                    isLast={bi === section.blocks.length - 1}
-                    pages={pages}
-                    selectedPageId={selectedPageId}
-                    {...handlers}
-                  />
+                    value={{
+                      ...handlers,
+                      onReplaceBlocks: undefined,
+                      pages: pages ?? [],
+                      selectedPageId,
+                      anchorTargets: undefined,
+                    }}
+                  >
+                    <BlockEditor
+                      block={b}
+                      index={bi}
+                      isFirst={bi === 0}
+                      isLast={bi === section.blocks.length - 1}
+                    />
+                  </BlockEditorContext.Provider>
                 ))
               ) : (
                 <div className="rounded-xl border border-dashed border-neutral-200 px-3 py-3 text-xs text-neutral-500">
