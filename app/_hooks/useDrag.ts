@@ -101,6 +101,20 @@ export function useDrag({
     onCollapseHeader,
   });
 
+  const handleAddHotspot = () => {
+    pushPagesHistory();
+    const newHotspot = createHotspotPage(
+      hotspotPages.length + 1,
+      selectedPage?.heroImage || DEFAULT_HERO
+    );
+    newHotspot.x = 50;
+    newHotspot.y = 50;
+    setPages((prev) => [...prev, newHotspot]);
+    setSelectedPageId(newHotspot.id);
+    setInspectorTab("overview");
+    setIsContentModalOpen(true);
+  };
+
   const handleCanvasClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (dragThresholdRef.current) {
       dragThresholdRef.current = false;
@@ -121,28 +135,6 @@ export function useDrag({
       setSelectedPageId(homePageId);
       return;
     }
-
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 100;
-    const y = ((event.clientY - rect.top) / rect.height) * 100;
-
-    pushPagesHistory();
-    const newHotspot = createHotspotPage(
-      hotspotPages.length + 1,
-      selectedPage?.heroImage || DEFAULT_HERO
-    );
-
-    newHotspot.x = x;
-    newHotspot.y = y;
-    if (isPortraitMode) {
-      newHotspot.mobileX = x;
-      newHotspot.mobileY = y;
-    }
-
-    setPages((prev) => [...prev, newHotspot]);
-    setSelectedPageId(newHotspot.id);
-    setInspectorTab("overview");
-    setIsContentModalOpen(true);
   };
 
   const handle3dHotspotPlace = (
@@ -194,5 +186,6 @@ export function useDrag({
     handle3dHotspotPlace,
     handleDismissContent,
     handleTogglePreviewMode,
+    handleAddHotspot,
   };
 }
