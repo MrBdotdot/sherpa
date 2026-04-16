@@ -9,7 +9,7 @@ import {
   SystemSettings,
 } from "@/app/_lib/authoring-types";
 import { getPlacementLabel } from "@/app/_lib/label-utils";
-import { EditorSection, EditorSubsection, SelectField } from "@/app/_components/editor/editor-ui";
+import { EditorSection, EditorSubsection, SelectField, FieldLabel, InputField, MonoInput } from "@/app/_components/editor/editor-ui";
 
 export function OverviewTab({
   onContentTintChange,
@@ -61,9 +61,7 @@ export function OverviewTab({
 
                 {showTint ? (
                   <div className="space-y-3">
-                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
-                      Background tint
-                    </div>
+                    <FieldLabel className="mb-0">Background tint</FieldLabel>
                     <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-neutral-700">
                       <input
                         type="checkbox"
@@ -93,8 +91,8 @@ export function OverviewTab({
                             aria-label="Background tint color picker"
                             className="h-9 w-9 shrink-0 cursor-pointer rounded-lg border border-neutral-200 p-0.5"
                           />
-                          <input
-                            type="text"
+                          <MonoInput
+                            size="lg"
                             value={selectedPage.contentTintColor}
                             onChange={(event) =>
                               onContentTintChange(
@@ -104,7 +102,6 @@ export function OverviewTab({
                             }
                             placeholder="#ffffff"
                             aria-label="Background tint color hex value"
-                            className="w-full rounded-lg border border-neutral-200 px-4 py-3 font-mono text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
                           />
                         </div>
                         <div className="space-y-1">
@@ -237,13 +234,12 @@ export function OverviewTab({
 
                       {isModel3d ? (
                         <>
-                          <input
-                            type="text"
+                          <InputField
+                            size="lg"
                             value={systemSettings.modelUrl ?? ""}
                             onChange={(event) => onSystemSettingChange("modelUrl", event.target.value)}
                             placeholder="Paste .glb or .gltf URL"
                             aria-label="3D model URL"
-                            className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
                           />
                           <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
                             Upload .glb file
@@ -318,8 +314,8 @@ export function OverviewTab({
                             aria-label="Background color picker"
                             className="h-9 w-9 shrink-0 cursor-pointer rounded-lg border border-neutral-200 p-0.5"
                           />
-                          <input
-                            type="text"
+                          <MonoInput
+                            size="lg"
                             value={selectedPage.heroImage.replace("color:", "")}
                             onChange={(event) =>
                               onPageHeroUrlChange({
@@ -328,18 +324,16 @@ export function OverviewTab({
                             }
                             placeholder="#1a1a2e"
                             aria-label="Background color hex value"
-                            className="w-full rounded-lg border border-neutral-200 px-4 py-3 font-mono text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
                           />
                         </div>
                       ) : (
                         <>
-                          <input
-                            type="text"
+                          <InputField
+                            size="lg"
                             value={selectedPage.heroImage}
                             onChange={onPageHeroUrlChange}
                             placeholder="Paste image URL"
                             aria-label="Background image URL"
-                            className="w-full rounded-lg border border-neutral-200 px-4 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
                           />
                           <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
                             Upload from computer
