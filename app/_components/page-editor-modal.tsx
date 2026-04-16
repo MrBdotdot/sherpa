@@ -35,6 +35,7 @@ type PageEditorModalProps = {
   isOpen: boolean;
   isOverlay?: boolean;
   onAddCanvasFeature: (type: CanvasFeatureType) => void;
+  onAddHotspot?: () => void;
   onAddBlock: (type: ContentBlockType) => void;
   onInsertBlock: (type: ContentBlockType, atIndex: number) => void;
   onAddSocialLink: () => void;
@@ -146,6 +147,7 @@ export function PageEditorModal({
   isOpen,
   isOverlay = true,
   onAddCanvasFeature,
+  onAddHotspot,
   onAddBlock,
   onInsertBlock,
   onAddSocialLink,
@@ -516,6 +518,7 @@ export function PageEditorModal({
           ) : activeTab === "board" ? (
             <SurfaceTab
               layoutMode={layoutMode}
+              onAddHotspot={onAddHotspot ?? (() => {})}
               onAddCanvasFeature={onAddCanvasFeature}
               onCanvasFeatureChange={onCanvasFeatureChange}
               onCanvasFeatureImageUpload={onCanvasFeatureImageUpload}
