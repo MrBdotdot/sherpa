@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePostHog } from "posthog-js/react";
 import { PageItem, SystemSettings } from "@/app/_lib/authoring-types";
+import type { GuideStep } from "@/app/_lib/authoring-types";
 import { getLocaleFeature, localizePages, parseLocaleLanguages } from "@/app/_lib/localization";
 import { getFontThemeClass } from "@/app/_lib/font-theme";
 import { CanvasBackground } from "@/app/_components/canvas/canvas-background";
@@ -10,6 +11,7 @@ import { HotspotPin } from "@/app/_components/canvas/hotspot-pin";
 import { ContentModule } from "@/app/_components/canvas/content-module";
 import { IntroScreen } from "@/app/_components/canvas/intro-screen";
 import { FeaturePlacer } from "@/app/_components/canvas/preview-canvas-helpers";
+import { GuidePanel } from "@/app/_components/canvas/guide-panel";
 
 const NOOP = () => {};
 const NOOP_PTR = () => {};
@@ -29,6 +31,16 @@ export function PlayerView({
     systemSettings.introScreen?.enabled && systemSettings.introScreen?.youtubeUrl
   );
   const [introVisible, setIntroVisible] = useState(introEnabled);
+
+  const guides = systemSettings.guides ?? [];
+  const navPosition = systemSettings.guideNavPosition ?? "left";
+
+  const [isGuidedMode, setIsGuidedMode] = useState(guides.length > 0);
+  const [activeGuideId, setActiveGuideId] = useState<string | null>(
+    systemSettings.activeGuideId ?? guides[0]?.id ?? null
+  );
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
   const [selectedPageId, setSelectedPageId] = useState("");
   const localeFeature = useMemo(() => getLocaleFeature(pages), [pages]);
   const localeLanguages = useMemo(() => parseLocaleLanguages(localeFeature), [localeFeature]);
@@ -213,6 +225,7 @@ export function PlayerView({
     if (!modulePageRef.current || isModuleExitingRef.current) return;
     isModuleExitingRef.current = true;
     setIsModuleExiting(true);
+    setHighlightedHotspotId(null);
     setNavHistory([]);
   }
 
@@ -243,6 +256,12 @@ export function PlayerView({
       });
     }
     setActiveLanguageCode(code);
+  }
+
+  function handleStepActivate(step: GuideStep, index: number) {
+    setActiveStepIndex(index);
+    if (step.anchorHotspotId) setHighlightedHotspotId(step.anchorHotspotId);
+    handleHotspotSelect(step.pageId);
   }
 
   const accentColor = systemSettings.accentColor || "";
@@ -315,6 +334,23 @@ export function PlayerView({
         />
       </div>
 
+      {/* Guide panel */}
+      {guides.length > 0 && (
+        <GuidePanel
+          guide={guides.find(g => g.id === activeGuideId) ?? guides[0]}
+          pages={localizedPages}
+          navPosition={navPosition}
+          activeStepIndex={activeStepIndex}
+          isGuidedMode={isGuidedMode}
+          onStepActivate={handleStepActivate}
+          onCollapse={() => setIsGuidedMode(false)}
+          onExpand={() => setIsGuidedMode(true)}
+          guides={guides}
+          activeGuideId={activeGuideId ?? guides[0]?.id ?? ""}
+          onGuideChange={setActiveGuideId}
+        />
+      )}
+
       {/* Hotspot pins */}
       {hotspotPages.map((page, i) => (
         <HotspotPin
@@ -322,6 +358,7 @@ export function PlayerView({
           page={page}
           index={i}
           isSelected={page.id === resolvedSelectedPageId}
+          isHighlighted={page.id === highlightedHotspotId}
           isLayoutEditMode={false}
           isPreviewMode={true}
           accentColor={accentColor}
