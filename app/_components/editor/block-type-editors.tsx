@@ -211,3 +211,28 @@ export function ConsentBlockEditor({
     </div>
   );
 }
+
+export function SectionBlockEditor({
+  block,
+  onBlockChange,
+}: {
+  block: ContentBlock;
+  onBlockChange: (blockId: string, value: string) => void;
+}) {
+  return (
+    <div>
+      <FieldLabel className="mb-1.5">Section label</FieldLabel>
+      <InputField
+        size="lg"
+        className="px-3"
+        type="text"
+        value={block.value}
+        onChange={(e) => onBlockChange(block.id, e.target.value)}
+        placeholder="e.g. Overview, Setup, Victory Conditions"
+      />
+      <div className="mt-1.5 text-xs text-neutral-500">
+        This label appears as a divider in your content. The Step Rail links to this section by name.
+      </div>
+    </div>
+  );
+}

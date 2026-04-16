@@ -7,7 +7,7 @@ import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
 import { StepRailBlockEditor } from "@/app/_components/editor/step-rail-block-editor";
 import { TabsBlockEditor } from "@/app/_components/editor/tabs-block-editor";
 import { CarouselBlockEditor } from "@/app/_components/editor/carousel-block-editor";
-import { CalloutBlockEditor, ConsentBlockEditor, ImageBlockEditor } from "@/app/_components/editor/block-type-editors";
+import { CalloutBlockEditor, ConsentBlockEditor, ImageBlockEditor, SectionBlockEditor } from "@/app/_components/editor/block-type-editors";
 import {
   CONTENT_ELEMENT_TYPES,
   TYPE_LABELS,
@@ -675,30 +675,4 @@ export function BlockEditor({
   );
 }
 
-// ── SectionBlockEditor ─────────────────────────────────────────
-
-function SectionBlockEditor({
-  block,
-  onBlockChange,
-}: {
-  block: ContentBlock;
-  onBlockChange: (blockId: string, value: string) => void;
-}) {
-  return (
-    <div>
-      <FieldLabel className="mb-1.5">Section label</FieldLabel>
-      <InputField
-        size="lg"
-        className="px-3"
-        type="text"
-        value={block.value}
-        onChange={(e) => onBlockChange(block.id, e.target.value)}
-        placeholder="e.g. Overview, Setup, Victory Conditions"
-      />
-      <div className="mt-1.5 text-xs text-neutral-500">
-        This label appears as a divider in your content. The Step Rail links to this section by name.
-      </div>
-    </div>
-  );
-}
 
