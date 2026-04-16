@@ -3,6 +3,8 @@ import {
   CanvasFeatureType,
   ContentBlock,
   ContentBlockType,
+  Guide,
+  GuideStep,
   ImageBlockHotspot,
   InteractionType,
   PageButtonPlacement,
@@ -13,7 +15,7 @@ import {
 } from "@/app/_lib/authoring-types";
 import { getKnownLocaleLanguage } from "@/app/_lib/localization";
 
-export const APP_VERSION = "v0.25.3";
+export const APP_VERSION = "v0.26.0";
 
 export type { PatchNote } from "@/app/_lib/patch-notes";
 export { PATCH_NOTES } from "@/app/_lib/patch-notes";
@@ -132,6 +134,14 @@ export function createImageHotspot(x = 50, y = 50): ImageBlockHotspot {
     label: "",
     content: "",
   };
+}
+
+export function createGuide(name: string): Guide {
+  return { id: crypto.randomUUID(), name, steps: [] };
+}
+
+export function createGuideStep(label: string, pageId: string): GuideStep {
+  return { id: crypto.randomUUID(), label, pageId };
 }
 
 export function createCanvasFeature(

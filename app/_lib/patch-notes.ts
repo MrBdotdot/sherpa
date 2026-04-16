@@ -6,6 +6,21 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.26.0",
+    date: "2026-04-16",
+    changes: ["New: Player guide/walkthrough feature — creator-configurable guided and exploratory modes with step-by-step nav"],
+  },
+  {
+    version: "v0.25.5",
+    date: "2026-04-16",
+    changes: ["Fix: 3D model viewer rewritten with imperative Three.js — resolves R3F v9 + Three.js r183 read-only property crash"],
+  },
+  {
+    version: "v0.25.4",
+    date: "2026-04-15",
+    changes: ["Fix: 3D model viewer no longer crashes with R3F v9 read-only property errors"],
+  },
+  {
     version: "v0.25.3",
     date: "2026-04-15",
     changes: ["Internal: prop drilling eliminated via BlockEditorContext — no visible changes"],

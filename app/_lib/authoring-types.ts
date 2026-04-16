@@ -1,7 +1,7 @@
 export type PageKind = "home" | "page" | "hotspot";
 export type LayoutMode = "desktop" | "mobile-landscape" | "mobile-portrait";
 export type MobileLayoutMode = Exclude<LayoutMode, "desktop">;
-export type InspectorTab = "overview" | "board" | "settings";
+export type InspectorTab = "overview" | "board" | "settings" | "guide";
 export type ContentBlockType = "text" | "image" | "video" | "steps" | "callout" | "consent" | "tabs" | "section" | "step-rail" | "carousel";
 export type PageButtonPlacement = "top" | "bottom" | "left" | "right" | "stack";
 export type InteractionType =
@@ -175,6 +175,19 @@ export type PageItem = {
   hotspotScrollSectionId?: string;
 };
 
+export type GuideStep = {
+  id: string;
+  label: string;
+  pageId: string;            // PageItem to open (any kind except "home")
+  anchorHotspotId?: string;  // hotspot to pulse on board before opening card
+};
+
+export type Guide = {
+  id: string;
+  name: string;
+  steps: GuideStep[];
+};
+
 export type DragState = {
   id: string;
   pointerOffsetX: number;
@@ -208,11 +221,7 @@ export type SystemSettings = {
   modelRotationX?: number;
   /** Environment / lighting preset; "none" uses plain directional lights */
   modelEnvironment?: "none" | "apartment" | "city" | "dawn" | "forest" | "lobby" | "night" | "park" | "studio" | "sunset" | "warehouse";
-  /** BoardGameGeek game ID (numeric string, e.g. "266192") */
-  bggId?: string;
-  /** BGG community average complexity weight (1–5), fetched when bggId is imported */
-  bggComplexity?: number;
-  /** Brand color palette — hex strings (up to 8); used as quick-picks in color pickers and to auto-style assets */
+/** Brand color palette — hex strings (up to 8); used as quick-picks in color pickers and to auto-style assets */
   brandColors?: string[];
   /** Dark mode for the player experience */
   darkMode?: boolean;
@@ -224,6 +233,9 @@ export type SystemSettings = {
   customCss?: string;
   /** Page IDs whose auto-migrated page-button has been intentionally dismissed — migration skips these */
   dismissedPageButtonTargets?: string[];
+  guides?: Guide[];
+  activeGuideId?: string;
+  guideNavPosition?: "left" | "top";
 };
 
 export type PageTemplate = {
