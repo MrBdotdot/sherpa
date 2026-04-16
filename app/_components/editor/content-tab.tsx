@@ -5,7 +5,7 @@ import { AnchorTarget, ContentBlock, ContentBlockType, DisplayStyleKey, ImageFit
 import { DISPLAY_STYLE_OPTIONS, getDisplayStyleKey } from "@/app/_lib/display-style";
 import { BlockEditor, type BlockFormat } from "@/app/_components/editor/block-editor";
 import { BlockPickerModal } from "@/app/_components/editor/block-picker-modal";
-import { SelectField } from "@/app/_components/editor/editor-ui";
+import { FieldLabel, InputField, SelectField } from "@/app/_components/editor/editor-ui";
 import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
 import { HintBubble } from "@/app/_components/hint-bubble";
 
@@ -43,9 +43,7 @@ function ActionLinkEditor({
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-4">
       <div className="mb-3 flex items-center justify-between">
-        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
-          Action link
-        </div>
+        <FieldLabel className="mb-0">Action link</FieldLabel>
         <button
           type="button"
           onClick={() => onRemove(item.id)}
@@ -74,31 +72,28 @@ function ActionLinkEditor({
       </div>
 
       <div className="space-y-2">
-        <input
+        <InputField
           type="text"
           value={item.label}
           onChange={(e) => onChange(item.id, "label", e.target.value)}
           placeholder="Button label"
           aria-label="Action link label"
-          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
         />
         {mode === "email" ? (
-          <input
+          <InputField
             type="email"
             value={item.url}
             onChange={(e) => onChange(item.id, "url", e.target.value)}
             placeholder="name@example.com"
             aria-label="Email address"
-            className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
           />
         ) : mode === "external" ? (
-          <input
+          <InputField
             type="text"
             value={item.url}
             onChange={(e) => onChange(item.id, "url", e.target.value)}
             placeholder="https://..."
             aria-label="Action link URL"
-            className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
           />
         ) : (
           <div className="rounded-xl border border-neutral-200 overflow-hidden">
@@ -235,9 +230,7 @@ export function ContentTab({
       {/* Container visuals — display style + background tint */}
       {false ? (
         <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-4">
-        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
-          Container appearance
-        </div>
+        <FieldLabel>Container appearance</FieldLabel>
 
         <SelectField
           label="Size &amp; style"
@@ -249,9 +242,7 @@ export function ContentTab({
 
         {showTint ? (
           <div className="space-y-3">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
-              Background tint
-            </div>
+            <FieldLabel>Background tint</FieldLabel>
             <div className="flex items-center gap-3">
               <label className="flex cursor-pointer select-none items-center gap-2 text-sm text-neutral-700">
                 <input
