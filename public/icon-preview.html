@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sidebar Icon Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f5; padding: 32px; color: #111; }
+  h2 { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #999; margin: 24px 0 10px; }
+  h2:first-child { margin-top: 0; }
+  .grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .item {
+    display: flex; align-items: center; gap: 10px;
+    background: white; border: 1px solid #e5e5e5; border-radius: 10px;
+    padding: 8px 12px; min-width: 160px;
+  }
+  .icon-wrap {
+    display: flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 6px;
+    border: 1px solid #e5e5e5; background: white; color: #9ca3af; flex-shrink: 0;
+  }
+  .label { font-size: 12px; font-weight: 500; color: #374151; }
+  hr { border: none; border-top: 1px solid #e5e5e5; margin: 24px 0; }
+</style>
+</head>
+<body>
+
+<h2>Canvas Features</h2>
+<div class="grid">
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1.5" width="11" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/><circle cx="9" cy="4" r="1" fill="currentColor"/><path d="M1 9l3-3 2.5 2 2-2 3.5 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span class="label">Image</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 2.5v8M6.5 2.5v8M1.5 6.5h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M9 6h3.5M10.5 4.5v7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    </div>
+    <span class="label">Heading</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="4.5" height="4.5" rx="0.75" stroke="currentColor" stroke-width="1.2"/><rect x="7.5" y="1" width="4.5" height="4.5" rx="0.75" stroke="currentColor" stroke-width="1.2"/><rect x="1" y="7.5" width="4.5" height="4.5" rx="0.75" stroke="currentColor" stroke-width="1.2"/><rect x="2.25" y="2.25" width="2" height="2" rx="0.25" fill="currentColor"/><rect x="8.75" y="2.25" width="2" height="2" rx="0.25" fill="currentColor"/><rect x="2.25" y="8.75" width="2" height="2" rx="0.25" fill="currentColor"/><path d="M8.5 8.5h1.5M10 8.5v1.5M8.5 10h1.5M10 10v1.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+    </div>
+    <span class="label">QR Code</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="4" width="11" height="5" rx="2.5" fill="currentColor" fill-opacity="0.08" stroke="currentColor" stroke-width="1.3"/><path d="M4 6.5h3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M9 5.5l1.5 1L9 7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span class="label">Button</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="4" width="11" height="5" rx="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 6.5h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><rect x="8" y="5.25" width="2.5" height="2.5" rx="0.5" stroke="currentColor" stroke-width="1"/></svg>
+    </div>
+    <span class="label">Board Button</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="2.5" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 5.5l3 2.5 3-2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span class="label">Dropdown</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="3.5" stroke="currentColor" stroke-width="1.3"/><path d="M8.5 8.5l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    </div>
+    <span class="label">Search</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M6.5 1.5S5 3.5 5 6.5s1.5 5 1.5 5M6.5 1.5s1.5 2 1.5 5-1.5 5-1.5 5" stroke="currentColor" stroke-width="1.1"/><path d="M1.5 6.5h10" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+    </div>
+    <span class="label">Locale</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="3.25" r="1.75" stroke="currentColor" stroke-width="1.3"/><path d="M4.75 5h4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M6.5 5v6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M3 11c.5-1.8 1.8-2.5 3.5-2.5s3 .7 3.5 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    </div>
+    <span class="label">Anchor Pin</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1L12.5 11.5H0.5L6.5 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6.5 5.5v2.5M6.5 9.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    </div>
+    <span class="label">Disclaimer</span>
+  </div>
+
+</div>
+
+<h2>Hotspots &amp; Pages</h2>
+<div class="grid">
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 11.5C6.5 11.5 2 7.5 2 5.5a4.5 4.5 0 019 0c0 2-4.5 6-4.5 6z" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><circle cx="6.5" cy="5.5" r="1.5" fill="currentColor"/></svg>
+    </div>
+    <span class="label">Hotspot</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1.5" y="1.5" width="10" height="10" rx="1.75" stroke="currentColor" stroke-width="1.2"/><path d="M4 4.5h5M4 6.5h3.5M4 8.5h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    </div>
+    <span class="label">Card</span>
+  </div>
+
+</div>
+
+<h2>Content Blocks</h2>
+<div class="grid">
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M6.5 3.5v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <span class="label">Text</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1.5" width="11" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/><circle cx="3.75" cy="3.75" r=".9" fill="currentColor"/><path d="M3.75 5.5v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M5.75 5.75h5.5M5.75 8.25h4.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+    </div>
+    <span class="label">Callout</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1.5 3h5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M1.5 5.5h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M1.5 8h7.5M1.5 10h5.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
+    </div>
+    <span class="label">Section</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="2.5" cy="3.5" r="1.25" fill="currentColor"/><circle cx="2.5" cy="6.5" r="1.25" stroke="currentColor" stroke-width="1.1"/><circle cx="2.5" cy="9.5" r="1.25" stroke="currentColor" stroke-width="1.1"/><path d="M2.5 4.75v.5M2.5 7.75v.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><path d="M5 3.5h6.5M5 6.5h4M5 9.5h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    </div>
+    <span class="label">Step Rail</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="2.5" cy="3.5" r="1.2" fill="currentColor"/><circle cx="2.5" cy="6.5" r="1.2" fill="currentColor"/><circle cx="2.5" cy="9.5" r="1.2" fill="currentColor"/><path d="M5.5 3.5h6M5.5 6.5h4.5M5.5 9.5h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    </div>
+    <span class="label">Steps</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="5" width="11" height="7" rx="1.25" stroke="currentColor" stroke-width="1.2"/><rect x="1" y="1.5" width="3.5" height="3.5" rx="1" fill="currentColor"/><rect x="5.5" y="1.5" width="3" height="3.5" rx="1" stroke="currentColor" stroke-width="1.1"/><rect x="9.5" y="1.5" width="2" height="3.5" rx="1" stroke="currentColor" stroke-width="1.1"/><path d="M2.5 8h8M2.5 10h5.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
+    </div>
+    <span class="label">Tabs</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="3" y="2.5" width="7" height="8" rx="1.25" stroke="currentColor" stroke-width="1.2"/><rect x="0.5" y="4" width="2" height="5" rx="0.75" stroke="currentColor" stroke-width="1.1"/><rect x="10.5" y="4" width="2" height="5" rx="0.75" stroke="currentColor" stroke-width="1.1"/></svg>
+    </div>
+    <span class="label">Carousel</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1.5" y="1" width="10" height="11" rx="1.25" stroke="currentColor" stroke-width="1.2"/><path d="M4 5h5M4 7.5h3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M4 10.5h1.5l3-3.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span class="label">Consent</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="2.5" width="8" height="8" rx="1.25" stroke="currentColor" stroke-width="1.2"/><path d="M9 5.5L12.5 4v5L9 7.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span class="label">Video</span>
+  </div>
+
+  <div class="item">
+    <div class="icon-wrap">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1.5" width="11" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/><circle cx="9" cy="4" r="1" fill="currentColor"/><path d="M1 9l3-3 2.5 2 2-2 3.5 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span class="label">Image block</span>
+  </div>
+
+</div>
+
+<hr>
+<p style="font-size:11px;color:#bbb;">Open in browser: <a href="http://localhost:3000/icon-preview.html" style="color:#3b82f6">localhost:3000/icon-preview.html</a></p>
+</body>
+</html>
