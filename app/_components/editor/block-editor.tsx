@@ -1,8 +1,8 @@
 "use client";
 
-import React, { ChangeEvent, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnchorTarget, ContentBlock, ImageFit, PageItem } from "@/app/_lib/authoring-types";
+import { ContentBlock } from "@/app/_lib/authoring-types";
 import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
 import { StepRailBlockEditor } from "@/app/_components/editor/step-rail-block-editor";
 import { TabsBlockEditor } from "@/app/_components/editor/tabs-block-editor";
@@ -22,6 +22,7 @@ import {
   type VerticalAlign,
 } from "@/app/_lib/block-type-config";
 import { useInlineTriggerState } from "@/app/_hooks/useInlineTriggerState";
+import { useBlockEditorContext } from "@/app/_components/editor/block-editor-context";
 import { FieldLabel, InputField, TextareaField, MonoInput } from "@/app/_components/editor/editor-ui";
 
 export type { BlockFormat } from "@/app/_lib/block-type-config";
@@ -32,46 +33,31 @@ export function BlockEditor({
   index,
   isFirst,
   isLast,
-  pages,
-  anchorTargets,
-  selectedPageId,
-  onBlockChange,
-  onReplaceBlocks,
-  onBlockFitChange,
-  onBlockImagePositionChange,
-  onBlockPropsChange,
-  onBlockFormatChange,
-  onBlockImageUpload,
-  onBlockVariantChange,
-  onBlockVerticalAlignChange,
-  onBlockWidthChange,
-  onBlockTextAlignChange,
-  onMoveBlockDown,
-  onMoveBlockUp,
-  onRemoveBlock,
 }: {
   block: ContentBlock;
   index: number;
   isFirst: boolean;
   isLast: boolean;
-  pages?: PageItem[];
-  anchorTargets?: AnchorTarget[];
-  selectedPageId?: string;
-  onBlockChange: (blockId: string, value: string) => void;
-  onReplaceBlocks?: (newBlocks: ContentBlock[]) => void;
-  onBlockFitChange: (blockId: string, fit: ImageFit) => void;
-  onBlockImagePositionChange: (blockId: string, x: number, y: number) => void;
-  onBlockPropsChange: (blockId: string, patch: Partial<ContentBlock>) => void;
-  onBlockFormatChange: (blockId: string, format: BlockFormat) => void;
-  onBlockImageUpload: (blockId: string, event: ChangeEvent<HTMLInputElement>) => void;
-  onBlockVariantChange: (blockId: string, variant: ContentBlock["variant"]) => void;
-  onBlockVerticalAlignChange: (blockId: string, align: VerticalAlign) => void;
-  onBlockWidthChange: (blockId: string, width: "full" | "half") => void;
-  onBlockTextAlignChange: (blockId: string, align: "left" | "center" | "right") => void;
-  onMoveBlockDown: (blockId: string) => void;
-  onMoveBlockUp: (blockId: string) => void;
-  onRemoveBlock: (blockId: string) => void;
 }) {
+  const {
+    onBlockChange,
+    onBlockFitChange,
+    onBlockImagePositionChange,
+    onBlockPropsChange,
+    onBlockFormatChange,
+    onBlockImageUpload,
+    onBlockVariantChange,
+    onBlockVerticalAlignChange,
+    onBlockWidthChange,
+    onBlockTextAlignChange,
+    onMoveBlockDown,
+    onMoveBlockUp,
+    onRemoveBlock,
+    onReplaceBlocks,
+    pages,
+    selectedPageId,
+    anchorTargets,
+  } = useBlockEditorContext();
   const [linkPickerOpen, setLinkPickerOpen] = useState(false);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [customColor, setCustomColor] = useState("#e11d48");
