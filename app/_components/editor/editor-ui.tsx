@@ -29,7 +29,7 @@ export function FieldLabel({ children, className }: { children: React.ReactNode;
   );
 }
 
-type InputFieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
+type InputFieldProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> & {
   label?: string;
   size?: "xs" | "sm" | "md" | "lg";
 };
