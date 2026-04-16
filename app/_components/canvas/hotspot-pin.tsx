@@ -32,6 +32,7 @@ export function HotspotPin({
   onSelectPage,
   onHotspotPointerDown,
   onDeleteHotspot,
+  isHighlighted,
 }: {
   page: PageItem;
   index: number;
@@ -50,6 +51,7 @@ export function HotspotPin({
   onSelectPage: (id: string) => void;
   onHotspotPointerDown: (event: React.PointerEvent<HTMLButtonElement>, page: PageItem) => void;
   onDeleteHotspot: (pageId: string) => void;
+  isHighlighted?: boolean;
 }) {
   const dotBg = accentColor || "#0a0a0a";
   const isSectionMode = page.hotspotMode === "section";
@@ -150,6 +152,9 @@ export function HotspotPin({
           aria-label={isSectionMode ? (sectionLabel || title) : title}
         >
           <span className={`relative flex ${hotspotContainerSize} items-center justify-center`}>
+            {isHighlighted && (
+              <span className="animate-ping absolute inset-[-6px] rounded-full bg-white/30" />
+            )}
             {isSelected
               ? <span className="absolute inset-0 animate-ping rounded-full opacity-40" style={{ backgroundColor: dotBg }} />
               : <span className="absolute inset-0 animate-pulse rounded-full opacity-20" style={{ backgroundColor: dotBg }} />
