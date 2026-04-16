@@ -8,6 +8,7 @@ import {
   PageItem,
 } from "@/app/_lib/authoring-types";
 import { CanvasFeatureTypeBody } from "@/app/_components/editor/canvas-feature-type-body";
+import { FieldLabel } from "@/app/_components/editor/editor-ui";
 
 export const CANVAS_ELEMENT_TYPES: Array<{ type: CanvasFeatureType; label: string; description: string }> = [
   { type: "image", label: "Image", description: "Image with optional link or link list" },
@@ -94,9 +95,7 @@ export function CanvasFeatureEditor({
         {/* Portrait zone toggle — only shown in portrait layout mode */}
         {isPortraitMode ? (
           <div className="space-y-1.5 border-t border-neutral-100 pt-3">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
-              Portrait zone
-            </div>
+            <FieldLabel className="mb-0">Portrait zone</FieldLabel>
             <div className="flex items-center rounded-xl border border-neutral-200 bg-neutral-100 p-0.5">
               {(["strip", "content"] as const).map((zone) => {
                 const isActive = zone === "content"

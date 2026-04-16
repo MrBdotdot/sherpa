@@ -3,7 +3,7 @@
 import React from "react";
 import { ContentBlock, ImageBlockHotspot } from "@/app/_lib/authoring-types";
 import { createImageHotspot } from "@/app/_lib/authoring-utils";
-import { InputField, TextareaField } from "@/app/_components/editor/editor-ui";
+import { FieldLabel, InputField, TextareaField } from "@/app/_components/editor/editor-ui";
 
 export function ImageHotspotEditor({
   block,
@@ -38,9 +38,7 @@ export function ImageHotspotEditor({
 
   return (
     <div className="space-y-3">
-      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
-        Hotspots
-      </div>
+      <FieldLabel className="mb-0">Hotspots</FieldLabel>
 
       {/* Click-to-place image */}
       <div

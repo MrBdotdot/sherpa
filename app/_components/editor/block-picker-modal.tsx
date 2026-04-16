@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { ContentBlockType } from "@/app/_lib/authoring-types";
 import { CONTENT_ELEMENT_TYPES } from "@/app/_components/editor/block-editor";
 import { useFocusTrap } from "@/app/_hooks/useFocusTrap";
+import { FieldLabel } from "@/app/_components/editor/editor-ui";
 
 const BLOCK_GROUPS: Array<{
   label: string;
@@ -154,9 +155,7 @@ export function BlockPickerModal({
             <div key={group.label}>
               {gi > 0 && <div className="mx-4 my-1 border-t border-neutral-100" />}
               <div className="px-2 pb-1 pt-2">
-                <div className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
-                  {group.label}
-                </div>
+                <FieldLabel className="px-2 pb-1 mb-0">{group.label}</FieldLabel>
                 {group.items.map((item) => (
                   <button
                     key={item.label}

@@ -2,6 +2,7 @@
 
 import { ContentBlock, PageItem } from "@/app/_lib/authoring-types";
 import { createBlock } from "@/app/_lib/authoring-utils";
+import { FieldLabel } from "@/app/_components/editor/editor-ui";
 
 type SRIconShape = "circle" | "square" | "squircle" | "diamond" | "none";
 
@@ -201,7 +202,7 @@ export function StepRailBlockEditor({
     <div className="space-y-3">
       {/* Layout */}
       <div>
-        <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Layout</div>
+        <FieldLabel className="mb-1.5">Layout</FieldLabel>
         <div className="flex gap-2">
           {(["vertical", "horizontal"] as const).map((o) => (
             <button
@@ -223,7 +224,7 @@ export function StepRailBlockEditor({
 
       {/* Icon shape */}
       <div>
-        <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">Icon shape</div>
+        <FieldLabel className="mb-1.5">Icon shape</FieldLabel>
         <div className="flex flex-wrap gap-1.5">
           {SR_ICON_SHAPES.map((s) => (
             <button

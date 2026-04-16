@@ -1,5 +1,7 @@
 "use client";
 
+import { FieldLabel } from "@/app/_components/editor/editor-ui";
+
 export function BrandColorsEditor({
   colors,
   onChange,
@@ -24,9 +26,7 @@ export function BrandColorsEditor({
 
   return (
     <div>
-      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
-        Brand palette
-      </div>
+      <FieldLabel>Brand palette</FieldLabel>
       <div className="flex flex-wrap gap-2">
         {colors.map((color, index) => (
           <div key={index} className="group relative">

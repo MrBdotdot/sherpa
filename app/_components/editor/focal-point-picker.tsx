@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { FieldLabel } from "@/app/_components/editor/editor-ui";
 
 export function FocalPointPicker({
   imageUrl,
@@ -26,9 +27,7 @@ export function FocalPointPicker({
 
   return (
     <div>
-      <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
-        Drag to set the focal point
-      </div>
+      <FieldLabel className="mb-1.5">Drag to set the focal point</FieldLabel>
       <div
         ref={containerRef}
         className="relative h-28 w-full cursor-crosshair overflow-hidden rounded-xl border border-neutral-300 select-none"

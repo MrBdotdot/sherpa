@@ -15,6 +15,7 @@ import {
   getResponsiveBoardGuidance,
 } from "@/app/_lib/responsive-board";
 import { CanvasFeatureEditor, CANVAS_ELEMENT_TYPES } from "@/app/_components/editor/canvas-feature-editor";
+import { FieldLabel } from "@/app/_components/editor/editor-ui";
 
 function CanvasElementIcon({ type }: { type: string }) {
   switch (type) {
@@ -227,9 +228,7 @@ export function SurfaceTab({
       <div className="sticky top-0 z-10 -mx-5 bg-neutral-50 px-5 py-2">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
-              {currentLayoutLabel} board
-            </div>
+            <FieldLabel className="mb-0">{currentLayoutLabel} board</FieldLabel>
             <div className="text-sm font-semibold text-neutral-900">
               {guidance.visibleCount} element{guidance.visibleCount === 1 ? "" : "s"}
             </div>
@@ -265,9 +264,7 @@ export function SurfaceTab({
           {elements.length > 0 ? (
             <div className="space-y-4">
               {pageButtons.length > 0 ? (
-                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
-                  Elements
-                </div>
+                <FieldLabel className="mb-0">Elements</FieldLabel>
               ) : null}
               {elements.map(renderFeature)}
             </div>
@@ -275,9 +272,7 @@ export function SurfaceTab({
           {pageButtons.length > 0 ? (
             <div className="space-y-4">
               {elements.length > 0 ? (
-                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
-                  Board buttons
-                </div>
+                <FieldLabel className="mb-0">Board buttons</FieldLabel>
               ) : null}
               {pageButtons.map(renderFeature)}
             </div>
