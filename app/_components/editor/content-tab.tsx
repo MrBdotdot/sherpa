@@ -4,6 +4,7 @@ import React, { ChangeEvent, useEffect, useRef, useState, useCallback } from "re
 import { AnchorTarget, ContentBlock, ContentBlockType, DisplayStyleKey, ImageFit, PageItem, SocialLink } from "@/app/_lib/authoring-types";
 import { DISPLAY_STYLE_OPTIONS, getDisplayStyleKey } from "@/app/_lib/display-style";
 import { BlockEditor, type BlockFormat } from "@/app/_components/editor/block-editor";
+import { BlockEditorContext } from "@/app/_components/editor/block-editor-context";
 import { BlockPickerModal } from "@/app/_components/editor/block-picker-modal";
 import { FieldLabel, InputField, SelectField } from "@/app/_components/editor/editor-ui";
 import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
@@ -219,6 +220,26 @@ export function ContentTab({
       }))
   );
 
+  const blockEditorCtx = {
+    onBlockChange,
+    onBlockFitChange,
+    onBlockImagePositionChange,
+    onBlockPropsChange,
+    onBlockFormatChange,
+    onBlockImageUpload,
+    onBlockVariantChange,
+    onBlockVerticalAlignChange,
+    onBlockWidthChange,
+    onBlockTextAlignChange,
+    onMoveBlockDown,
+    onMoveBlockUp,
+    onRemoveBlock,
+    onReplaceBlocks,
+    pages,
+    selectedPageId: selectedPage.id,
+    anchorTargets,
+  };
+
   const totalItems = selectedPage.blocks.length + selectedPage.socialLinks.length;
   const currentDisplayStyle = getDisplayStyleKey(selectedPage);
   const showTint = selectedPage.interactionType === "modal"
@@ -307,9 +328,10 @@ export function ContentTab({
 
       {/* Blocks + social links */}
       {totalItems > 0 ? (
-        <div className="space-y-3">
-          <InsertZone index={0} onInsert={openPickerAt} />
-          {selectedPage.blocks.map((block, index) => {
+        <BlockEditorContext.Provider value={blockEditorCtx}>
+          <div className="space-y-3">
+            <InsertZone index={0} onInsert={openPickerAt} />
+            {selectedPage.blocks.map((block, index) => {
             const showDropLine = dropIndex === index && dragIndex !== null && dragIndex !== index && dragIndex !== index - 1;
             return (
               <React.Fragment key={block.id}>
@@ -349,23 +371,6 @@ export function ContentTab({
                     index={index}
                     isFirst={index === 0}
                     isLast={index === selectedPage.blocks.length - 1}
-                    pages={pages}
-                    anchorTargets={anchorTargets}
-                    selectedPageId={selectedPage.id}
-                    onBlockChange={onBlockChange}
-                    onReplaceBlocks={onReplaceBlocks}
-                    onBlockFitChange={onBlockFitChange}
-                    onBlockImagePositionChange={onBlockImagePositionChange}
-                    onBlockPropsChange={onBlockPropsChange}
-                    onBlockFormatChange={onBlockFormatChange}
-                    onBlockImageUpload={onBlockImageUpload}
-                    onBlockVariantChange={onBlockVariantChange}
-                    onBlockVerticalAlignChange={onBlockVerticalAlignChange}
-                    onBlockWidthChange={onBlockWidthChange}
-                    onBlockTextAlignChange={onBlockTextAlignChange}
-                    onMoveBlockDown={onMoveBlockDown}
-                    onMoveBlockUp={onMoveBlockUp}
-                    onRemoveBlock={onRemoveBlock}
                   />
                 </div>
                 <InsertZone index={index + 1} onInsert={openPickerAt} />
@@ -396,12 +401,13 @@ export function ContentTab({
             />
           ))}
 
-          {selectedPage.blocks.length >= 1 ? (
-            <HintBubble id="first-block" className="text-xs">
-              Hover a block and drag the left handle to reorder
-            </HintBubble>
-          ) : null}
-        </div>
+            {selectedPage.blocks.length >= 1 ? (
+              <HintBubble id="first-block" className="text-xs">
+                Hover a block and drag the left handle to reorder
+              </HintBubble>
+            ) : null}
+          </div>
+        </BlockEditorContext.Provider>
       ) : (
         <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-8 text-center text-sm text-neutral-500">
           No content yet. Add a text block or action link.
