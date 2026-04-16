@@ -137,11 +137,11 @@ export function createImageHotspot(x = 50, y = 50): ImageBlockHotspot {
 }
 
 export function createGuide(name: string): Guide {
-  return { id: crypto.randomUUID(), name, steps: [] };
+  return { id: createId("guide"), name, steps: [] };
 }
 
 export function createGuideStep(label: string, pageId: string): GuideStep {
-  return { id: crypto.randomUUID(), label, pageId };
+  return { id: createId("guide-step"), label, pageId };
 }
 
 export function createCanvasFeature(
