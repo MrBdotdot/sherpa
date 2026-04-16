@@ -55,8 +55,8 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
 function HotspotPinIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
-      <circle cx="6.5" cy="5.5" r="2.25" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M6.5 11.5C6.5 11.5 2 7.5 2 5.5a4.5 4.5 0 019 0c0 2-4.5 6-4.5 6z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+      <path d="M6.5 11.5C6.5 11.5 2 7.5 2 5.5a4.5 4.5 0 019 0c0 2-4.5 6-4.5 6z" fill="currentColor" fillOpacity="0.15" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+      <circle cx="6.5" cy="5.5" r="1.5" fill="currentColor" />
     </svg>
   );
 }
