@@ -625,13 +625,7 @@ export function BlockEditor({
       ) : block.type === "section" ? (
         <SectionBlockEditor block={block} />
       ) : block.type === "step-rail" ? (
-        <StepRailBlockEditor
-          block={block}
-          pages={pages}
-          selectedPageId={selectedPageId}
-          onBlockChange={onBlockChange}
-          onReplaceBlocks={onReplaceBlocks}
-        />
+        <StepRailBlockEditor block={block} />
       ) : block.type === "carousel" ? (
         <CarouselBlockEditor
           block={block}

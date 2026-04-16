@@ -6,6 +6,11 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.25.3",
+    date: "2026-04-15",
+    changes: ["Internal: prop drilling eliminated via BlockEditorContext — no visible changes"],
+  },
+  {
     version: "v0.25.1",
     date: "2026-04-15",
     changes: [

@@ -1,8 +1,9 @@
 "use client";
 
-import { ContentBlock, PageItem } from "@/app/_lib/authoring-types";
+import { ContentBlock } from "@/app/_lib/authoring-types";
 import { createBlock } from "@/app/_lib/authoring-utils";
 import { FieldLabel } from "@/app/_components/editor/editor-ui";
+import { useBlockEditorContext } from "@/app/_components/editor/block-editor-context";
 
 type SRIconShape = "circle" | "square" | "squircle" | "diamond" | "none";
 
@@ -112,17 +113,10 @@ function getSlices(
 
 export function StepRailBlockEditor({
   block,
-  pages,
-  selectedPageId,
-  onBlockChange,
-  onReplaceBlocks,
 }: {
   block: ContentBlock;
-  pages?: PageItem[];
-  selectedPageId?: string;
-  onBlockChange: (blockId: string, value: string) => void;
-  onReplaceBlocks?: (newBlocks: ContentBlock[]) => void;
 }) {
+  const { onBlockChange, onReplaceBlocks, pages, selectedPageId } = useBlockEditorContext();
   const data = parseSR(block.value);
   const currentPage = pages?.find((p) => p.id === selectedPageId);
   const currentBlocks = currentPage?.blocks ?? [];
