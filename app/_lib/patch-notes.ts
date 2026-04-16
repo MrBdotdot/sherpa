@@ -6,6 +6,16 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.25.0",
+    date: "2026-04-15",
+    changes: [
+      "Hotspots are now created from the Add element picker and command palette",
+      "Anchor pins added to the command palette",
+      "Updated anchor pin icon to a nautical anchor symbol",
+      "Canvas click no longer creates hotspots",
+    ],
+  },
+  {
     version: "v0.24.8",
     date: "2026-04-15",
     changes: [
