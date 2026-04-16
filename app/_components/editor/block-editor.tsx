@@ -22,6 +22,7 @@ import {
   type VerticalAlign,
 } from "@/app/_lib/block-type-config";
 import { useInlineTriggerState } from "@/app/_hooks/useInlineTriggerState";
+import { FieldLabel, InputField, TextareaField, MonoInput } from "@/app/_components/editor/editor-ui";
 
 export type { BlockFormat } from "@/app/_lib/block-type-config";
 export { CONTENT_ELEMENT_TYPES };
@@ -414,11 +415,12 @@ export function BlockEditor({
                       className="h-7 w-7 cursor-pointer rounded border border-neutral-200 p-0.5"
                       aria-label="Custom color"
                     />
-                    <input
+                    <MonoInput
+                      size="xs"
+                      className="flex-1 px-2 py-1"
                       type="text"
                       value={customColor}
                       onChange={(e) => setCustomColor(e.target.value)}
-                      className="flex-1 rounded-lg border border-neutral-200 px-2 py-1 text-xs font-mono outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
                       placeholder="#hexcolor"
                       maxLength={7}
                     />
@@ -576,8 +578,10 @@ export function BlockEditor({
       {/* Content editor */}
       {isFormatBlock ? (
         <div>
-          <textarea
+          <TextareaField
             ref={textareaRef}
+            size="lg"
+            className="leading-6"
             value={block.value}
             onChange={handleTextareaChange}
             onKeyDown={handleTextareaKeyDown}
@@ -590,7 +594,6 @@ export function BlockEditor({
             placeholder={getTextareaPlaceholder(effectiveFormat)}
             aria-label={label}
             rows={effectiveFormat === "h2" || effectiveFormat === "h3" ? 2 : 5}
-            className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-3 text-sm leading-6 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
           />
           {trigger.active && triggerPos ? createPortal(
             <div
@@ -660,13 +663,14 @@ export function BlockEditor({
           onBlockChange={onBlockChange}
         />
       ) : (
-        <input
+        <InputField
+          size="lg"
+          className="px-3"
           type="text"
           value={block.value}
           onChange={(event) => onBlockChange(block.id, event.target.value)}
           placeholder="Paste video URL or file URL"
           aria-label="Video URL"
-          className="w-full rounded-lg border border-neutral-200 px-3 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
         />
       )}
     </div>
@@ -684,13 +688,14 @@ function SectionBlockEditor({
 }) {
   return (
     <div>
-      <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Section label</div>
-      <input
+      <FieldLabel className="mb-1.5">Section label</FieldLabel>
+      <InputField
+        size="lg"
+        className="px-3"
         type="text"
         value={block.value}
         onChange={(e) => onBlockChange(block.id, e.target.value)}
         placeholder="e.g. Overview, Setup, Victory Conditions"
-        className="w-full rounded-lg border border-neutral-200 px-3 py-3 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
       />
       <div className="mt-1.5 text-xs text-neutral-500">
         This label appears as a divider in your content. The Step Rail links to this section by name.
