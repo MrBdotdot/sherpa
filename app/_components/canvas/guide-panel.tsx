@@ -50,10 +50,12 @@ function StepBadge({
 function StepChip({
   index,
   activeStepIndex,
+  label,
   onClick,
 }: {
   index: number;
   activeStepIndex: number;
+  label?: string;
   onClick: () => void;
 }) {
   const isVisited = index < activeStepIndex;
@@ -72,7 +74,12 @@ function StepChip({
   }
 
   return (
-    <button type="button" className={chipClass} onClick={onClick}>
+    <button
+      type="button"
+      aria-label={label || `Step ${index + 1}`}
+      className={chipClass}
+      onClick={onClick}
+    >
       {isVisited ? "✓" : index + 1}
     </button>
   );
@@ -80,6 +87,7 @@ function StepChip({
 
 export function GuidePanel({
   guide,
+  pages: _pages,
   navPosition,
   activeStepIndex,
   isGuidedMode,
@@ -92,13 +100,13 @@ export function GuidePanel({
 }: GuidePanelProps) {
   if (navPosition === "left") {
     return (
-      <div className="absolute bottom-0 left-0 top-0 z-40">
-        {/* Slide-in panel */}
+      <div className="absolute left-0 top-0 bottom-0 z-40 w-56 h-full">
+        {/* Slide-in panel — slides with transition; re-expand tab rides its right edge */}
         <div
           className={[
-            "h-full w-56 bg-black/70 backdrop-blur-sm transition-transform duration-200",
+            "absolute left-0 top-0 bottom-0 h-full w-56 bg-black/70 backdrop-blur-sm transition-transform duration-200",
             "flex flex-col",
-            isGuidedMode ? "translate-x-0" : "translate-x-[-100%]",
+            isGuidedMode ? "translate-x-0" : "-translate-x-full",
           ].join(" ")}
         >
           {/* Title */}
@@ -117,6 +125,7 @@ export function GuidePanel({
                 <li key={step.id}>
                   <button
                     type="button"
+                    aria-label={step.label || `Step ${index + 1}`}
                     onClick={() => onStepActivate(step, index)}
                     className={[
                       "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors",
@@ -168,45 +177,45 @@ export function GuidePanel({
               <span>Collapse</span>
             </button>
           </div>
-        </div>
 
-        {/* Re-expand tab — visible when collapsed */}
-        {!isGuidedMode && (
-          <button
-            type="button"
-            onClick={onExpand}
-            className="absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full bg-black/70 px-2 py-3 backdrop-blur-sm transition-colors hover:bg-black/85"
-            aria-label="Expand guide"
-          >
-            <span className="flex flex-col items-center gap-1">
-              <span className="text-xs text-white">→</span>
-              <span
-                className="text-white/80"
-                style={{
-                  fontSize: "10px",
-                  writingMode: "vertical-lr",
-                  textOrientation: "mixed",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Guide
+          {/* Re-expand tab — rides on the right edge of the panel; peeks out when panel is collapsed */}
+          {!isGuidedMode && (
+            <button
+              type="button"
+              onClick={onExpand}
+              aria-label="Expand guide"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-3 rounded-r-lg transition-colors hover:bg-black/85"
+            >
+              <span className="flex flex-col items-center gap-1">
+                <span>→</span>
+                <span
+                  className="text-white/80"
+                  style={{
+                    fontSize: "10px",
+                    writingMode: "vertical-lr",
+                    textOrientation: "mixed",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  Guide
+                </span>
               </span>
-            </span>
-          </button>
-        )}
+            </button>
+          )}
+        </div>
       </div>
     );
   }
 
   // Top variant
   return (
-    <div className="absolute left-0 right-0 top-0 z-40">
+    <div className="absolute left-0 right-0 top-0 z-40 overflow-hidden">
       {/* Slide-in bar */}
       <div
         className={[
           "h-12 w-full bg-black/70 backdrop-blur-sm transition-transform duration-200",
           "flex items-center gap-2 px-3",
-          isGuidedMode ? "translate-y-0" : "translate-y-[-100%]",
+          isGuidedMode ? "translate-y-0" : "-translate-y-full",
         ].join(" ")}
       >
         {/* Step chips */}
@@ -216,6 +225,7 @@ export function GuidePanel({
               key={step.id}
               index={index}
               activeStepIndex={activeStepIndex}
+              label={step.label}
               onClick={() => onStepActivate(step, index)}
             />
           ))}
@@ -247,19 +257,21 @@ export function GuidePanel({
         </button>
       </div>
 
-      {/* Re-expand tab — visible when collapsed */}
+      {/* Re-expand tab — below the panel; when panel is hidden it sits at top-0 of the viewport */}
       {!isGuidedMode && (
-        <button
-          type="button"
-          onClick={onExpand}
-          className="absolute left-1/2 top-0 -translate-x-1/2 rounded-b-full bg-black/70 px-4 py-1.5 backdrop-blur-sm transition-colors hover:bg-black/85"
-          aria-label="Expand guide"
-        >
-          <span className="flex items-center gap-1 text-xs text-white/80">
-            <span>↓</span>
-            <span>Guide</span>
-          </span>
-        </button>
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={onExpand}
+            aria-label="Expand guide"
+            className="bg-black/70 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-b-lg transition-colors hover:bg-black/85"
+          >
+            <span className="flex items-center gap-1 text-white/80">
+              <span>↓</span>
+              <span>Guide</span>
+            </span>
+          </button>
+        </div>
       )}
     </div>
   );
