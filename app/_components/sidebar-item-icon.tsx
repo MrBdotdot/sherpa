@@ -17,7 +17,7 @@ export function SidebarItemIcon({ type }: { type: string }) {
     case "locale":
       return <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.2"/><path d="M6.5 1.5S5 3.5 5 6.5s1.5 5 1.5 5M6.5 1.5s1.5 2 1.5 5-1.5 5-1.5 5" stroke="currentColor" strokeWidth="1.1"/><path d="M1.5 6.5h10" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/></svg>;
     case "anchor-pin":
-      return <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M6.5 11.5C6.5 11.5 2 7.5 2 5.5a4.5 4.5 0 019 0c0 2-4.5 6-4.5 6z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/><path d="M4.5 5.5h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>;
+      return <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><circle cx="6.5" cy="3.5" r="1.5" stroke="currentColor" strokeWidth="1.2"/><path d="M6.5 5v7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><path d="M3 11c0-1.9 1.6-3.5 3.5-3.5S10 9.1 10 11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/><path d="M4.5 5h4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>;
     case "disclaimer":
       return <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M6.5 1L12.5 11.5H0.5L6.5 1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/><path d="M6.5 5.5v2.5M6.5 9.5v.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>;
     // Block types

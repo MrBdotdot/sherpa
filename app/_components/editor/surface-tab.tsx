@@ -82,6 +82,22 @@ function CanvasElementIcon({ type }: { type: string }) {
           <path d="M7.5 6v3M7.5 10.5v.75" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
       );
+    case "anchor-pin":
+      return (
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+          <circle cx="7.5" cy="4" r="1.75" stroke="currentColor" strokeWidth="1.3" />
+          <path d="M7.5 5.75v7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          <path d="M3.5 12.5c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+          <path d="M5 5.75h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+        </svg>
+      );
+    case "hotspot":
+      return (
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+          <path d="M7.5 13.5C7.5 13.5 2.5 8.8 2.5 6a5 5 0 0110 0c0 2.8-5 7.5-5 7.5z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+          <circle cx="7.5" cy="6" r="1.5" stroke="currentColor" strokeWidth="1.2" />
+        </svg>
+      );
     default:
       return (
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
