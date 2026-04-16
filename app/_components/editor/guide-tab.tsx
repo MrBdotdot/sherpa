@@ -24,9 +24,9 @@ export function GuideTab({
     guides[0]?.id ?? null
   );
   const [editingGuideId, setEditingGuideId] = useState<string | null>(null);
-  const editInputRef = useRef<HTMLInputElement>(null);
 
-  const activeGuide = guides.find((g) => g.id === activeGuideId) ?? null;
+  const safeActiveGuideId = guides.find(g => g.id === activeGuideId)?.id ?? guides[0]?.id ?? null;
+  const activeGuide = guides.find((g) => g.id === safeActiveGuideId) ?? null;
 
   const nonHomePages = pages.filter((p) => p.kind !== "home");
   const hotspotPages = pages.filter((p) => p.kind === "hotspot");
@@ -99,6 +99,7 @@ export function GuideTab({
   // ── Drag-and-drop (HTML5) ──────────────────────────────────────────────────
 
   const dragStepId = useRef<string | null>(null);
+  const lastSwap = useRef<string>("");
 
   function handleDragStart(stepId: string) {
     dragStepId.current = stepId;
@@ -109,6 +110,10 @@ export function GuideTab({
     if (!activeGuide) return;
     const fromId = dragStepId.current;
     if (!fromId || fromId === overStepId) return;
+
+    const key = `${fromId}→${overStepId}`;
+    if (lastSwap.current === key) return;
+    lastSwap.current = key;
 
     const steps = [...activeGuide.steps];
     const fromIdx = steps.findIndex((s) => s.id === fromId);
@@ -122,6 +127,7 @@ export function GuideTab({
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     dragStepId.current = null;
+    lastSwap.current = "";
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -171,7 +177,6 @@ export function GuideTab({
                 >
                   {isEditing ? (
                     <input
-                      ref={editInputRef}
                       autoFocus
                       defaultValue={guide.name}
                       onBlur={(e) => handleRenameGuide(guide.id, e.target.value.trim() || guide.name)}
@@ -214,7 +219,7 @@ export function GuideTab({
                         : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
                     }`}
                   >
-                    ⋯
+                    ×
                   </button>
                 </div>
               );
