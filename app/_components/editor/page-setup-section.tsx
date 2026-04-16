@@ -3,7 +3,7 @@
 import { ChangeEvent } from "react";
 import { InteractionType, PageButtonPlacement, PageItem } from "@/app/_lib/authoring-types";
 import { getInteractionTypeLabel, getPlacementLabel } from "@/app/_lib/label-utils";
-import { EditorSection, EditorSubsection, SelectField } from "@/app/_components/editor/editor-ui";
+import { EditorSection, EditorSubsection, SelectField, FieldLabel, InputField, MonoInput } from "@/app/_components/editor/editor-ui";
 
 export function PageSetupSection({
   onHeroUpload,
@@ -83,9 +83,7 @@ export function PageSetupSection({
         >
           <div className="space-y-4">
             <div className="space-y-3">
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
-                Background
-              </div>
+              <FieldLabel>Background</FieldLabel>
 
               <div className="flex gap-2">
                 {(["image", "color"] as const).map((mode) => {
@@ -124,24 +122,22 @@ export function PageSetupSection({
                     }
                     className="h-9 w-9 shrink-0 cursor-pointer rounded-lg border border-neutral-200 p-0.5"
                   />
-                  <input
+                  <MonoInput
                     type="text"
                     value={selectedPage.heroImage.replace("color:", "")}
                     onChange={(e) =>
                       onPageHeroUrlChange({ target: { value: `color:${e.target.value}` } } as React.ChangeEvent<HTMLInputElement>)
                     }
                     placeholder="#1a1a2e"
-                    className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 font-mono text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
                   />
                 </div>
               ) : (
                 <>
-                  <input
+                  <InputField
                     type="text"
                     value={selectedPage.heroImage}
                     onChange={onPageHeroUrlChange}
                     placeholder="Paste image URL"
-                    className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
                   />
                   <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
                     Upload from computer

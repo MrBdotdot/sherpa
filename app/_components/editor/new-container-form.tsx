@@ -4,6 +4,7 @@ import { useState } from "react";
 import { DisplayStyleKey, TemplateId } from "@/app/_lib/authoring-types";
 import { PAGE_TEMPLATES } from "@/app/_lib/authoring-utils";
 import { applyDisplayStyle, DISPLAY_STYLE_OPTIONS, getDisplayStyleKey } from "@/app/_lib/display-style";
+import { FieldLabel, InputField, SelectField } from "@/app/_components/editor/editor-ui";
 
 export type CreatePageConfig = {
   templateId: TemplateId | null;
@@ -87,18 +88,16 @@ export function NewContainerForm({
 
   return (
     <div className="p-4 space-y-3">
-      <input
+      <InputField
         type="text"
         value={configTitle}
         onChange={(e) => setConfigTitle(e.target.value)}
         placeholder="Card name"
         autoFocus
-        className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
+        size="sm"
       />
       <div className="space-y-1.5">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
-          How it opens
-        </div>
+        <FieldLabel>How it opens</FieldLabel>
         <select
           value={configDisplayStyle}
           onChange={(e) => setConfigDisplayStyle(e.target.value as DisplayStyleKey)}
@@ -118,9 +117,7 @@ export function NewContainerForm({
         if (!showTint) return null;
         return (
           <div className="space-y-2">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
-              Background color
-            </div>
+            <FieldLabel>Background color</FieldLabel>
             <label className="flex items-center gap-2 cursor-pointer select-none text-sm text-neutral-700">
               <input
                 type="checkbox"

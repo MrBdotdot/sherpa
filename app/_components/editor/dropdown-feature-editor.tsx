@@ -2,6 +2,7 @@
 
 import { CanvasFeature, CanvasFeatureField, PageItem } from "@/app/_lib/authoring-types";
 import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
+import { FieldLabel, InputField, MonoInput } from "@/app/_components/editor/editor-ui";
 
 type DropdownItem = { label: string; linkType: "none" | "external" | "page"; url: string };
 
@@ -51,17 +52,18 @@ export function DropdownFeatureEditor({ feature, pages, onCanvasFeatureChange }:
 
   return (
     <div className="space-y-2">
-      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">Items</div>
+      <FieldLabel>Items</FieldLabel>
       {items.map((item, i) => (
         <div key={i} className="space-y-2 rounded-xl border border-neutral-200 p-3">
           <div className="flex items-center gap-2">
-            <input
+            <InputField
               type="text"
               value={item.label}
               onChange={(e) => update(i, { label: e.target.value })}
               placeholder="Item label"
               aria-label={`Item ${i + 1} label`}
-              className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
+              size="xs"
+              className="px-2.5 py-1.5 min-w-0 flex-1"
             />
             <button
               type="button"
@@ -90,13 +92,14 @@ export function DropdownFeatureEditor({ feature, pages, onCanvasFeatureChange }:
             ))}
           </div>
           {item.linkType === "external" ? (
-            <input
+            <MonoInput
               type="text"
               value={item.url}
               onChange={(e) => update(i, { url: e.target.value })}
               placeholder="https://..."
               aria-label={`Item ${i + 1} URL`}
-              className="w-full rounded-lg border border-neutral-200 px-2.5 py-1.5 font-mono text-xs outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
+              size="xs"
+              className="px-2.5 py-1.5"
             />
           ) : item.linkType === "page" ? (
             <div className="overflow-hidden rounded-xl border border-neutral-200">
