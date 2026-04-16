@@ -17,7 +17,7 @@ type PaletteEntry =
   | { kind: "feature"; id: string; label: string; group: string; featureType: CanvasFeatureType }
   | { kind: "block"; id: string; label: string; group: string; blockType: ContentBlockType }
   | { kind: "layout"; id: string; label: string; group: string; mode: LayoutMode; hint: string }
-  | { kind: "action"; id: string; label: string; group: string; action: "new-page" | "toggle-preview"; hint?: string }
+  | { kind: "action"; id: string; label: string; group: string; action: "new-page" | "toggle-preview" | "add-hotspot"; hint?: string }
   | { kind: "ext" } & ExtEntry;
 
 const BLOCK_ACTIONS: { type: ContentBlockType; label: string }[] = [
@@ -41,6 +41,7 @@ const FEATURE_ACTIONS: { type: CanvasFeatureType; label: string }[] = [
   { type: "disclaimer", label: "Add Disclaimer" },
   { type: "dropdown", label: "Add Dropdown" },
   { type: "search", label: "Add Search" },
+  { type: "anchor-pin", label: "Add Anchor Pin" },
   { type: "page-button", label: "Add Board Button" },
   { type: "locale", label: "Add Locale Switcher" },
 ];
@@ -52,6 +53,7 @@ interface CommandPaletteProps {
   extraEntries?: ExtEntry[];
   onSelectPage: (id: string) => void;
   onAddCanvasFeature: (type: CanvasFeatureType) => void;
+  onAddHotspot?: () => void;
   onAddBlock?: (type: ContentBlockType) => void;
   onCreatePage: () => void;
   onSetLayoutMode: (mode: LayoutMode) => void;
@@ -78,6 +80,7 @@ export function CommandPalette({
   extraEntries,
   onSelectPage,
   onAddCanvasFeature,
+  onAddHotspot,
   onAddBlock,
   onCreatePage,
   onSetLayoutMode,
@@ -108,13 +111,23 @@ export function CommandPalette({
       group: "Add to content",
       blockType: a.type,
     }));
-    const canvasEntries: PaletteEntry[] = FEATURE_ACTIONS.map((a) => ({
-      kind: "feature" as const,
-      id: `feature-${a.type}`,
-      label: a.label,
+    const hotspotActionEntry: PaletteEntry = {
+      kind: "action",
+      id: "add-hotspot",
+      label: "Add Hotspot",
       group: "Add to board",
-      featureType: a.type,
-    }));
+      action: "add-hotspot",
+    };
+    const canvasEntries: PaletteEntry[] = [
+      hotspotActionEntry,
+      ...FEATURE_ACTIONS.map((a) => ({
+        kind: "feature" as const,
+        id: `feature-${a.type}`,
+        label: a.label,
+        group: "Add to board",
+        featureType: a.type,
+      })),
+    ];
     const layoutEntries: PaletteEntry[] = [
       { kind: "layout", id: "layout-desktop", label: "Desktop view", group: "Layout", mode: "desktop" as LayoutMode, hint: "1" },
       { kind: "layout", id: "layout-landscape", label: "Landscape view", group: "Layout", mode: "mobile-landscape" as LayoutMode, hint: "2" },
@@ -161,6 +174,7 @@ export function CommandPalette({
       case "action":
         if (entry.action === "new-page") onCreatePage();
         else if (entry.action === "toggle-preview") onTogglePreview();
+        else if (entry.action === "add-hotspot") onAddHotspot?.();
         break;
     }
     onClose();
