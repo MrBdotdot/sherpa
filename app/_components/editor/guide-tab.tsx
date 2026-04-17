@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { Guide, GuideStep, PageItem } from "@/app/_lib/authoring-types";
 import { createGuide, createGuideStep } from "@/app/_lib/authoring-utils";
-import { EditorSection } from "@/app/_components/editor/editor-ui";
+import { EditorSection, FieldLabel } from "@/app/_components/editor/editor-ui";
 
 type GuideTabProps = {
   guides: Guide[];
@@ -213,7 +213,7 @@ export function GuideTab({
                       e.stopPropagation();
                       handleDeleteGuide(guide.id);
                     }}
-                    className={`ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[10px] transition-colors ${
+                    className={`ml-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] opacity-0 transition-all group-hover:opacity-100 ${
                       isActive
                         ? "text-blue-200 hover:bg-blue-400 hover:text-white"
                         : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
@@ -237,81 +237,98 @@ export function GuideTab({
 
       {/* Step list */}
       {activeGuide ? (
-        <EditorSection title={`Steps — ${activeGuide.name}`}>
-          <div className="space-y-1.5">
+        <EditorSection title="Steps">
+          <div className="space-y-2">
             {activeGuide.steps.length === 0 ? (
               <p className="text-xs text-neutral-400">No steps yet. Add one below.</p>
             ) : (
-              activeGuide.steps.map((step) => (
+              activeGuide.steps.map((step, index) => (
                 <div
                   key={step.id}
                   draggable
                   onDragStart={() => handleDragStart(step.id)}
                   onDragOver={(e) => handleDragOver(e, step.id)}
                   onDrop={handleDrop}
-                  className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-2 py-1.5"
+                  className="rounded-xl border border-neutral-200 bg-white overflow-hidden"
                 >
-                  {/* Drag handle */}
-                  <span
-                    className="cursor-grab select-none text-sm text-neutral-300 active:cursor-grabbing"
-                    aria-hidden="true"
-                  >
-                    ⠿
-                  </span>
+                  {/* Step header */}
+                  <div className="flex items-center gap-2 px-3 py-2.5 bg-neutral-50 border-b border-neutral-100">
+                    {/* Drag handle */}
+                    <span
+                      className="cursor-grab select-none text-sm text-neutral-300 active:cursor-grabbing"
+                      aria-hidden="true"
+                    >
+                      ⠿
+                    </span>
 
-                  {/* Label */}
-                  <input
-                    type="text"
-                    value={step.label}
-                    onChange={(e) => handleStepChange(step.id, "label", e.target.value)}
-                    placeholder="Step label"
-                    className="min-w-0 flex-1 rounded border-0 bg-transparent text-xs text-neutral-800 outline-none focus:ring-0 placeholder:text-neutral-400"
-                  />
+                    {/* Number badge */}
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#3B82F6] text-[10px] font-bold text-white">
+                      {index + 1}
+                    </span>
 
-                  {/* Card picker */}
-                  <select
-                    value={step.pageId}
-                    onChange={(e) => handleStepChange(step.id, "pageId", e.target.value)}
-                    aria-label="Card"
-                    className="rounded border border-neutral-200 bg-white px-1.5 py-1 text-xs text-neutral-700 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/25 max-w-[110px]"
-                  >
-                    {nonHomePages.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.title || "Untitled"}
-                      </option>
-                    ))}
-                  </select>
+                    {/* Label input */}
+                    <input
+                      type="text"
+                      value={step.label}
+                      onChange={(e) => handleStepChange(step.id, "label", e.target.value)}
+                      placeholder="Step label"
+                      className="min-w-0 flex-1 bg-transparent text-sm font-medium text-neutral-800 outline-none placeholder:text-neutral-400"
+                    />
 
-                  {/* Hotspot picker */}
-                  <select
-                    value={step.anchorHotspotId ?? ""}
-                    onChange={(e) =>
-                      handleStepChange(
-                        step.id,
-                        "anchorHotspotId",
-                        e.target.value || undefined
-                      )
-                    }
-                    aria-label="Hotspot"
-                    className="rounded border border-neutral-200 bg-white px-1.5 py-1 text-xs text-neutral-700 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/25 max-w-[110px]"
-                  >
-                    <option value="">None</option>
-                    {hotspotPages.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.title || "Untitled hotspot"}
-                      </option>
-                    ))}
-                  </select>
+                    {/* Delete step */}
+                    <button
+                      type="button"
+                      aria-label={`Delete step "${step.label}"`}
+                      onClick={() => handleDeleteStep(step.id)}
+                      className="shrink-0 flex h-6 w-6 items-center justify-center rounded-lg text-neutral-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                    >
+                      ×
+                    </button>
+                  </div>
 
-                  {/* Delete step */}
-                  <button
-                    type="button"
-                    aria-label={`Delete step "${step.label}"`}
-                    onClick={() => handleDeleteStep(step.id)}
-                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
-                  >
-                    ×
-                  </button>
+                  {/* Step body */}
+                  <div className="px-3 py-2.5 space-y-2.5">
+                    {/* Card picker */}
+                    <div>
+                      <FieldLabel className="mb-1.5">Card</FieldLabel>
+                      <select
+                        value={step.pageId}
+                        onChange={(e) => handleStepChange(step.id, "pageId", e.target.value)}
+                        aria-label="Card"
+                        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-700 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/25"
+                      >
+                        {nonHomePages.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.title || "Untitled"}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Hotspot picker */}
+                    <div>
+                      <FieldLabel className="mb-1.5">Pulse pin</FieldLabel>
+                      <select
+                        value={step.anchorHotspotId ?? ""}
+                        onChange={(e) =>
+                          handleStepChange(
+                            step.id,
+                            "anchorHotspotId",
+                            e.target.value || undefined
+                          )
+                        }
+                        aria-label="Pulse pin"
+                        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-700 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/25"
+                      >
+                        <option value="">None</option>
+                        {hotspotPages.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.title || "Untitled hotspot"}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
               ))
             )}
@@ -325,9 +342,9 @@ export function GuideTab({
                 + Add step
               </button>
             ) : (
-              <p className="text-xs text-neutral-400">
-                Add cards to the board first to create steps.
-              </p>
+              <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-4 py-5 text-center">
+                <p className="text-xs text-neutral-500">Add cards to the board first.</p>
+              </div>
             )}
           </div>
         </EditorSection>
