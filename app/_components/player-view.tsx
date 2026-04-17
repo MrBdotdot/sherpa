@@ -348,6 +348,7 @@ export function PlayerView({
           guides={guides}
           activeGuideId={activeGuideId ?? guides[0]?.id ?? ""}
           onGuideChange={setActiveGuideId}
+          accentColor={accentColor}
         />
       )}
 
