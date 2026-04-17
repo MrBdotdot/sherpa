@@ -72,6 +72,8 @@ export function GuidePanel({
       <div className="absolute left-0 top-0 bottom-0 z-40 w-56 h-full">
         {/* Slide-in panel — slides with transition; re-expand tab rides its right edge */}
         <div
+          role="navigation"
+          aria-label={guide.name || "Guide"}
           className={[
             "absolute left-0 top-0 bottom-0 h-full w-56 bg-black/70 backdrop-blur-sm transition-transform duration-200",
             "flex flex-col",
@@ -87,7 +89,14 @@ export function GuidePanel({
 
           {/* Progress bar */}
           {guide.steps.length > 0 && (
-            <div className="mx-4 mt-1 mb-2 h-1 rounded-full bg-white/10 overflow-hidden">
+            <div
+              role="progressbar"
+              aria-label="Guide progress"
+              aria-valuenow={activeStepIndex}
+              aria-valuemin={0}
+              aria-valuemax={guide.steps.length}
+              className="mx-4 mt-1 mb-2 h-1 rounded-full bg-white/10 overflow-hidden"
+            >
               <div
                 className="h-full rounded-full transition-all duration-300"
                 style={{
@@ -141,6 +150,7 @@ export function GuidePanel({
               <select
                 value={activeGuideId}
                 onChange={(e) => onGuideChange(e.target.value)}
+                aria-label="Switch guide"
                 className="w-full rounded bg-white/10 px-2 py-1 text-xs text-white outline-none focus:ring-1 focus:ring-blue-400"
               >
                 {guides.map((g) => (
@@ -168,9 +178,15 @@ export function GuidePanel({
               type="button"
               onClick={onExpand}
               aria-label="Expand guide"
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full bg-black/70 backdrop-blur-sm text-white px-1.5 py-4 rounded-r-lg transition-colors hover:bg-black/85"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full bg-black/70 backdrop-blur-sm text-white px-1.5 py-3 rounded-r-lg transition-colors hover:bg-black/85"
             >
-              →
+              <span className="flex flex-col items-center gap-1">
+                <span>→</span>
+                <span
+                  className="text-[9px] text-white/60"
+                  style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+                >Guide</span>
+              </span>
             </button>
           )}
         </div>
@@ -183,6 +199,8 @@ export function GuidePanel({
     <div className="absolute left-0 right-0 top-0 z-40 overflow-hidden">
       {/* Slide-in bar */}
       <div
+        role="navigation"
+        aria-label={guide.name || "Guide"}
         className={[
           "h-12 w-full bg-black/70 backdrop-blur-sm transition-transform duration-200",
           "flex items-center gap-2 px-3",
@@ -222,6 +240,7 @@ export function GuidePanel({
           <select
             value={activeGuideId}
             onChange={(e) => onGuideChange(e.target.value)}
+            aria-label="Switch guide"
             className="shrink-0 rounded bg-white/10 px-2 py-1 text-xs text-white outline-none focus:ring-1 focus:ring-blue-400"
           >
             {guides.map((g) => (

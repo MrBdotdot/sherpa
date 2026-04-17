@@ -163,7 +163,7 @@ export function GuideTab({
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
             {guides.map((guide) => {
-              const isActive = guide.id === activeGuideId;
+              const isActive = guide.id === safeActiveGuideId;
               const isEditing = guide.id === editingGuideId;
 
               return (
@@ -197,9 +197,15 @@ export function GuideTab({
                   ) : (
                     <button
                       type="button"
+                      aria-pressed={isActive}
                       onClick={() => {
-                        setActiveGuideId(guide.id);
-                        setEditingGuideId(guide.id);
+                        if (guide.id !== safeActiveGuideId) {
+                          // Inactive pill: just select it
+                          setActiveGuideId(guide.id);
+                        } else {
+                          // Already active: click again to rename
+                          setEditingGuideId(guide.id);
+                        }
                       }}
                       className="max-w-[120px] truncate bg-transparent text-left outline-none"
                     >
@@ -272,7 +278,8 @@ export function GuideTab({
                       value={step.label}
                       onChange={(e) => handleStepChange(step.id, "label", e.target.value)}
                       placeholder="Step label"
-                      className="min-w-0 flex-1 bg-transparent text-sm font-medium text-neutral-800 outline-none placeholder:text-neutral-400"
+                      aria-label={`Step ${index + 1} label`}
+                      className="min-w-0 flex-1 bg-transparent text-sm font-medium text-neutral-800 outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-[#3B82F6]/40 focus:rounded-sm"
                     />
 
                     {/* Delete step */}
@@ -289,13 +296,12 @@ export function GuideTab({
                   {/* Step body */}
                   <div className="px-3 py-2.5 space-y-2.5">
                     {/* Card picker */}
-                    <div>
+                    <label className="block">
                       <FieldLabel className="mb-1.5">Card</FieldLabel>
                       <select
                         value={step.pageId}
                         onChange={(e) => handleStepChange(step.id, "pageId", e.target.value)}
-                        aria-label="Card"
-                        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-700 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/25"
+                        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-700 outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
                       >
                         {nonHomePages.map((p) => (
                           <option key={p.id} value={p.id}>
@@ -303,10 +309,10 @@ export function GuideTab({
                           </option>
                         ))}
                       </select>
-                    </div>
+                    </label>
 
                     {/* Hotspot picker */}
-                    <div>
+                    <label className="block">
                       <FieldLabel className="mb-1.5">Pulse pin</FieldLabel>
                       <select
                         value={step.anchorHotspotId ?? ""}
@@ -317,8 +323,7 @@ export function GuideTab({
                             e.target.value || undefined
                           )
                         }
-                        aria-label="Pulse pin"
-                        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-700 outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/25"
+                        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-700 outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
                       >
                         <option value="">None</option>
                         {hotspotPages.map((p) => (
@@ -327,7 +332,7 @@ export function GuideTab({
                           </option>
                         ))}
                       </select>
-                    </div>
+                    </label>
                   </div>
                 </div>
               ))
