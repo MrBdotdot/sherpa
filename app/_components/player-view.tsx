@@ -323,6 +323,7 @@ export function PlayerView({
           fontThemeClass={fontThemeClass}
           surfaceStyleClass={surfaceStyleClass}
           pages={localizedPages}
+          guides={guides}
           activeLanguageCode={activeLanguageCode}
           availableLanguages={localeLanguages}
           isPreviewMode

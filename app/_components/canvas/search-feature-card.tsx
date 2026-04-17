@@ -2,7 +2,7 @@
 
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { CanvasFeature, PageItem } from "@/app/_lib/authoring-types";
+import type { CanvasFeature, Guide, PageItem } from "@/app/_lib/authoring-types";
 import { searchPages } from "@/app/_lib/search-index";
 import { dispatchSectionHighlight } from "@/app/_lib/section-highlight";
 
@@ -25,6 +25,7 @@ type DropPos = { top?: number; bottom?: number; left: number; width: number };
 export function SearchFeatureCard({
   feature,
   pages = [],
+  guides = [],
   fontThemeClass = "font-sans",
   onNavigate,
   onSearch,
@@ -32,6 +33,7 @@ export function SearchFeatureCard({
 }: {
   feature: CanvasFeature;
   pages: PageItem[];
+  guides?: Guide[];
   fontThemeClass?: string;
   onNavigate?: (id: string) => void;
   onSearch?: (query: string) => void;
@@ -91,7 +93,7 @@ export function SearchFeatureCard({
     setDropPos(pos);
   }, [open]);
 
-  const results = useMemo(() => searchPages(pages, query), [pages, query]);
+  const results = useMemo(() => searchPages(pages, query, guides), [pages, query, guides]);
   const isContrast = surfaceStyleClass.includes("text-white");
   const textClass = isContrast ? "text-white" : "text-neutral-800";
   const placeholderClass = isContrast ? "placeholder:text-white/50" : "placeholder:text-neutral-500";

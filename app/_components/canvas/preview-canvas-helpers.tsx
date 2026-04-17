@@ -1,5 +1,5 @@
 import { memo, useRef } from "react";
-import { CanvasFeature, CanvasFeatureField, PageItem } from "@/app/_lib/authoring-types";
+import { CanvasFeature, CanvasFeatureField, Guide, PageItem } from "@/app/_lib/authoring-types";
 import { getFeatureTypeLabel } from "@/app/_lib/label-utils";
 import { CanvasFeatureCard } from "@/app/_components/canvas/canvas-feature-card";
 import { CanvasDragBadge } from "@/app/_components/canvas/canvas-drag-badge";
@@ -136,6 +136,7 @@ export const FeaturePlacer = memo(function FeaturePlacer({
   fontThemeClass,
   surfaceStyleClass,
   pages,
+  guides = [],
   activeLanguageCode,
   availableLanguages,
   isPreviewMode,
@@ -153,6 +154,7 @@ export const FeaturePlacer = memo(function FeaturePlacer({
   fontThemeClass: string;
   surfaceStyleClass: string;
   pages?: PageItem[];
+  guides?: Guide[];
   activeLanguageCode?: string;
   availableLanguages?: LocaleLanguage[];
   isPreviewMode: boolean;
@@ -196,6 +198,7 @@ export const FeaturePlacer = memo(function FeaturePlacer({
                 accentColor={accentColor}
                 feature={feature}
                 pages={pages}
+                guides={guides}
                 activeLanguageCode={activeLanguageCode}
                 availableLanguages={availableLanguages}
                 fontThemeClass={fontThemeClass}

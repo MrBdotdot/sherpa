@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { CanvasFeature, PageItem } from "@/app/_lib/authoring-types";
+import { CanvasFeature, Guide, PageItem } from "@/app/_lib/authoring-types";
 import { SearchFeatureCard } from "@/app/_components/canvas/search-feature-card";
 import { LocaleLanguage, parseLocaleLanguages } from "@/app/_lib/localization";
 import { dispatchSectionHighlight } from "@/app/_lib/section-highlight";
@@ -179,6 +179,7 @@ export function CanvasFeatureCard({
   accentColor,
   feature,
   pages = [],
+  guides = [],
   activeLanguageCode,
   availableLanguages,
   fontThemeClass = "font-sans",
@@ -191,6 +192,7 @@ export function CanvasFeatureCard({
   accentColor: string;
   feature: CanvasFeature;
   pages?: PageItem[];
+  guides?: Guide[];
   activeLanguageCode?: string;
   availableLanguages?: LocaleLanguage[];
   fontThemeClass?: string;
@@ -205,6 +207,7 @@ export function CanvasFeatureCard({
       <SearchFeatureCard
         feature={feature}
         pages={pages}
+        guides={guides}
         fontThemeClass={fontThemeClass}
         onNavigate={onNavigate}
         onSearch={onSearch}

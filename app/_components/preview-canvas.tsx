@@ -433,6 +433,7 @@ export function PreviewCanvas({
     fontThemeClass,
     surfaceStyleClass,
     pages,
+    guides,
     activeLanguageCode,
     availableLanguages,
     isPreviewMode,

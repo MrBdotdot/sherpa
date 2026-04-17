@@ -1,4 +1,4 @@
-import type { ContentBlock, PageItem } from "@/app/_lib/authoring-types";
+import type { ContentBlock, Guide, PageItem } from "@/app/_lib/authoring-types";
 
 export type SearchIndexEntry = {
   pageId: string;
@@ -94,7 +94,7 @@ export function extractBlocksText(blocks: ContentBlock[]): string {
     .join(" ");
 }
 
-export function buildSearchIndex(pages: PageItem[]): SearchIndexEntry[] {
+export function buildSearchIndex(pages: PageItem[], guides: Guide[] = []): SearchIndexEntry[] {
   const homePage = pages.find((p) => p.kind === "home");
   const entries: SearchIndexEntry[] = [];
 
@@ -168,14 +168,30 @@ export function buildSearchIndex(pages: PageItem[]): SearchIndexEntry[] {
     }
   }
 
+  // Guide step entries — each step is searchable by its label,
+  // breadcrumbed under its guide name so results are clearly labelled.
+  for (const guide of guides) {
+    for (const step of guide.steps) {
+      if (!step.label.trim()) continue;
+      entries.push({
+        pageId: step.pageId,
+        breadcrumb: [
+          ...(homePage ? [{ label: guide.name, pageId: homePage.id }] : []),
+          { label: step.label, pageId: step.pageId },
+        ],
+        text: step.label,
+      });
+    }
+  }
+
   return entries;
 }
 
-export function searchPages(pages: PageItem[], query: string): SearchHit[] {
+export function searchPages(pages: PageItem[], query: string, guides: Guide[] = []): SearchHit[] {
   const q = query.toLowerCase().trim();
   if (!q) return [];
 
-  const index = buildSearchIndex(pages);
+  const index = buildSearchIndex(pages, guides);
   const hits: SearchHit[] = [];
   const seen = new Set<string>();
 
