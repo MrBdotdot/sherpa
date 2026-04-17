@@ -17,10 +17,12 @@ import { getExperienceStatusLabel } from "@/app/_lib/label-utils";
 import {
   CanvasFeatureField,
   ExperienceStatus,
+  GuideStep,
   LayoutMode,
   PageItem,
   SystemSettings,
 } from "@/app/_lib/authoring-types";
+import { GuidePanel } from "@/app/_components/canvas/guide-panel";
 import { LocaleLanguage } from "@/app/_lib/localization";
 import { getFontThemeClass } from "@/app/_lib/font-theme";
 import { getResolvedCanvasFeatures } from "@/app/_lib/responsive-board";
@@ -322,6 +324,31 @@ export function PreviewCanvas({
   useEffect(() => { setNavHistory([]); }, [isPreviewMode]);
   useEffect(() => { if (!modulePage) setNavHistory([]); }, [modulePage]);
 
+  // ── Guide panel (preview mode only) ──────────────────────────
+  const guides = systemSettings.guides ?? [];
+  const guideNavPosition = systemSettings.guideNavPosition ?? "left" as const;
+  const [isGuidedMode, setIsGuidedMode] = useState(guides.length > 0);
+  const [activeGuideId, setActiveGuideId] = useState<string | null>(
+    systemSettings.activeGuideId ?? guides[0]?.id ?? null
+  );
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isPreviewMode) return;
+    const g = systemSettings.guides ?? [];
+    setIsGuidedMode(g.length > 0);
+    setActiveGuideId(systemSettings.activeGuideId ?? g[0]?.id ?? null);
+    setActiveStepIndex(0);
+    setHighlightedHotspotId(null);
+  // Intentionally runs only when preview mode is toggled, not on every systemSettings change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPreviewMode]);
+
+  useEffect(() => {
+    if (!modulePage) setHighlightedHotspotId(null);
+  }, [modulePage]);
+
   useEffect(() => {
     if (pendingScrollRestoreRef.current === null) return;
     const target = pendingScrollRestoreRef.current;
@@ -348,6 +375,17 @@ export function PreviewCanvas({
     pendingScrollRestoreRef.current = prev.scrollTop;
     onSelectPage(prev.pageId);
   }, [navHistory, onSelectPage]);
+
+  const handleDismissContentWithGuide = useCallback(() => {
+    setHighlightedHotspotId(null);
+    onDismissContent();
+  }, [onDismissContent]);
+
+  function handleStepActivate(step: GuideStep, index: number) {
+    setActiveStepIndex(index);
+    if (step.anchorHotspotId) setHighlightedHotspotId(step.anchorHotspotId);
+    onSelectPage(step.pageId);
+  }
 
   // ── 3D hotspot: track module position to the orbiting hotspot ─────────────
   const moduleElRef = useRef<HTMLDivElement | null>(null);
@@ -414,7 +452,7 @@ export function PreviewCanvas({
     accentColor,
     isLayoutEditMode: !isPreviewMode,
     isPreviewMode,
-    onDismissContent,
+    onDismissContent: isPreviewMode ? handleDismissContentWithGuide : onDismissContent,
     onNavigate: isPreviewMode ? handlePreviewNavigate : onSelectPage,
     onNavigateBack: isPreviewMode ? handlePreviewBack : undefined,
     canNavigateBack: isPreviewMode && navHistory.length > 0,
@@ -962,7 +1000,7 @@ export function PreviewCanvas({
                     {effectiveHotspotPages.map((page, index) => {
                       if (page.x === null || page.y === null) return null;
                       return (
-                        <HotspotPin key={page.id} page={page} index={index} isSelected={page.id === selectedPageId} {...sharedHotspotPinProps} />
+                        <HotspotPin key={page.id} page={page} index={index} isSelected={page.id === selectedPageId} isHighlighted={isPreviewMode && page.id === highlightedHotspotId} {...sharedHotspotPinProps} />
                       );
                     })}
                   </div>
@@ -1036,7 +1074,7 @@ export function PreviewCanvas({
                   {effectiveHotspotPages.map((page, index) => {
                     if (page.x === null || page.y === null) return null;
                     return (
-                      <HotspotPin key={page.id} page={page} index={index} isSelected={page.id === selectedPageId} {...sharedHotspotPinProps} />
+                      <HotspotPin key={page.id} page={page} index={index} isSelected={page.id === selectedPageId} isHighlighted={isPreviewMode && page.id === highlightedHotspotId} {...sharedHotspotPinProps} />
                     );
                   })}
                 </div>
@@ -1123,6 +1161,25 @@ export function PreviewCanvas({
           </div>
         )}
       </div>
+
+      {/* Guide panel — rendered outside the overflow-hidden canvas wrapper so the
+          re-expand tab isn't clipped. Only shown in preview mode. */}
+      {isPreviewMode && guides.length > 0 && (
+        <GuidePanel
+          guide={guides.find((g) => g.id === activeGuideId) ?? guides[0]}
+          pages={pages ?? []}
+          navPosition={guideNavPosition}
+          activeStepIndex={activeStepIndex}
+          isGuidedMode={isGuidedMode}
+          onStepActivate={handleStepActivate}
+          onCollapse={() => setIsGuidedMode(false)}
+          onExpand={() => setIsGuidedMode(true)}
+          guides={guides}
+          activeGuideId={activeGuideId ?? guides[0]?.id ?? ""}
+          onGuideChange={setActiveGuideId}
+          accentColor={accentColor}
+        />
+      )}
     </div>
   );
 }
