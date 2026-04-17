@@ -178,15 +178,11 @@ export function GuidePanel({
               type="button"
               onClick={onExpand}
               aria-label="Expand guide"
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full bg-black/70 backdrop-blur-sm text-white px-1.5 py-3 rounded-r-lg transition-colors hover:bg-black/85"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full bg-black/70 backdrop-blur-sm text-white/70 px-1.5 py-3 rounded-r-lg transition-colors hover:bg-black/85 hover:text-white"
             >
-              <span className="flex flex-col items-center gap-1">
-                <span>→</span>
-                <span
-                  className="text-[9px] text-white/60"
-                  style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-                >Guide</span>
-              </span>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </button>
           )}
         </div>
@@ -269,12 +265,11 @@ export function GuidePanel({
             type="button"
             onClick={onExpand}
             aria-label="Expand guide"
-            className="bg-black/70 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-b-lg transition-colors hover:bg-black/85"
+            className="bg-black/70 backdrop-blur-sm text-white/70 px-3 py-1.5 rounded-b-lg transition-colors hover:bg-black/85 hover:text-white"
           >
-            <span className="flex items-center gap-1 text-white/80">
-              <span>↓</span>
-              <span>Guide</span>
-            </span>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
         </div>
       )}
