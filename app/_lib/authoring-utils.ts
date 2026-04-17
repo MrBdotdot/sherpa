@@ -21,8 +21,7 @@ export type { PatchNote } from "@/app/_lib/patch-notes";
 export { PATCH_NOTES } from "@/app/_lib/patch-notes";
 
 export const HOME_PAGE_ID = "home-page";
-export const DEFAULT_HERO =
-  "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1600&auto=format&fit=crop";
+export const DEFAULT_HERO = "color:#1e3a8a";
 
 export function getHomePage(pages: PageItem[]): PageItem | null {
   return pages.find((page) => page.kind === "home") ?? pages[0] ?? null;
