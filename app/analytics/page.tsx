@@ -470,7 +470,7 @@ function AnalyticsDashboard() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/studio")}
               className="flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-white transition"
             >
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none">

@@ -42,7 +42,7 @@ export function CardPairingModal({
           <button
             type="button"
             onClick={onAddButton}
-            className="flex-1 rounded-full bg-[#3B82F6] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2563EB]"
+            className="flex-1 rounded-full bg-[#5B7AF5] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#4059EB]"
           >
             Add button
           </button>

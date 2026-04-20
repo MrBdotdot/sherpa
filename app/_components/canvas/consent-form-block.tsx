@@ -141,7 +141,7 @@ export function ConsentFormBlock({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Type your full name"
-          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
+          className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#5B7AF5] focus:ring-2 focus:ring-[#5B7AF5]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
         />
       </div>
 
@@ -164,7 +164,7 @@ export function ConsentFormBlock({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
-            className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
+            className="w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm outline-none transition focus:border-[#5B7AF5] focus:ring-2 focus:ring-[#5B7AF5]/25 placeholder:text-neutral-500 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
           />
         </div>
       ) : null}
@@ -173,7 +173,7 @@ export function ConsentFormBlock({
         type="submit"
         disabled={status === "submitting" || !name.trim()}
         style={accentColor ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
-        className="w-full rounded-full border border-[#3B82F6] bg-[#3B82F6] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2563EB] disabled:opacity-40"
+        className="w-full rounded-full border border-[#5B7AF5] bg-[#5B7AF5] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#4059EB] disabled:opacity-40"
       >
         {status === "submitting" ? "Signing…" : "I agree and sign"}
       </button>

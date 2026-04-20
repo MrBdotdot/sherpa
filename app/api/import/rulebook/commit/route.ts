@@ -6,7 +6,7 @@ import { ContentBlockType, InteractionType, PageItem } from "@/app/_lib/authorin
 import { injectInlineLinks } from "../inject-links";
 import type { DraftSection } from "@/app/_lib/import-types";
 
-const VALID_BLOCK_TYPES = new Set<ContentBlockType>(["text", "section", "steps", "callout"]);
+const VALID_BLOCK_TYPES = new Set<ContentBlockType>(["text", "section", "steps", "callout", "image"]);
 const VALID_KINDS: PageItem["kind"][] = ["page", "hotspot"];
 const VALID_INTERACTION_TYPES: InteractionType[] = ["modal", "full-page", "tooltip", "side-sheet", "bottom-sheet"];
 
@@ -75,7 +75,9 @@ export async function POST(request: Request) {
         .filter((b) => VALID_BLOCK_TYPES.has(b.type as ContentBlockType))
         .map((b) => createBlock(b.type as ContentBlockType, b.value ?? ""));
 
-      return createImportedPage(s.title ?? "Untitled", kind, interactionType, blocks, i + 1);
+      const page = createImportedPage(s.title ?? "Untitled", kind, interactionType, blocks, i + 1);
+      if (s.heroImage) page.heroImage = s.heroImage;
+      return page;
     });
   }
 

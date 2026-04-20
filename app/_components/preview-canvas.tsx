@@ -92,19 +92,31 @@ type PreviewCanvasProps = {
    *  Use in the main studio layout; leave false (default) for modal/sidebar previews. */
   fillHeight?: boolean;
   studioChrome?: {
-    headerOpen: boolean;
-    leftInset: number;
-    rightInset: number;
-    topInset?: number;
-    onToggleHeader: () => void;
     darkMode?: boolean;
+    onOpenGameSwitcher?: () => void;
+    topChromeCollapsed?: boolean;
+    onTopChromeCollapsedChange?: (v: boolean) => void;
+    bottomChromeCollapsed?: boolean;
+    onBottomChromeCollapsedChange?: (v: boolean) => void;
   };
 };
 
-const LAYOUT_MODES: { mode: LayoutMode; label: string }[] = [
-  { mode: "desktop", label: "Desktop" },
-  { mode: "mobile-landscape", label: "Landscape" },
-  { mode: "mobile-portrait", label: "Portrait" },
+const LAYOUT_MODES: { mode: LayoutMode; label: string; icon: React.ReactNode }[] = [
+  {
+    mode: "desktop",
+    label: "Desktop",
+    icon: <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="2.5" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.3"/><path d="M5 12h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>,
+  },
+  {
+    mode: "mobile-landscape",
+    label: "Landscape",
+    icon: <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="3.5" width="12" height="7" rx="1.2" stroke="currentColor" strokeWidth="1.3"/><circle cx="7" cy="12" r="0.5" fill="currentColor"/></svg>,
+  },
+  {
+    mode: "mobile-portrait",
+    label: "Portrait",
+    icon: <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="4" y="1" width="6" height="11" rx="1.2" stroke="currentColor" strokeWidth="1.3"/><path d="M6.25 10.5h1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>,
+  },
 ];
 
 export function PreviewCanvas({
@@ -333,6 +345,33 @@ export function PreviewCanvas({
   );
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [highlightedHotspotId, setHighlightedHotspotId] = useState<string | null>(null);
+  const [internalTopCollapsed, setInternalTopCollapsed] = useState(false);
+  const [internalBottomCollapsed, setInternalBottomCollapsed] = useState(false);
+  const topChromeCollapsed = studioChrome?.topChromeCollapsed ?? internalTopCollapsed;
+  const bottomChromeCollapsed = studioChrome?.bottomChromeCollapsed ?? internalBottomCollapsed;
+  const setTopChromeCollapsed = (v: boolean | ((p: boolean) => boolean)) => {
+    const next = typeof v === "function" ? v(topChromeCollapsed) : v;
+    setInternalTopCollapsed(next);
+    studioChrome?.onTopChromeCollapsedChange?.(next);
+  };
+  const setBottomChromeCollapsed = (v: boolean | ((p: boolean) => boolean)) => {
+    const next = typeof v === "function" ? v(bottomChromeCollapsed) : v;
+    setInternalBottomCollapsed(next);
+    studioChrome?.onBottomChromeCollapsedChange?.(next);
+  };
+  const [gameMenuOpen, setGameMenuOpen] = useState(false);
+  const gameMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!gameMenuOpen) return;
+    function handleOutside(e: MouseEvent) {
+      if (gameMenuRef.current && !gameMenuRef.current.contains(e.target as Node)) {
+        setGameMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [gameMenuOpen]);
 
   useEffect(() => {
     if (!isPreviewMode) return;
@@ -410,6 +449,9 @@ export function PreviewCanvas({
     }
   }, []);
 
+  // When a top guide nav is present in preview mode, push the stop-preview button below it
+  const hasTopGuideNav = isPreviewMode && guides.length > 0 && guideNavPosition === "top";
+
   const sharedHotspotPinProps = {
     isLayoutEditMode: !isPreviewMode,
     isPreviewMode,
@@ -462,14 +504,10 @@ export function PreviewCanvas({
   };
 
   const hasStudioChrome = fillHeight && !isPreviewMode && !!studioChrome;
-  const studioHeaderTopInset = studioChrome?.topInset ?? 18;
-  const studioHeaderOpen = studioChrome?.headerOpen ?? true;
-  const studioHeaderLeftInset = studioChrome?.leftInset ?? 18;
-  const studioHeaderRightInset = studioChrome?.rightInset ?? 18;
+  const hasBottomBar = fillHeight && !!studioChrome;
   const headerDark = studioChrome?.darkMode ?? false;
-  const headerBg    = headerDark ? "bg-neutral-900"   : "bg-[#fcfaf7]";
+  const headerBg    = headerDark ? "bg-neutral-900/90"   : "bg-[rgba(252,250,247,0.92)]";
   const headerBord  = headerDark ? "border-neutral-700" : "border-[#e7dfd2]";
-  const headerLabel = headerDark ? "text-neutral-500" : "text-neutral-500";
 
   function renderSaveStateIndicator({ dark = false }: { dark?: boolean } = {}) {
     if (saveState === "idle") return null;
@@ -585,180 +623,288 @@ export function PreviewCanvas({
     );
   }
 
-  const authoringHeaderContent = (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-center">
-      <div className="min-w-0 flex-1">
-        <div className={`text-xs font-semibold uppercase tracking-[0.16em] ${headerLabel}`}>
-          Currently editing
-        </div>
-        <div className="mt-1 flex flex-wrap items-center gap-2">
-          {activePage.kind === "home" ? (
-            editingName ? (
-              <input
-                ref={nameInputRef}
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                onBlur={commitName}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") commitName();
-                  if (e.key === "Escape") setEditingName(false);
-                }}
-                className="rounded-xl border border-[#d8cfbf] bg-white px-3 py-1.5 text-sm font-semibold text-neutral-900 outline-none focus:border-neutral-900"
-              />
-            ) : (
-              <div className="flex min-w-0 items-center gap-1.5">
-                {studioName ? (
-                  <span className={`shrink-0 text-xs font-medium ${headerDark ? "text-neutral-500" : "text-neutral-500"}`}>
-                    {studioName} /
-                  </span>
-                ) : null}
-                <span className="truncate text-sm font-semibold text-neutral-900">
-                  {gameName || activePage.title || "Untitled"}
-                </span>
-                <button
-                  type="button"
-                  onClick={startEditName}
-                  title="Rename game"
-                  className="rounded-lg p-1 text-neutral-500 transition hover:bg-[#f1ebdf] hover:text-neutral-700"
-                >
-                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                    <path d="M1.5 8.5V9.5h1L8 4 7 3 1.5 8.5zM9.5 2.5a.707.707 0 000-1L8.5 0.5a.707.707 0 00-1 0L6.5 1.5 8.5 3.5 9.5 2.5z" fill="currentColor" />
-                  </svg>
-                </button>
-              </div>
-            )
-          ) : (
-            <div className="text-sm font-semibold text-neutral-900">
-              {activePage.title || "Untitled page"}
-            </div>
-          )}
-          {renderSaveStateIndicator({ dark: headerDark })}
-        </div>
-      </div>
-
-      <div className="flex shrink-0 self-center xl:justify-self-center">
-        <div className="flex justify-center">
-          <div className="relative inline-flex items-center justify-center">
-            <div className="flex items-center rounded-2xl border border-[#ddd3c3] bg-[#f1ebdf] p-1 shadow-sm">
-              {LAYOUT_MODES.map(({ mode, label }) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => onSetLayoutMode(mode)}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-all ${
-                    layoutMode === mode
-                      ? "bg-white text-neutral-900 shadow-sm"
-                      : "text-neutral-600 hover:text-neutral-800"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            {onOpenCommandPalette && (
-              <button
-                type="button"
-                onClick={onOpenCommandPalette}
-                className={`absolute left-full top-1/2 ml-2 -translate-y-1/2 rounded-xl border px-3 py-2 shadow-sm transition ${
-                  headerDark
-                    ? "border-neutral-700 bg-neutral-800/90 text-neutral-300 hover:bg-neutral-700 hover:text-white"
-                    : "border-[#d8cfbf] bg-white text-neutral-600 hover:bg-[#f7f3ea] hover:text-neutral-900"
-                }`}
-                aria-label="Search and actions"
-                title="Search and actions (A)"
-              >
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
-                  <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" strokeWidth="1.4" />
-                  <path d="M8.5 8.5L11.5 11.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                </svg>
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 xl:justify-self-end xl:justify-end">
-        {hotspotPages.length > 0 && !isPreviewMode ? (
-          <HintBubble id="first-preview">Click Preview to see your game as a player</HintBubble>
-        ) : null}
-        <button
-          type="button"
-          onClick={onTogglePreviewMode}
-          className="rounded-xl border border-[#d8cfbf] bg-white px-3 py-2 text-xs font-medium text-neutral-800 shadow-sm transition hover:bg-[#f7f3ea]"
-        >
-          Preview
-        </button>
-        {hotspotPages.length > 0 && !isPreviewMode && experienceStatus === "draft" ? (
-          <HintBubble id="first-publish">Publish to share a live link with players</HintBubble>
-        ) : null}
-        {renderExperienceStatusControl({ dark: headerDark })}
-        {experienceStatus === "published" && liveViewHref ? (
-          <a
-            href={liveViewHref}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 shadow-sm transition hover:bg-emerald-100"
-          >
-            Open live view
-          </a>
-        ) : null}
-      </div>
-    </div>
-  );
 
   return (
     <div
       className={fillHeight ? "absolute inset-0" : isPreviewMode ? "fixed inset-0 z-50 flex flex-col bg-black" : "relative overflow-hidden rounded-3xl border border-neutral-200 bg-[#f4f5f7]"}
     >
-      {hasStudioChrome ? (
-        <div
-          className="absolute z-30 transition-transform duration-300 ease-in-out"
-          style={{
-            top: studioHeaderTopInset,
-            left: studioHeaderLeftInset,
-            right: studioHeaderRightInset,
-            transform: studioHeaderOpen ? "translateY(0)" : "translateY(-100%)",
-          }}
-        >
-          <div
-            className={`relative rounded-[28px] px-5 py-4 transition-[background-color,border-color,box-shadow] duration-300 ease-in-out ${
-              studioHeaderOpen
-                ? `border ${headerBord} ${headerBg} shadow-[0_22px_60px_rgba(15,23,42,0.14)]`
-                : "border border-transparent bg-transparent shadow-none"
+      {hasStudioChrome && (
+        <>
+          {/* Tab — fixed at top edge, never moves */}
+          <button
+            type="button"
+            onClick={() => setTopChromeCollapsed((p) => !p)}
+            title={topChromeCollapsed ? "Show navigation" : "Hide navigation"}
+            className={`absolute z-[46] flex items-center justify-center rounded-b-xl border border-t-0 px-5 py-1 shadow-sm transition ${
+              headerDark
+                ? "border-neutral-700 bg-neutral-900 text-neutral-500 hover:text-neutral-200"
+                : "border-[#e7dfd2] bg-[#fcfaf7] text-neutral-400 hover:text-neutral-700"
             }`}
+            style={{ top: 0, left: "50%", transform: "translateX(-50%)" }}
           >
-            {authoringHeaderContent}
+            {topChromeCollapsed ? (
+              <svg width="12" height="8" viewBox="0 0 12 8" fill="none" aria-hidden="true">
+                <path d="M1 1.5l5 5 5-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            ) : (
+              <svg width="12" height="8" viewBox="0 0 12 8" fill="none" aria-hidden="true">
+                <path d="M11 6.5L6 1.5 1 6.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </button>
+
+          {/* Pill — slides fully off screen above when collapsed */}
+          <div
+            ref={gameMenuRef}
+            className="absolute z-[45]"
+            style={{
+              top: 0,
+              left: "50%",
+              transform: `translateX(-50%) translateY(${topChromeCollapsed ? "-100%" : "20px"})`,
+              transition: "transform 320ms cubic-bezier(0.4,0,0.2,1)",
+            }}
+          >
+            <div
+              className={`relative flex items-center gap-2 rounded-full border px-2 py-1.5 shadow-[0_18px_36px_rgba(15,23,42,0.14)] backdrop-blur-sm ${headerBord} ${headerBg}`}
+            >
+            <div className="relative flex items-center gap-2">
+              {/* Game name — opens nav dropdown */}
+              <button
+                type="button"
+                onClick={() => setGameMenuOpen((o) => !o)}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition ${
+                  headerDark ? "text-neutral-300 hover:bg-white/10 hover:text-white" : "text-neutral-700 hover:bg-black/[0.04] hover:text-neutral-900"
+                }`}
+              >
+                {gameName ?? "Untitled Game"}
+                <svg
+                  width="10" height="10" viewBox="0 0 10 10" fill="none"
+                  style={{ transform: gameMenuOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 200ms ease" }}
+                >
+                  <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+
+              {/* Nav dropdown */}
+              {gameMenuOpen && (
+                <div
+                  className={`absolute top-full left-0 mt-2 w-44 rounded-2xl border py-1.5 shadow-[0_18px_48px_rgba(15,23,42,0.18)] ${
+                    headerDark ? "border-neutral-700 bg-neutral-900" : "border-[#e7dfd2] bg-white"
+                  }`}
+                >
+                  <a
+                    href="/analytics"
+                    className={`flex items-center gap-2.5 px-4 py-2 text-xs font-medium transition ${
+                      headerDark ? "text-neutral-300 hover:bg-white/10 hover:text-white" : "text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900"
+                    }`}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+                      <rect x="1" y="7" width="3" height="5" rx="0.8" stroke="currentColor" strokeWidth="1.2"/>
+                      <rect x="5" y="4" width="3" height="8" rx="0.8" stroke="currentColor" strokeWidth="1.2"/>
+                      <rect x="9" y="1" width="3" height="11" rx="0.8" stroke="currentColor" strokeWidth="1.2"/>
+                    </svg>
+                    Analytics
+                  </a>
+                  <a
+                    href="/gallery"
+                    className={`flex items-center gap-2.5 px-4 py-2 text-xs font-medium transition ${
+                      headerDark ? "text-neutral-300 hover:bg-white/10 hover:text-white" : "text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900"
+                    }`}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+                      <rect x="1" y="1" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+                      <rect x="7.5" y="1" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+                      <rect x="1" y="7.5" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+                      <rect x="7.5" y="7.5" width="4.5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+                    </svg>
+                    Gallery
+                  </a>
+                </div>
+              )}
+
+              <span className={`h-[18px] w-px ${headerDark ? "bg-neutral-700" : "bg-[#e7dfd2]"}`} />
+
+              {LAYOUT_MODES.map(({ mode, label, icon }) => (
+                <button
+                  key={mode}
+                  type="button"
+                  title={label}
+                  onClick={() => onSetLayoutMode(mode)}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
+                    layoutMode === mode
+                      ? "bg-neutral-900 text-white"
+                      : headerDark
+                      ? "text-neutral-400 hover:bg-white/10 hover:text-white"
+                      : "text-neutral-600 hover:text-neutral-900"
+                  }`}
+                >
+                  {icon}
+                </button>
+              ))}
+
+              {onOpenCommandPalette && (
+                <>
+                  <span className={`h-[18px] w-px ${headerDark ? "bg-neutral-700" : "bg-[#e7dfd2]"}`} />
+                  <button
+                    type="button"
+                    onClick={onOpenCommandPalette}
+                    title="Search and actions (A)"
+                    className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
+                      headerDark ? "text-neutral-400 hover:bg-white/10 hover:text-white" : "text-neutral-600 hover:text-neutral-900"
+                    }`}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+                      <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" strokeWidth="1.4" />
+                      <path d="M8.5 8.5L11.5 11.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </>
+              )}
+
+            </div>
+
+              {/* Save state — absolute right of pill, never affects pill centering */}
+              {saveState !== "idle" && (
+                <div
+                  className={`absolute top-1/2 -translate-y-1/2 left-full ml-3 flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs whitespace-nowrap shadow-[0_8px_24px_rgba(15,23,42,0.10)] backdrop-blur-sm ${headerBord} ${headerBg}`}
+                >
+                  {renderSaveStateIndicator({ dark: headerDark })}
+                </div>
+              )}
+            </div>{/* /pill */}
+          </div>{/* /pill-wrapper */}
+
+        </>
+      )}
+
+      {/* Bottom bar — always mounted in studio mode */}
+      {hasBottomBar && (
+        <>
+          {/* Tab — fixed at bottom edge, never moves; hidden in preview */}
+          {!isPreviewMode && (
             <button
               type="button"
-              onClick={() => studioChrome?.onToggleHeader()}
-              aria-label={studioHeaderOpen ? "Collapse header controls" : "Expand header controls"}
-              className={`absolute left-1/2 top-full flex -translate-x-1/2 -translate-y-px items-center justify-center rounded-b-[18px] border border-t-0 px-4 py-2 shadow-[0_14px_24px_rgba(15,23,42,0.12)] transition ${headerBord} ${headerBg} ${headerLabel} hover:text-neutral-700`}
+              onClick={() => setBottomChromeCollapsed((p) => !p)}
+              title={bottomChromeCollapsed ? "Show navigation" : "Hide navigation"}
+              className={`absolute z-[46] flex items-center justify-center rounded-t-xl border border-b-0 px-5 py-1 shadow-sm transition ${
+                headerDark
+                  ? "border-neutral-700 bg-neutral-900 text-neutral-500 hover:text-neutral-200"
+                  : "border-[#e7dfd2] bg-[#fcfaf7] text-neutral-400 hover:text-neutral-700"
+              }`}
+              style={{ bottom: 0, left: "50%", transform: "translateX(-50%)" }}
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                aria-hidden="true"
-                style={{
-                  transform: studioHeaderOpen ? "rotate(0deg)" : "rotate(180deg)",
-                  transition: "transform 300ms ease-in-out",
-                }}
+              {bottomChromeCollapsed ? (
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none" aria-hidden="true">
+                  <path d="M11 6.5L6 1.5 1 6.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : (
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none" aria-hidden="true">
+                  <path d="M1 1.5l5 5 5-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
+          )}
+
+          {/* Bar — slides fully off screen below when collapsed */}
+          <div
+            className="absolute z-[45]"
+            style={{
+              bottom: 0,
+              left: "50%",
+              transform: `translateX(-50%) translateY(${(bottomChromeCollapsed && !isPreviewMode) ? "100%" : "-20px"})`,
+              transition: "transform 320ms cubic-bezier(0.4,0,0.2,1)",
+            }}
+          >
+          <div className="flex items-center gap-6">
+          {/* Preview / Stop preview — stable width via invisible wider label; labels crossfade */}
+          <div className="relative shrink-0">
+            {!isPreviewMode && hotspotPages.length > 0 ? (
+              <HintBubble id="first-preview">Click Preview to see your game as a player</HintBubble>
+            ) : null}
+            <button
+              type="button"
+              onClick={onTogglePreviewMode}
+              className={`relative flex h-9 items-center justify-center overflow-hidden rounded-full px-4 text-xs font-semibold transition-colors duration-350 ${
+                isPreviewMode
+                  ? "bg-emerald-600 text-white shadow-[0_8px_24px_rgba(22,163,74,0.35)] hover:bg-emerald-700"
+                  : "bg-[#293B9C] text-white shadow-[0_8px_24px_rgba(41,59,156,0.35)] hover:bg-[#172b78]"
+              }`}
+            >
+              {/* Invisible spacer — always the wider label so button width never jumps */}
+              <span className="invisible whitespace-nowrap" aria-hidden="true">
+                Stop preview Esc
+              </span>
+              {/* "Preview" label */}
+              <span
+                className="absolute inset-0 flex items-center justify-center gap-1.5 whitespace-nowrap transition-opacity duration-200"
+                style={{ opacity: isPreviewMode ? 0 : 1 }}
+                aria-hidden={isPreviewMode}
               >
-                <path
-                  d="M3 9l4-4 4 4"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                  <path d="M2 1.5v7l6-3.5-6-3.5z" fill="currentColor"/>
+                </svg>
+                Preview
+              </span>
+              {/* "Stop preview" label */}
+              <span
+                className="absolute inset-0 flex items-center justify-center gap-1 whitespace-nowrap transition-opacity duration-200"
+                style={{ opacity: isPreviewMode ? 1 : 0 }}
+                aria-hidden={!isPreviewMode}
+              >
+                Stop preview <span className="opacity-60">Esc</span>
+              </span>
             </button>
           </div>
-        </div>
-      ) : null}
-      {!hasStudioChrome && <div className={
-        fillHeight && isPreviewMode ? "absolute left-1/2 top-0 z-50 flex -translate-x-1/2 items-center justify-center p-4"
+
+          {/* Collapsible right group — CSS grid 0fr→1fr avoids max-width jank */}
+          <div
+            className="overflow-hidden"
+            style={{
+              display: "grid",
+              gridTemplateColumns: isPreviewMode ? "0fr" : "1fr",
+              opacity: isPreviewMode ? 0 : 1,
+              transition: "grid-template-columns 380ms cubic-bezier(0.4, 0, 0.2, 1), opacity 260ms ease",
+            }}
+          >
+            <div className="overflow-hidden">
+              <div className="flex items-center gap-6 whitespace-nowrap">
+                <div className="relative">
+                  {hotspotPages.length > 0 && experienceStatus === "draft" ? (
+                    <HintBubble id="first-publish">Publish to share a live link with players</HintBubble>
+                  ) : null}
+                  {renderExperienceStatusControl({ dark: headerDark })}
+                </div>
+
+                {experienceStatus === "published" && liveViewHref ? (
+                  <a
+                    href={liveViewHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`flex h-9 items-center gap-1.5 rounded-full border px-4 text-xs font-semibold shadow-sm transition ${
+                      headerDark
+                        ? "border-neutral-700 bg-neutral-800/80 text-neutral-300 hover:bg-neutral-700 hover:text-white"
+                        : "border-[#e7dfd2] bg-white/80 text-neutral-600 backdrop-blur-sm hover:bg-white hover:text-neutral-900"
+                    }`}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <circle cx="3" cy="6" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
+                      <circle cx="9" cy="3" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
+                      <circle cx="9" cy="9" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
+                      <path d="M4.2 5.3L7.8 3.5M4.2 6.7L7.8 8.5" stroke="currentColor" strokeWidth="1.2"/>
+                    </svg>
+                    Live view
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          </div>{/* /preview-collapse-group */}
+          </div>{/* /flex items-center bar */}
+          </div>{/* /bar-wrapper */}
+        </>
+      )}
+
+      {!hasStudioChrome && !hasBottomBar && <div className={
+        fillHeight && isPreviewMode ? `absolute left-1/2 ${hasTopGuideNav ? "top-20" : "top-0"} z-50 flex -translate-x-1/2 items-center justify-center p-4`
         : fillHeight ? "absolute top-0 left-0 right-0 z-30 border-b border-neutral-200/40 bg-white/60 px-4 py-3"
         : isPreviewMode ? "shrink-0 border-b border-neutral-200 bg-white px-4 py-3 flex items-center justify-center"
         : "shrink-0 border-b border-neutral-200 bg-white px-4 py-3"
@@ -787,7 +933,7 @@ export function PreviewCanvas({
                         if (e.key === "Enter") commitName();
                         if (e.key === "Escape") setEditingName(false);
                       }}
-                      className="rounded-lg border border-neutral-200 px-2 py-0.5 text-sm font-semibold text-neutral-900 outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
+                      className="rounded-lg border border-neutral-200 px-2 py-0.5 text-sm font-semibold text-neutral-900 outline-none focus:border-[#5B7AF5] focus:ring-2 focus:ring-[#5B7AF5]/25"
                     />
                   ) : (
                     <div className="flex min-w-0 items-center gap-1.5">
@@ -999,6 +1145,7 @@ export function PreviewCanvas({
                     style={{ transform: `translateX(${hotspotPanOffset}px)` }}
                   >
                     {effectiveHotspotPages.map((page, index) => {
+                      if (isModel3d && page.worldPosition !== undefined) return null;
                       if (page.x === null || page.y === null) return null;
                       return (
                         <HotspotPin key={page.id} page={page} index={index} isSelected={page.id === selectedPageId} isHighlighted={isPreviewMode && page.id === highlightedHotspotId} {...sharedHotspotPinProps} />
@@ -1073,6 +1220,7 @@ export function PreviewCanvas({
                   style={layoutMode === "mobile-landscape" ? { transform: `translateX(${landscapeHotspotOffsetX}px) translateY(${landscapeHotspotOffsetY}px)` } : undefined}
                 >
                   {effectiveHotspotPages.map((page, index) => {
+                    if (isModel3d && page.worldPosition !== undefined) return null;
                     if (page.x === null || page.y === null) return null;
                     return (
                       <HotspotPin key={page.id} page={page} index={index} isSelected={page.id === selectedPageId} isHighlighted={isPreviewMode && page.id === highlightedHotspotId} {...sharedHotspotPinProps} />

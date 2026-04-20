@@ -73,7 +73,7 @@ export function useGameLoader({
   // Keep browser URL in sync with active game
   useEffect(() => {
     if (currentGameId) {
-      router.replace(`/?game=${currentGameId}`, { scroll: false });
+      router.replace(`/studio?game=${currentGameId}`, { scroll: false });
     }
   }, [currentGameId, router]);
 

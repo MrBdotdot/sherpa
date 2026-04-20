@@ -15,13 +15,13 @@ import {
 } from "@/app/_lib/authoring-types";
 import { getKnownLocaleLanguage } from "@/app/_lib/localization";
 
-export const APP_VERSION = "v0.26.0";
+export const APP_VERSION = "v0.26.4";
 
 export type { PatchNote } from "@/app/_lib/patch-notes";
 export { PATCH_NOTES } from "@/app/_lib/patch-notes";
 
 export const HOME_PAGE_ID = "home-page";
-export const DEFAULT_HERO = "color:#1e3a8a";
+export const DEFAULT_HERO = "color:#293B9C";
 
 export function getHomePage(pages: PageItem[]): PageItem | null {
   return pages.find((page) => page.kind === "home") ?? pages[0] ?? null;
@@ -394,7 +394,7 @@ export function createImportedPage(
     blocks,
     socialLinks: [],
     publicUrl: "",
-    showQrCode: false,
+    showQrCode: true,
     interactionType,
     pageButtonPlacement: "bottom",
     templateId: "blank",

@@ -7,7 +7,7 @@ import { supabase } from "@/app/_lib/supabase";
 import { ImportReviewScreen } from "@/app/_components/import-review-screen";
 import type { DraftSection } from "@/app/_lib/import-types";
 
-type Tab = "text" | "pdf";
+type Tab = "text" | "pdf" | "figma";
 type Step = "input" | "parsing" | "choose-format" | "review" | "committing";
 
 interface RulebookImporterModalProps {
@@ -20,7 +20,7 @@ interface RulebookImporterModalProps {
 
 const STEP_TITLE: Record<Step, string> = {
   input: "Import your rulebook",
-  parsing: "Analyzing your rulebook…",
+  parsing: "Reading your content…",
   "choose-format": "How would you like to import?",
   review: "Review sections",
   committing: "Adding to your game…",
@@ -37,6 +37,9 @@ export function RulebookImporterModal({
   const [tab, setTab] = useState<Tab>("text");
   const [text, setText] = useState("");
   const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [figmaUrl, setFigmaUrl] = useState("");
+  const [figmaToken, setFigmaToken] = useState("");
+  const [showFigmaToken, setShowFigmaToken] = useState(false);
   const [step, setStep] = useState<Step>("input");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
@@ -54,6 +57,9 @@ export function RulebookImporterModal({
       setStep("input");
       setText("");
       setPdfFile(null);
+      setFigmaUrl("");
+      setFigmaToken("");
+      setShowFigmaToken(false);
       setDraftSections([]);
       setErrorMsg(null);
       setCommitError(null);
@@ -65,7 +71,10 @@ export function RulebookImporterModal({
 
   if (!isOpen) return null;
 
-  const canSubmit = tab === "text" ? text.trim().length > 0 : pdfFile !== null;
+  const canSubmit =
+    tab === "text" ? text.trim().length > 0 :
+    tab === "pdf" ? pdfFile !== null :
+    figmaUrl.trim().length > 0;
   const isBusy = step === "parsing" || step === "committing";
 
   // Which top-level view to render
@@ -141,6 +150,25 @@ export function RulebookImporterModal({
     setErrorMsg(null);
 
     try {
+      if (tab === "figma") {
+        const res = await apiFetch("/api/import/figma/parse", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ figmaUrl: figmaUrl.trim(), figmaToken: figmaToken.trim() || undefined, gameId }),
+        });
+        if (!res.ok) {
+          let msg: string | null = null;
+          try { const b = await res.json(); if (typeof b?.error === "string") msg = b.error; } catch { /* ignore */ }
+          setErrorMsg(msg);
+          setStep("input");
+          return;
+        }
+        const data = await res.json();
+        setDraftSections(data.sections ?? []);
+        setStep("choose-format");
+        return;
+      }
+
       let textToParse: string;
 
       if (tab === "pdf") {
@@ -321,7 +349,7 @@ export function RulebookImporterModal({
           <div className="px-5 pt-4 pb-5">
             {/* Tab bar */}
             <div className="mb-4 flex border-b border-neutral-200">
-              {(["text", "pdf"] as Tab[]).map((t) => (
+              {(["text", "pdf", "figma"] as Tab[]).map((t) => (
                 <button
                   key={t}
                   type="button"
@@ -333,13 +361,13 @@ export function RulebookImporterModal({
                       : "border-transparent text-neutral-500 hover:text-neutral-600"
                   }`}
                 >
-                  {t === "text" ? "Paste text" : "Upload PDF"}
+                  {t === "text" ? "Paste text" : t === "pdf" ? "Upload PDF" : "Figma"}
                 </button>
               ))}
             </div>
 
             {/* Content area */}
-            <div className="flex h-36 flex-col">
+            <div className={`flex flex-col ${tab === "figma" ? "gap-3" : "h-36"}`}>
               {isBusy ? (
                 <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl bg-neutral-50 px-6">
                   {uploadProgress !== null ? (
@@ -360,7 +388,9 @@ export function RulebookImporterModal({
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z" />
                       </svg>
-                      <span className="text-xs text-neutral-500">Analyzing your rulebook…</span>
+                      <span className="text-xs text-neutral-500">
+                        {tab === "figma" ? "Reading frames…" : "Analyzing your rulebook…"}
+                      </span>
                     </>
                   )}
                 </div>
@@ -371,6 +401,50 @@ export function RulebookImporterModal({
                   value={text}
                   onChange={(e) => { setText(e.target.value); setErrorMsg(null); }}
                 />
+              ) : tab === "figma" ? (
+                <>
+                  <div>
+                    <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+                      Figma URL
+                    </label>
+                    <input
+                      type="url"
+                      className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-xs text-neutral-800 placeholder:text-neutral-400 focus:border-[#1e3a8a] focus:outline-none"
+                      placeholder="https://www.figma.com/design/…"
+                      value={figmaUrl}
+                      onChange={(e) => { setFigmaUrl(e.target.value); setErrorMsg(null); }}
+                    />
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setShowFigmaToken((v) => !v)}
+                      className="mb-1 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400 hover:text-neutral-600"
+                    >
+                      <svg
+                        width="10" height="10" viewBox="0 0 10 10" fill="none"
+                        className={`transition-transform ${showFigmaToken ? "rotate-90" : ""}`}
+                      >
+                        <path d="M3 2l4 3-4 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      Access token (optional)
+                    </button>
+                    {showFigmaToken && (
+                      <input
+                        type="password"
+                        className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-xs text-neutral-800 placeholder:text-neutral-400 focus:border-[#1e3a8a] focus:outline-none"
+                        placeholder="figd_…"
+                        value={figmaToken}
+                        onChange={(e) => setFigmaToken(e.target.value)}
+                      />
+                    )}
+                    {!showFigmaToken && (
+                      <p className="text-[11px] text-neutral-400">
+                        Only needed if the file is private. Get one from Figma Settings.
+                      </p>
+                    )}
+                  </div>
+                </>
               ) : (
                 <div
                   className={`flex flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed transition-colors ${
@@ -407,6 +481,8 @@ export function RulebookImporterModal({
                 <p className="text-xs text-red-500">{errorMsg ?? "Something went wrong — please try again."}</p>
               ) : tab === "text" && !isBusy ? (
                 <p className="text-xs text-neutral-500">Tip: include headings for better section grouping.</p>
+              ) : tab === "figma" && !isBusy ? (
+                <p className="text-xs text-neutral-500">Each top-level frame becomes a card with its image as the hero.</p>
               ) : null}
             </div>
 
@@ -426,7 +502,9 @@ export function RulebookImporterModal({
                 disabled={!canSubmit || isBusy}
                 className="rounded-full bg-[#1e3a8a] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1e3a8a]/90 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {isBusy ? "Analyzing…" : errorMsg ? "Try again →" : "Import →"}
+                {isBusy
+                ? tab === "figma" ? "Reading frames…" : "Analyzing…"
+                : errorMsg ? "Try again →" : "Import →"}
               </button>
             </div>
           </div>

@@ -171,7 +171,7 @@ export function GuideTab({
                   key={guide.id}
                   className={`group flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                     isActive
-                      ? "border-[#3B82F6] bg-[#3B82F6] text-white"
+                      ? "border-[#5B7AF5] bg-[#5B7AF5] text-white"
                       : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300"
                   }`}
                 >
@@ -268,7 +268,7 @@ export function GuideTab({
                     </span>
 
                     {/* Number badge */}
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#3B82F6] text-[10px] font-bold text-white">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#5B7AF5] text-[10px] font-bold text-white">
                       {index + 1}
                     </span>
 
@@ -279,7 +279,7 @@ export function GuideTab({
                       onChange={(e) => handleStepChange(step.id, "label", e.target.value)}
                       placeholder="Step label"
                       aria-label={`Step ${index + 1} label`}
-                      className="min-w-0 flex-1 bg-transparent text-sm font-medium text-neutral-800 outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-[#3B82F6]/40 focus:rounded-sm"
+                      className="min-w-0 flex-1 bg-transparent text-sm font-medium text-neutral-800 outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-[#5B7AF5]/40 focus:rounded-sm"
                     />
 
                     {/* Delete step */}
@@ -301,7 +301,7 @@ export function GuideTab({
                       <select
                         value={step.pageId}
                         onChange={(e) => handleStepChange(step.id, "pageId", e.target.value)}
-                        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-700 outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
+                        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-700 outline-none focus:border-[#5B7AF5] focus:ring-2 focus:ring-[#5B7AF5]/25"
                       >
                         {nonHomePages.map((p) => (
                           <option key={p.id} value={p.id}>
@@ -323,7 +323,7 @@ export function GuideTab({
                             e.target.value || undefined
                           )
                         }
-                        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-700 outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
+                        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-700 outline-none focus:border-[#5B7AF5] focus:ring-2 focus:ring-[#5B7AF5]/25"
                       >
                         <option value="">None</option>
                         {hotspotPages.map((p) => (

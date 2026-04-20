@@ -19,13 +19,15 @@ type UseKeyboardShortcutsProps = {
   // Panel refs (from useStudioPanels)
   isSidebarOpenRef: React.MutableRefObject<boolean>;
   isInspectorOpenRef: React.MutableRefObject<boolean>;
-  isHeaderOpenRef: React.MutableRefObject<boolean>;
+  isTopNavOpenRef: React.MutableRefObject<boolean>;
+  isBottomNavOpenRef: React.MutableRefObject<boolean>;
   // Setters
   setPages: React.Dispatch<React.SetStateAction<PageItem[]>>;
   setIsPreviewMode: React.Dispatch<React.SetStateAction<boolean>>;
   setIsSidebarOpen: (v: boolean) => void;
   setIsInspectorOpen: (v: boolean) => void;
-  setIsHeaderOpen: (v: boolean) => void;
+  setIsTopNavOpen: (v: boolean) => void;
+  setIsBottomNavOpen: (v: boolean) => void;
   setSelectedFeatureId: (id: string | null) => void;
   setSelectedPageId: (id: string) => void;
   setLayoutMode: React.Dispatch<React.SetStateAction<LayoutMode>>;
@@ -43,12 +45,14 @@ export function useKeyboardShortcuts({
   isPreviewModeRef,
   isSidebarOpenRef,
   isInspectorOpenRef,
-  isHeaderOpenRef,
+  isTopNavOpenRef,
+  isBottomNavOpenRef,
   setPages,
   setIsPreviewMode,
   setIsSidebarOpen,
   setIsInspectorOpen,
-  setIsHeaderOpen,
+  setIsTopNavOpen,
+  setIsBottomNavOpen,
   setSelectedFeatureId,
   setSelectedPageId,
   setLayoutMode,
@@ -138,18 +142,20 @@ export function useKeyboardShortcuts({
         return;
       }
 
-      // Space — toggle header + left nav + editing panel together
+      // Space — toggle all four panes together
       if (!mod && !event.altKey && event.code === "Space") {
         if (isPreviewModeRef.current) return;
         event.preventDefault();
         const shouldOpen = !(
           isSidebarOpenRef.current &&
           isInspectorOpenRef.current &&
-          isHeaderOpenRef.current
+          isTopNavOpenRef.current &&
+          isBottomNavOpenRef.current
         );
         setIsSidebarOpen(shouldOpen);
         setIsInspectorOpen(shouldOpen);
-        setIsHeaderOpen(shouldOpen);
+        setIsTopNavOpen(shouldOpen);
+        setIsBottomNavOpen(shouldOpen);
         return;
       }
 

@@ -101,7 +101,7 @@ export function NewContainerForm({
         <select
           value={configDisplayStyle}
           onChange={(e) => setConfigDisplayStyle(e.target.value as DisplayStyleKey)}
-          className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 font-sans text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
+          className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 font-sans text-sm outline-none focus:border-[#5B7AF5] focus:ring-2 focus:ring-[#5B7AF5]/25 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
         >
           {DISPLAY_STYLE_OPTIONS.map((opt) => (
             <option key={opt.key} value={opt.key}>{opt.label}</option>
@@ -149,7 +149,7 @@ export function NewContainerForm({
                     max={100}
                     value={configTintOpacity}
                     onChange={(e) => setConfigTintOpacity(Number(e.target.value))}
-                    className="w-full accent-[#3B82F6]"
+                    className="w-full accent-[#5B7AF5]"
                   />
                 </div>
               </>
@@ -160,7 +160,7 @@ export function NewContainerForm({
       <button
         type="button"
         onClick={confirmCreate}
-        className="w-full rounded-full bg-[#3B82F6] px-3 py-2.5 text-sm font-medium text-white hover:bg-[#2563EB]"
+        className="w-full rounded-full bg-[#5B7AF5] px-3 py-2.5 text-sm font-medium text-white hover:bg-[#4059EB]"
       >
         Create card
       </button>

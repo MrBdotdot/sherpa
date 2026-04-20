@@ -15,6 +15,7 @@ export function OverviewTab({
   onContentTintChange,
   onDisplayStyleChange,
   onHeroUpload,
+  onModelUpload,
   onPageButtonPlacementChange,
   onPageHeroUrlChange,
   onResetPagePosition,
@@ -25,6 +26,7 @@ export function OverviewTab({
   onContentTintChange: (color: string, opacity: number) => void;
   onDisplayStyleChange: (style: DisplayStyleKey) => void;
   onHeroUpload: (event: ChangeEvent<HTMLInputElement>) => void;
+  onModelUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onPageButtonPlacementChange: (value: PageButtonPlacement) => void;
   onPageHeroUrlChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onResetPagePosition: () => void;
@@ -122,7 +124,7 @@ export function OverviewTab({
                                 Number(event.target.value)
                               )
                             }
-                            className="w-full accent-[#3B82F6]"
+                            className="w-full accent-[#5B7AF5]"
                             aria-label="Background tint opacity"
                           />
                         </div>
@@ -222,7 +224,7 @@ export function OverviewTab({
                               }}
                               className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                                 isActive
-                                  ? "border-[#3B82F6] bg-[#3B82F6] text-white"
+                                  ? "border-[#5B7AF5] bg-[#5B7AF5] text-white"
                                   : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
                               }`}
                             >
@@ -255,8 +257,7 @@ export function OverviewTab({
                                   event.target.value = "";
                                   return;
                                 }
-                                const url = URL.createObjectURL(file);
-                                onSystemSettingChange("modelUrl", url);
+                                onModelUpload(event);
                               }}
                               className="hidden"
                             />
@@ -285,17 +286,15 @@ export function OverviewTab({
                                   !(systemSettings.cache3dModels ?? false)
                                 )
                               }
-                              className={`relative mt-0.5 h-5 w-9 shrink-0 rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#3B82F6] ${
+                              className={`relative mt-0.5 h-5 w-9 shrink-0 rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#5B7AF5] ${
                                 systemSettings.cache3dModels
-                                  ? "bg-[#3B82F6]"
+                                  ? "bg-[#5B7AF5]"
                                   : "bg-neutral-200"
                               } disabled:cursor-not-allowed disabled:opacity-40`}
                             >
                               <span
-                                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                                  systemSettings.cache3dModels
-                                    ? "translate-x-4"
-                                    : "translate-x-0.5"
+                                className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                                  systemSettings.cache3dModels ? "translate-x-4" : ""
                                 }`}
                               />
                             </button>

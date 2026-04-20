@@ -102,7 +102,7 @@ export function PageSetupSection({
                       }}
                       className={`rounded-full border px-3 py-1 text-xs font-medium transition capitalize ${
                         isActive
-                          ? "border-[#3B82F6] bg-[#3B82F6] text-white"
+                          ? "border-[#5B7AF5] bg-[#5B7AF5] text-white"
                           : "border-neutral-300 text-neutral-600 hover:bg-neutral-50"
                       }`}
                     >

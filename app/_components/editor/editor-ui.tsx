@@ -5,8 +5,9 @@ import React from "react";
 const FIELD_BASE =
   "w-full rounded-lg border border-neutral-200 bg-white text-neutral-900 " +
   "outline-none transition placeholder:text-neutral-500 " +
-  "focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 " +
-  "disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed";
+  "hover:border-neutral-400 " +
+  "focus:border-[#5B7AF5] focus:ring-[3px] focus:ring-[#5B7AF5]/22 " +
+  "disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed disabled:hover:border-neutral-200";
 
 const FIELD_SIZE: Record<"xs" | "sm" | "md" | "lg", string> = {
   xs: "px-3 py-2 text-xs",
@@ -143,7 +144,7 @@ export function SelectField<T extends string>({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value as T)}
-        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 font-sans text-sm text-neutral-900 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed"
+        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 font-sans text-sm text-neutral-900 outline-none transition hover:border-neutral-400 focus:border-[#5B7AF5] focus:ring-[3px] focus:ring-[#5B7AF5]/22 disabled:bg-neutral-50 disabled:text-neutral-500 disabled:cursor-not-allowed disabled:hover:border-neutral-200"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>

@@ -6,6 +6,35 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.26.4",
+    date: "2026-04-19",
+    changes: [
+      "Fix: 3D hotspot pins no longer render as duplicate 2D buttons in preview mode.",
+    ],
+  },
+  {
+    version: "v0.26.3",
+    date: "2026-04-18",
+    changes: [
+      "New: Import Figma frames as cards. Paste a Figma URL and each frame becomes a card with its rendered image as the hero.",
+      "New: QR codes are now enabled by default on all imported cards.",
+    ],
+  },
+  {
+    version: "v0.26.2",
+    date: "2026-04-18",
+    changes: ["Design: restore plain-English inspector tab labels — Content / Elements / Guide / Settings"],
+  },
+  {
+    version: "v0.26.1",
+    date: "2026-04-18",
+    changes: [
+      "Design: sidebar solid warm chrome, narrowed to 260px, hotspot expand chevron removed",
+      "Design: canvas header replaced with two floating pill capsules (game switcher + layout icons + save state; publish + preview)",
+      "Design: inspector header is now static read-only; name field and delete button moved into Overview body; tabs use pill style with renamed labels (Overview / Experience / Guide / Surface)",
+    ],
+  },
+  {
     version: "v0.26.0",
     date: "2026-04-16",
     changes: ["New: Player guide/walkthrough feature — creator-configurable guided and exploratory modes with step-by-step nav"],
@@ -501,8 +530,8 @@ export const PATCH_NOTES: PatchNote[] = [
     version: "v0.17.3",
     date: "2026-04-06",
     changes: [
-      "Applied Simple design system: primary color updated from Remote indigo (#4361ee) to blue (#3B82F6) across all UI",
-      "Hover states updated to blue-600 (#2563EB), dark accents updated to blue-900 (#1e3a8a)",
+      "Applied Simple design system: primary color updated from Remote indigo (#4361ee) to blue (#5B7AF5) across all UI",
+      "Hover states updated to blue-600 (#4059EB), dark accents updated to blue-900 (#1e3a8a)",
       "104 color token replacements across 21 files for consistent design system alignment",
     ],
   },

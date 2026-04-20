@@ -56,7 +56,7 @@ const CHOICES = [
       </svg>
     ),
     title: "Import a rulebook",
-    description: "Upload a PDF and we'll structure your cards",
+    description: "Upload a PDF or import frames from Figma and we'll structure your cards",
     comingSoon: false,
   },
   {

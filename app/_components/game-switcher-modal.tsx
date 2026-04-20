@@ -89,7 +89,7 @@ function CreateWizard({ userId, onBack, onDone }: CreateWizardProps) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); }}
-          className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none placeholder:text-neutral-500 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 focus:bg-white"
+          className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none placeholder:text-neutral-500 focus:border-[#5B7AF5] focus:ring-2 focus:ring-[#5B7AF5]/25 focus:bg-white"
         />
         <label htmlFor="create-default-language" className="mb-1.5 mt-4 block text-xs font-medium text-neutral-500">
           Default language
@@ -98,7 +98,7 @@ function CreateWizard({ userId, onBack, onDone }: CreateWizardProps) {
           id="create-default-language"
           value={defaultLanguageCode}
           onChange={(event) => setDefaultLanguageCode(event.target.value)}
-          className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 focus:bg-white"
+          className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-[#5B7AF5] focus:ring-2 focus:ring-[#5B7AF5]/25 focus:bg-white"
           aria-describedby="create-default-language-help"
         >
           {KNOWN_LANGUAGES.map((language) => (
@@ -120,7 +120,7 @@ function CreateWizard({ userId, onBack, onDone }: CreateWizardProps) {
           type="button"
           onClick={handleCreate}
           disabled={!name.trim() || creating}
-          className="rounded-full bg-[#3B82F6] px-4 py-2 text-sm font-medium text-white hover:bg-[#2563EB] disabled:opacity-40"
+          className="rounded-full bg-[#5B7AF5] px-4 py-2 text-sm font-medium text-white hover:bg-[#4059EB] disabled:opacity-40"
         >
           {creating ? "Creating..." : "Create"}
         </button>
@@ -293,7 +293,7 @@ export function GameSwitcherModal({
                   placeholder="Search games..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none placeholder:text-neutral-500 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 focus:bg-white"
+                  className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm outline-none placeholder:text-neutral-500 focus:border-[#5B7AF5] focus:ring-2 focus:ring-[#5B7AF5]/25 focus:bg-white"
                 />
               </div>
             </div>
@@ -354,7 +354,7 @@ export function GameSwitcherModal({
                               {game.title}
                             </span>
                             {isCurrent && !isExpanded && (
-                              <span className="shrink-0 rounded-full bg-[#3B82F6] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                              <span className="shrink-0 rounded-full bg-[#5B7AF5] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
                                 Current
                               </span>
                             )}

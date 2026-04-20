@@ -9,12 +9,32 @@ export type GalleryEntry = {
   playerCount: string;
   playTime: string;
   complexity: "Light" | "Medium" | "Heavy";
+  ageRange?: string;
   tags: string[];
   publishedAt: string;
   accentColor: string;
+  featured?: boolean;
 };
 
 export const GALLERY_ENTRIES: GalleryEntry[] = [
+  {
+    id: "ironveil-feature",
+    title: "Ironveil",
+    designer: "Marcus Drenn",
+    tagline: "A hidden-movement thriller set in a city under occupation.",
+    description:
+      "Ironveil drops players into a fog-of-war city map where one side controls the occupying force and the others run a resistance cell.",
+    heroImage: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=1600&auto=format&fit=crop",
+    cardImage: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=800&auto=format&fit=crop",
+    playerCount: "3–6",
+    playTime: "90–120 min",
+    complexity: "Heavy",
+    ageRange: "Adult · 17+",
+    tags: ["thematic", "hidden-movement"],
+    publishedAt: "2026-01-20",
+    accentColor: "#f43f5e",
+    featured: true,
+  },
   {
     id: "cascade",
     title: "Cascade",
@@ -30,6 +50,7 @@ export const GALLERY_ENTRIES: GalleryEntry[] = [
     tags: ["strategy", "tile-placement"],
     publishedAt: "2026-02-14",
     accentColor: "#0ea5e9",
+    ageRange: "Teens · 13+",
   },
   {
     id: "ironveil",
@@ -46,6 +67,7 @@ export const GALLERY_ENTRIES: GalleryEntry[] = [
     tags: ["thematic", "hidden-movement", "asymmetric"],
     publishedAt: "2026-01-20",
     accentColor: "#f43f5e",
+    ageRange: "Adult · 17+",
   },
   {
     id: "solaseed",
@@ -62,6 +84,58 @@ export const GALLERY_ENTRIES: GalleryEntry[] = [
     tags: ["cooperative", "engine-building"],
     publishedAt: "2026-03-05",
     accentColor: "#22c55e",
+    ageRange: "Tweens · 8–12",
+  },
+  {
+    id: "switchback",
+    title: "Switchback",
+    designer: "Hana Okabe",
+    tagline: "A mountain rally pressed into 40-second turns.",
+    description:
+      "Read the weather, plot your line, commit. A fast-paced racing game where every decision compounds.",
+    heroImage: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1600&auto=format&fit=crop",
+    cardImage: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop",
+    playerCount: "2–5",
+    playTime: "30–45 min",
+    complexity: "Medium",
+    ageRange: "Tweens · 8–12",
+    tags: ["racing", "strategy"],
+    publishedAt: "2026-04-01",
+    accentColor: "#f59e0b",
+  },
+  {
+    id: "foundry-9",
+    title: "Foundry 9",
+    designer: "Yusuf Adeyemi",
+    tagline: "A company town, a brittle supply chain, three generations.",
+    description:
+      "Decisions compound for the entire game. A heavyweight economic engine builder with brutal consequences.",
+    heroImage: "https://images.unsplash.com/photo-1518709594023-6eab9bab7b23?q=80&w=1600&auto=format&fit=crop",
+    cardImage: "https://images.unsplash.com/photo-1518709594023-6eab9bab7b23?q=80&w=800&auto=format&fit=crop",
+    playerCount: "3–5",
+    playTime: "120–180 min",
+    complexity: "Heavy",
+    ageRange: "Adult · 17+",
+    tags: ["economic", "strategy"],
+    publishedAt: "2026-04-10",
+    accentColor: "#dc2626",
+  },
+  {
+    id: "papercut",
+    title: "Papercut",
+    designer: "Mira Delacroix",
+    tagline: "Write letters, deliver them in character, betray gently.",
+    description:
+      "A storytelling party game of gossip and grace. A meditative social game for 4–8 players.",
+    heroImage: "https://images.unsplash.com/photo-1524293568345-75d62c3664f7?q=80&w=1600&auto=format&fit=crop",
+    cardImage: "https://images.unsplash.com/photo-1524293568345-75d62c3664f7?q=80&w=800&auto=format&fit=crop",
+    playerCount: "4–8",
+    playTime: "25 min",
+    complexity: "Light",
+    ageRange: "Teens · 13+",
+    tags: ["party", "storytelling"],
+    publishedAt: "2026-04-15",
+    accentColor: "#a78bfa",
   },
 ];
 

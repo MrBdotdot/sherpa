@@ -5,6 +5,7 @@ import { CanvasFeature, Guide, PageItem } from "@/app/_lib/authoring-types";
 import { SearchFeatureCard } from "@/app/_components/canvas/search-feature-card";
 import { LocaleLanguage, parseLocaleLanguages } from "@/app/_lib/localization";
 import { dispatchSectionHighlight } from "@/app/_lib/section-highlight";
+import { getQrImageUrl } from "@/app/_lib/label-utils";
 
 /** Returns #000000 or #ffffff — whichever gives higher contrast against the given hex background. */
 function autoContrast(hex: string): string {
@@ -235,17 +236,11 @@ export function CanvasFeatureCard({
         {feature.label ? (
           <div className="mb-0.5 truncate text-center text-xs font-semibold">{feature.label}</div>
         ) : null}
-        {feature.imageUrl ? (
-          <img
-            src={feature.imageUrl}
-            alt="QR code"
-            className="w-full rounded-md object-contain"
-          />
-        ) : (
-          <div className="rounded-md border border-dashed border-neutral-300 px-3 py-6 text-center text-xs text-neutral-500">
-            Upload QR image
-          </div>
-        )}
+        <img
+          src={feature.imageUrl || getQrImageUrl(feature.linkUrl)}
+          alt="QR code"
+          className="w-full rounded-md object-contain"
+        />
       </div>
     );
   }

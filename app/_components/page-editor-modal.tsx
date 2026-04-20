@@ -25,7 +25,6 @@ import {
   TemplateId,
 } from "@/app/_lib/authoring-types";
 import { LocaleLanguage, collectTranslationRows, parseLocaleLanguages } from "@/app/_lib/localization";
-import { getPageRoleDescription } from "@/app/_lib/label-utils";
 import { useFocusTrap } from "@/app/_hooks/useFocusTrap";
 import { SpreadsheetModal } from "@/app/_components/editor/locale-feature-editor";
 import { SectionPicker } from "@/app/_components/editor/section-picker";
@@ -147,6 +146,22 @@ function getTabLabel(tab: InspectorTab, pageKind: PageItem["kind"]): string {
   return tab;
 }
 
+function getPageTypeLabel(kind: PageItem["kind"]): string {
+  if (kind === "home") return "Editing · Board";
+  if (kind === "hotspot") return "Editing · Hotspot";
+  return "Editing · Card";
+}
+
+function getPageSubtitle(page: PageItem): string {
+  const parts: string[] = [];
+  if (page.interactionType) {
+    const label = page.interactionType.replace(/-/g, " ");
+    parts.push(label.charAt(0).toUpperCase() + label.slice(1));
+  }
+  if (page.cardSize) parts.push(page.cardSize.charAt(0).toUpperCase() + page.cardSize.slice(1));
+  return parts.join(" · ");
+}
+
 export function PageEditorModal({
   activePreviewPage,
   hotspotPages,
@@ -255,7 +270,7 @@ export function PageEditorModal({
   const settingsBadge = 0;
   const visibleTabs: InspectorTab[] =
     selectedPage.kind === "home"
-      ? ["overview", "board", "settings", "guide"]
+      ? ["overview", "board", "guide", "settings"]
       : ["overview", "board", "settings"];
   const activeTab: InspectorTab =
     inspectorTab === "settings" ? "settings"
@@ -275,9 +290,50 @@ export function PageEditorModal({
           : `h-full ${panelBg}`
       }`}
     >
+      {/* Static inspector header */}
+      <div
+        className={`flex-shrink-0 border-b px-5 py-4 ${
+          isOverlay ? "border-neutral-200 bg-white" : `${panelBord} ${panelBg}`
+        }`}
+      >
+        <div className={`mb-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] ${dk ? "text-neutral-500" : "text-neutral-500"}`}>
+          {getPageTypeLabel(selectedPage.kind)}
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className={`truncate text-[17px] font-semibold leading-tight tracking-tight ${dk ? "text-neutral-100" : "text-neutral-900"}`}>
+              {selectedPage.title || "Untitled"}
+            </div>
+            {selectedPage.kind !== "home" && getPageSubtitle(selectedPage) ? (
+              <div className={`mt-0.5 text-[12px] ${dk ? "text-neutral-500" : "text-neutral-500"}`}>
+                {getPageSubtitle(selectedPage)}
+              </div>
+            ) : null}
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            {selectedPage.kind === "hotspot" ? (
+              <div className={`flex items-center gap-2 rounded-full border px-2.5 py-1.5 text-[11px] font-medium ${dk ? "border-neutral-700 text-neutral-400" : "border-neutral-200 bg-white text-neutral-700"}`}>
+                <span className="h-2.5 w-2.5 rounded-full bg-[#5B7AF5]" style={{ boxShadow: "0 0 0 3px rgba(91,122,245,0.22)" }} />
+                {`Pin ${pages.findIndex(p => p.id === selectedPage.id) + 1}`}
+              </div>
+            ) : null}
+            {showCloseButton ? (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close editor"
+                className={`rounded-lg border px-3 py-2 text-xs font-medium transition ${dk ? "border-neutral-700 text-neutral-400 hover:bg-neutral-800" : "border-neutral-200 text-neutral-700 hover:bg-neutral-50"}`}
+              >
+                Close
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
       {/* Tabs */}
       <div className={`border-b ${isOverlay ? `border-neutral-200 bg-white` : `${panelBord} ${panelBg}`}`}>
-        <div role="tablist" aria-label="Inspector tabs" className="flex px-1">
+        <div role="tablist" aria-label="Inspector tabs" className="flex gap-1 p-2">
           {visibleTabs.map((tab) => {
             const badge =
               tab === "board" ? boardBadge
@@ -293,21 +349,21 @@ export function PageEditorModal({
                 aria-controls={panelId}
                 type="button"
                 onClick={() => onInspectorTabChange(tab)}
-                className={`-mb-px flex items-center gap-1.5 border-b-2 px-4 py-3 text-xs font-medium transition ${
+                className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold transition ${
                   activeTab === tab
-                    ? "border-[#3B82F6] text-[var(--color-primary-text)]"
+                    ? "bg-neutral-900 text-white"
                     : dk
-                    ? "border-transparent text-neutral-500 hover:text-neutral-200"
-                    : "border-transparent text-neutral-500 hover:text-neutral-800"
+                    ? "text-neutral-400 hover:bg-white/10 hover:text-neutral-200"
+                    : "text-neutral-500 hover:bg-black/[0.04] hover:text-neutral-700"
                 }`}
               >
                 {getTabLabel(tab, selectedPage.kind)}
                 {badge > 0 ? (
                   <span
                     aria-label={`${badge} item${badge !== 1 ? "s" : ""}`}
-                    className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none ${
+                    className={`ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none ${
                       activeTab === tab
-                        ? "bg-[#3B82F6]/10 text-[var(--color-primary-text)]"
+                        ? "bg-white/20 text-white"
                         : "bg-neutral-100 text-neutral-500"
                     }`}
                   >
@@ -318,53 +374,6 @@ export function PageEditorModal({
             );
           })}
         </div>
-      </div>
-
-      {/* Header */}
-      <div
-        className={`flex items-center justify-between gap-4 border-b px-5 py-4 ${
-          isOverlay ? `border-neutral-200 bg-white` : `${panelBord} ${panelBg}`
-        }`}
-      >
-        <div className="min-w-0 flex-1">
-          <label htmlFor={titleId} className="sr-only">Card name</label>
-          <div className="flex items-center gap-2">
-            <input
-              id={titleId}
-              type="text"
-              value={selectedPage.title}
-              onChange={onTitleChange}
-              placeholder="Card name"
-              className="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
-            />
-            {selectedPage.kind !== "home" ? (
-              <button
-                type="button"
-                onClick={onDeleteRequest}
-                aria-label="Delete card"
-                className="shrink-0 flex items-center justify-center rounded-xl border border-red-200 p-2 text-red-400 transition hover:border-red-300 hover:bg-red-50 hover:text-red-600"
-              >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                  <path d="M2 3.5h10M5.5 3.5V2.5a1 1 0 011-1h1a1 1 0 011 1v1M4 3.5l.7 7.5a1 1 0 001 .9h2.6a1 1 0 001-.9L10 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-                </svg>
-              </button>
-            ) : null}
-          </div>
-          <div className="mt-1 text-xs text-neutral-500">
-            {getPageRoleDescription(selectedPage.kind)}
-          </div>
-        </div>
-
-        {showCloseButton ? (
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close editor"
-            className="shrink-0 rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
-          >
-            Close
-          </button>
-        ) : null}
       </div>
 
       {/* Body */}
@@ -381,6 +390,24 @@ export function PageEditorModal({
         >
           {activeTab === "overview" ? (
             <>
+              {/* Name field */}
+              <div className={`border-b px-5 py-4 ${isOverlay ? "border-neutral-200 bg-white" : `${panelBord} ${panelBg}`}`}>
+                <label htmlFor={titleId} className={`mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.16em] ${dk ? "text-neutral-500" : "text-neutral-500"}`}>
+                  Name
+                </label>
+                <input
+                  id={titleId}
+                  type="text"
+                  value={selectedPage.title}
+                  onChange={onTitleChange}
+                  placeholder="Card name"
+                  className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition ${
+                    dk
+                      ? "border-neutral-700 bg-neutral-800 text-neutral-100 focus:border-neutral-500"
+                      : "border-neutral-200 bg-white text-neutral-900 focus:border-[#5B7AF5] focus:ring-2 focus:ring-[#5B7AF5]/25"
+                  }`}
+                />
+              </div>
               <OverviewTab
                 onContentTintChange={onContentTintChange}
                 onDisplayStyleChange={onDisplayStyleChange}
@@ -529,6 +556,20 @@ export function PageEditorModal({
                   pages={pages}
                   selectedPage={selectedPage}
                 />
+              ) : null}
+              {selectedPage.kind !== "home" ? (
+                <div className={`border-t px-5 py-4 ${isOverlay ? "border-neutral-100" : panelBord}`}>
+                  <button
+                    type="button"
+                    onClick={onDeleteRequest}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-500 transition hover:border-red-300 hover:bg-red-50 hover:text-red-600"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                      <path d="M2 3.5h10M5.5 3.5V2.5a1 1 0 011-1h1a1 1 0 011 1v1M4 3.5l.7 7.5a1 1 0 001 .9h2.6a1 1 0 001-.9L10 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                    </svg>
+                    Delete card
+                  </button>
+                </div>
               ) : null}
             </>
           ) : activeTab === "board" ? (

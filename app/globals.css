@@ -3,18 +3,73 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* ── Brand blues ───────────────────────────────────────────── */
+  --sherpa-blue-deep:   #293B9C;  /* login panel, hero default, primary brand */
+  --sherpa-blue-500:    #5B7AF5;  /* --color-primary, focus ring, active hotspot */
+  --sherpa-blue-600:    #4059EB;  /* button hover */
+  --sherpa-blue-700:    #2E44D8;  /* --color-primary-text — AA at any size */
+
   /* Primary accent — use --color-primary for fills/borders, --color-primary-text for small text */
-  --color-primary: #3B82F6;        /* blue-500 — 3.69:1 on white — ok for large text/UI fills */
-  --color-primary-text: #1d4ed8;   /* blue-700 — 5.74:1 on white — passes AA at any size */
+  --color-primary:      #5B7AF5;
+  --color-primary-text: #2E44D8;
+
+  /* ── Warm neutral scale (~10° hue shift from cool Tailwind gray) ── */
+  --color-neutral-50:  #fbf9f7;
+  --color-neutral-100: #f6f3ef;
+  --color-neutral-200: #e8e4de;
+  --color-neutral-300: #d5cfc6;
+  --color-neutral-400: #a5a094;
+  --color-neutral-500: #78746c;
+  --color-neutral-600: #57534c;
+  --color-neutral-700: #433f3a;
+  --color-neutral-800: #292522;
+  --color-neutral-900: #1a1815;
+  --color-neutral-950: #0d0c18;
+
+  /* Warm paper surface (login right pane) */
+  --surface-muted: #f3efea;
+
+  /* ── Shadow scale ───────────────────────────────────────────── */
+  --shadow-sm:  0 1px 2px 0 rgb(0 0 0 / .05);
+  --shadow-lg:  0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1);
+  --shadow-xl:  0 20px 25px -5px rgb(0 0 0 / .1), 0 8px 10px -6px rgb(0 0 0 / .1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / .4);
+
+  /* ── Error / warning semantic tokens ───────────────────────── */
+  --color-error:         #b91c1c;
+  --color-error-bg:      #fef2f2;
+  --color-error-border:  #fecaca;
+  --color-warn:          #c97a1f;
+  --color-warn-bg:       #fdf4e3;
+  --color-warn-border:   #f4d6a2;
+  --color-success:       #166534;
+  --color-success-bg:    #f0fdf4;
+  --color-success-border:#bbf7d0;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Override Tailwind's neutral palette with warm values */
+  --color-neutral-50:  var(--color-neutral-50);
+  --color-neutral-100: var(--color-neutral-100);
+  --color-neutral-200: var(--color-neutral-200);
+  --color-neutral-300: var(--color-neutral-300);
+  --color-neutral-400: var(--color-neutral-400);
+  --color-neutral-500: var(--color-neutral-500);
+  --color-neutral-600: var(--color-neutral-600);
+  --color-neutral-700: var(--color-neutral-700);
+  --color-neutral-800: var(--color-neutral-800);
+  --color-neutral-900: var(--color-neutral-900);
+  --color-neutral-950: var(--color-neutral-950);
+
+  --font-sans: var(--font-instrument-sans);
+  --font-mono: var(--font-jetbrains-mono);
   --font-space: var(--font-space-grotesk);
-  --font-display: var(--font-dm-serif-display);
+  --font-display: var(--font-fraunces);
+  --font-serif: var(--font-fraunces);
 }
 
 @media (prefers-color-scheme: dark) {

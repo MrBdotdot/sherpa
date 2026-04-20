@@ -29,7 +29,7 @@ export function CalloutBlockEditor({
               aria-pressed={block.variant === v}
               className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition ${
                 block.variant === v
-                  ? "border-[#3B82F6] bg-[#3B82F6] text-white"
+                  ? "border-[#5B7AF5] bg-[#5B7AF5] text-white"
                   : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
               }`}
             >
@@ -86,7 +86,7 @@ export function ImageBlockEditor({
               aria-pressed={(block.imageFit ?? "cover") === opt.value}
               className={`flex-1 rounded-lg border py-1.5 text-xs font-medium transition ${
                 (block.imageFit ?? "cover") === opt.value
-                  ? "border-[#3B82F6] bg-[#3B82F6] text-white"
+                  ? "border-[#5B7AF5] bg-[#5B7AF5] text-white"
                   : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
               }`}
             >
@@ -121,7 +121,7 @@ export function ImageBlockEditor({
             onBlockPropsChange(block.id, { imageSize: v >= 800 ? undefined : v });
           }}
           aria-label="Image width"
-          className="w-full accent-[#3B82F6]"
+          className="w-full accent-[#5B7AF5]"
         />
         <div className="mt-1 flex justify-between text-[10px] text-neutral-500">
           <span>80px</span>

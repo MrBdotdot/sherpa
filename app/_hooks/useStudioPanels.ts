@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 
 const SIDEBAR_WIDTH = 300;
 const INSPECTOR_WIDTH = 380;
-const STUDIO_CHROME_MARGIN = 18;
-const STUDIO_CHROME_GAP = 24;
 const PANEL_HANDLE_WIDTH = 32;
 const SIDEBAR_WRAPPER_WIDTH = SIDEBAR_WIDTH + PANEL_HANDLE_WIDTH;
 
@@ -16,24 +14,25 @@ type UseStudioPanelsProps = {
 export function useStudioPanels({ isPreviewMode }: UseStudioPanelsProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
-  const [isHeaderOpen, setIsHeaderOpen] = useState(true);
+  const [isTopNavOpen, setIsTopNavOpen] = useState(true);
+  const [isBottomNavOpen, setIsBottomNavOpen] = useState(true);
   const [studioDarkMode, setStudioDarkMode] = useState(() => {
     try { return localStorage.getItem("sherpa-studio-dark") === "true"; } catch { return false; }
   });
 
   const isSidebarOpenRef = useRef(isSidebarOpen);
   const isInspectorOpenRef = useRef(isInspectorOpen);
-  const isHeaderOpenRef = useRef(isHeaderOpen);
+  const isTopNavOpenRef = useRef(isTopNavOpen);
+  const isBottomNavOpenRef = useRef(isBottomNavOpen);
   useEffect(() => { isSidebarOpenRef.current = isSidebarOpen; }, [isSidebarOpen]);
   useEffect(() => { isInspectorOpenRef.current = isInspectorOpen; }, [isInspectorOpen]);
-  useEffect(() => { isHeaderOpenRef.current = isHeaderOpen; }, [isHeaderOpen]);
+  useEffect(() => { isTopNavOpenRef.current = isTopNavOpen; }, [isTopNavOpen]);
+  useEffect(() => { isBottomNavOpenRef.current = isBottomNavOpen; }, [isBottomNavOpen]);
 
   useEffect(() => {
     try { localStorage.setItem("sherpa-studio-dark", studioDarkMode ? "true" : "false"); } catch { /* quota */ }
   }, [studioDarkMode]);
 
-  const headerLeftInset = STUDIO_CHROME_MARGIN + SIDEBAR_WIDTH + STUDIO_CHROME_GAP;
-  const headerRightInset = STUDIO_CHROME_MARGIN + INSPECTOR_WIDTH + STUDIO_CHROME_GAP;
   const sidebarTransform = !isPreviewMode && isSidebarOpen
     ? "translateX(0)"
     : `translateX(-${SIDEBAR_WRAPPER_WIDTH}px)`;
@@ -43,16 +42,17 @@ export function useStudioPanels({ isPreviewMode }: UseStudioPanelsProps) {
 
   const onCollapseSidebar = () => { if (isSidebarOpenRef.current) setIsSidebarOpen(false); };
   const onCollapseInspector = () => { if (isInspectorOpenRef.current) setIsInspectorOpen(false); };
-  const onCollapseHeader = () => { if (isHeaderOpenRef.current) setIsHeaderOpen(false); };
+  const onCollapseTopNav = () => { if (isTopNavOpenRef.current) setIsTopNavOpen(false); };
+  const onCollapseBottomNav = () => { if (isBottomNavOpenRef.current) setIsBottomNavOpen(false); };
 
   return {
     isSidebarOpen, setIsSidebarOpen,
     isInspectorOpen, setIsInspectorOpen,
-    isHeaderOpen, setIsHeaderOpen,
+    isTopNavOpen, setIsTopNavOpen,
+    isBottomNavOpen, setIsBottomNavOpen,
     studioDarkMode, setStudioDarkMode,
-    isSidebarOpenRef, isInspectorOpenRef, isHeaderOpenRef,
-    headerLeftInset, headerRightInset,
+    isSidebarOpenRef, isInspectorOpenRef, isTopNavOpenRef, isBottomNavOpenRef,
     sidebarTransform, inspectorTransform,
-    onCollapseSidebar, onCollapseInspector, onCollapseHeader,
+    onCollapseSidebar, onCollapseInspector, onCollapseTopNav, onCollapseBottomNav,
   };
 }

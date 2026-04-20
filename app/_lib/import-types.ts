@@ -3,4 +3,5 @@ export interface DraftSection {
   kind: "page" | "hotspot";
   interactionType: string;
   blocks: { type: string; value: string }[];
+  heroImage?: string;
 }

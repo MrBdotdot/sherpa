@@ -17,10 +17,10 @@ function InsertZone({ index, onInsert }: { index: number; onInsert: (i: number) 
       onClick={() => onInsert(index)}
     >
       <div className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 items-center opacity-0 transition-opacity group-hover:opacity-100">
-        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#3B82F6] text-xs font-bold text-white shadow-sm">
+        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#5B7AF5] text-xs font-bold text-white shadow-sm">
           +
         </div>
-        <div className="ml-1 h-px flex-1 bg-[#3B82F6]" />
+        <div className="ml-1 h-px flex-1 bg-[#5B7AF5]" />
       </div>
     </div>
   );
@@ -306,7 +306,7 @@ export function ContentTab({
                     onContentTintChange(selectedPage.contentTintColor, Number(e.target.value))
                   }
                   aria-label="Background tint opacity"
-                  className="w-full accent-[#3B82F6]"
+                  className="w-full accent-[#5B7AF5]"
                 />
               </div>
             ) : null}
@@ -320,7 +320,7 @@ export function ContentTab({
         <button
           type="button"
           onClick={() => setPickerOpen(true)}
-          className="w-full rounded-full bg-[#3B82F6] px-3 py-2.5 text-sm font-medium text-white transition hover:bg-[#2563EB]"
+          className="w-full rounded-full bg-[#5B7AF5] px-3 py-2.5 text-sm font-medium text-white transition hover:bg-[#4059EB]"
         >
           + Add content block
         </button>

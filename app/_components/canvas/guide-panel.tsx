@@ -40,7 +40,7 @@ function StepBadge({
     return (
       <span
         className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
-        style={{ backgroundColor: accentColor || "#3B82F6" }}
+        style={{ backgroundColor: accentColor || "#5B7AF5" }}
       >
         {index + 1}
       </span>
@@ -101,7 +101,7 @@ export function GuidePanel({
                 className="h-full rounded-full transition-all duration-300"
                 style={{
                   width: `${(activeStepIndex / guide.steps.length) * 100}%`,
-                  backgroundColor: accentColor || "#3B82F6",
+                  backgroundColor: accentColor || "#5B7AF5",
                 }}
               />
             </div>
@@ -144,9 +144,9 @@ export function GuidePanel({
             })}
           </ol>
 
-          {/* Bottom controls */}
-          <div className="border-t border-white/10 px-3 py-3 space-y-2">
-            {guides.length > 1 && (
+          {/* Bottom controls — guide switcher only */}
+          {guides.length > 1 && (
+            <div className="border-t border-white/10 px-3 py-3">
               <select
                 value={activeGuideId}
                 onChange={(e) => onGuideChange(e.target.value)}
@@ -159,32 +159,20 @@ export function GuidePanel({
                   </option>
                 ))}
               </select>
-            )}
-            <button
-              type="button"
-              onClick={onCollapse}
-              aria-label="Collapse guide"
-              className="flex items-center justify-center rounded-lg bg-white/10 p-2 text-white/60 hover:bg-white/20 hover:text-white transition-colors w-full"
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path d="M9 2L5 7l4 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-          </div>
-
-          {/* Re-expand tab — rides on the right edge of the panel; peeks out when panel is collapsed */}
-          {!isGuidedMode && (
-            <button
-              type="button"
-              onClick={onExpand}
-              aria-label="Expand guide"
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full bg-black/70 backdrop-blur-sm text-white/70 px-1.5 py-3 rounded-r-lg transition-colors hover:bg-black/85 hover:text-white"
-            >
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
+            </div>
           )}
+
+          {/* Collapse/expand tab — always visible, rides the right edge of the panel */}
+          <button
+            type="button"
+            onClick={isGuidedMode ? onCollapse : onExpand}
+            aria-label={isGuidedMode ? "Collapse guide" : "Expand guide"}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full bg-black/70 backdrop-blur-sm text-white/70 px-1.5 py-3 rounded-r-lg transition-colors hover:bg-black/85 hover:text-white"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d={isGuidedMode ? "M8 2l-4 4 4 4" : "M4 2l4 4-4 4"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
         </div>
       </div>
     );
@@ -192,19 +180,19 @@ export function GuidePanel({
 
   // Top variant
   return (
-    <div className="absolute left-0 right-0 top-0 z-40 overflow-hidden">
+    <div className="absolute left-0 right-0 top-0 z-40">
       {/* Slide-in bar */}
       <div
         role="navigation"
         aria-label={guide.name || "Guide"}
         className={[
-          "h-12 w-full bg-black/70 backdrop-blur-sm transition-transform duration-200",
+          "relative h-12 w-full bg-black/70 backdrop-blur-sm transition-transform duration-200",
           "flex items-center gap-2 px-3",
           isGuidedMode ? "translate-y-0" : "-translate-y-full",
         ].join(" ")}
       >
         {/* Step pills */}
-        <div className="flex flex-1 items-center gap-1.5 overflow-x-auto">
+        <div className="flex flex-1 items-center justify-center gap-1.5 overflow-x-auto">
           {guide.steps.map((step, index) => {
             const isActive = index === activeStepIndex;
             const isVisited = index < activeStepIndex;
@@ -220,7 +208,7 @@ export function GuidePanel({
                     ? "bg-white/10 text-white/50"
                     : "bg-white/10 text-white/70 hover:bg-white/20"
                 }`}
-                style={isActive ? { backgroundColor: accentColor || "#3B82F6" } : undefined}
+                style={isActive ? { backgroundColor: accentColor || "#5B7AF5" } : undefined}
               >
                 <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/20 text-[10px] font-bold">
                   {isVisited ? "✓" : index + 1}
@@ -247,32 +235,18 @@ export function GuidePanel({
           </select>
         )}
 
-        {/* Collapse button */}
+        {/* Collapse/expand tab — always visible, rides the bottom edge of the bar */}
         <button
           type="button"
-          onClick={onCollapse}
-          className="shrink-0 rounded-md bg-white/10 px-2 py-1 text-xs text-white/70 transition-colors hover:bg-white/20 hover:text-white"
-          aria-label="Collapse guide"
+          onClick={isGuidedMode ? onCollapse : onExpand}
+          aria-label={isGuidedMode ? "Collapse guide" : "Expand guide"}
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full bg-black/70 backdrop-blur-sm text-white/70 px-3 py-1.5 rounded-b-lg transition-colors hover:bg-black/85 hover:text-white"
         >
-          ↑
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path d={isGuidedMode ? "M2 8l4-4 4 4" : "M2 4l4 4 4-4"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </button>
       </div>
-
-      {/* Re-expand tab — below the panel; when panel is hidden it sits at top-0 of the viewport */}
-      {!isGuidedMode && (
-        <div className="flex justify-center">
-          <button
-            type="button"
-            onClick={onExpand}
-            aria-label="Expand guide"
-            className="bg-black/70 backdrop-blur-sm text-white/70 px-3 py-1.5 rounded-b-lg transition-colors hover:bg-black/85 hover:text-white"
-          >
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-              <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        </div>
-      )}
     </div>
   );
 }

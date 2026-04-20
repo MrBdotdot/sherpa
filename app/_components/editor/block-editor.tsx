@@ -412,7 +412,7 @@ export function BlockEditor({
                     <button
                       type="button"
                       onClick={() => applyColor(customColor)}
-                      className="rounded-full bg-[#3B82F6] px-2 py-1 text-xs font-medium text-white hover:bg-[#2563EB]"
+                      className="rounded-full bg-[#5B7AF5] px-2 py-1 text-xs font-medium text-white hover:bg-[#4059EB]"
                     >
                       Apply
                     </button>

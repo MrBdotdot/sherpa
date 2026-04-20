@@ -217,7 +217,7 @@ export function SpreadsheetModal({
                         <div className="mt-1 flex items-center gap-2 text-xs text-neutral-600">
                           <span>{language.code}</span>
                           {index === 0 ? (
-                            <span className="rounded-full bg-[#3B82F6] px-2 py-0.5 font-semibold text-white">
+                            <span className="rounded-full bg-[#5B7AF5] px-2 py-0.5 font-semibold text-white">
                               Default
                             </span>
                           ) : null}
@@ -273,7 +273,7 @@ export function SpreadsheetModal({
                         }}
                         placeholder={index === 0 ? "Default text" : row.sourceText}
                         rows={3}
-                        className={`w-full resize-y rounded-xl border px-3 py-2 text-sm leading-6 text-neutral-900 outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25 placeholder:text-neutral-500 ${
+                        className={`w-full resize-y rounded-xl border px-3 py-2 text-sm leading-6 text-neutral-900 outline-none focus:border-[#5B7AF5] focus:ring-2 focus:ring-[#5B7AF5]/25 placeholder:text-neutral-500 ${
                           index === 0 ? "border-neutral-300 bg-neutral-50" : "border-neutral-200"
                         }`}
                       />

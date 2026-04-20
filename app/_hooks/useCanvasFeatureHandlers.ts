@@ -121,6 +121,21 @@ export function useCanvasFeatureHandlers({
     }
   };
 
+  const handleModelUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const localUrl = URL.createObjectURL(file);
+    setSystemSettings((prev) => ({ ...prev, modelUrl: localUrl }));
+
+    try {
+      const remoteUrl = await uploadImage(file, userId, gameId);
+      setSystemSettings((prev) => ({ ...prev, modelUrl: remoteUrl }));
+    } catch {
+      // Local blob URL stays in place until refresh if upload fails.
+    }
+  };
+
   const handleRemoveCanvasFeature = (featureId: string) => {
     pushPagesHistory();
     // If this is an auto-migrated page-button, record its target so the migration
@@ -184,6 +199,7 @@ export function useCanvasFeatureHandlers({
     handleCanvasFeatureChange,
     handleCanvasFeatureImageUpload,
     handleGameIconUpload,
+    handleModelUpload,
     handleRemoveCanvasFeature,
     handleCanvasFeatureVisibilityChange,
     handleAddPageButton,

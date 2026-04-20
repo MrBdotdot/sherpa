@@ -51,7 +51,7 @@ export function ChangelogModal({
             {PATCH_NOTES.map((release) => (
               <div key={release.version}>
                 <div className="mb-3 flex items-baseline gap-2.5">
-                  <span className="rounded-full bg-[#3B82F6] px-2.5 py-0.5 text-xs font-semibold text-white">
+                  <span className="rounded-full bg-[#5B7AF5] px-2.5 py-0.5 text-xs font-semibold text-white">
                     {release.version}
                   </span>
                   <span className="text-xs text-neutral-500">{release.date}</span>

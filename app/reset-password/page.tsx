@@ -135,7 +135,7 @@ export default function ResetPasswordPage() {
 
           {checkingSession ? (
             <div className="flex flex-col items-center gap-4 text-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-[#3B82F6]" />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-[#5B7AF5]" />
               <p className="text-sm text-neutral-500">Checking your reset link...</p>
             </div>
           ) : success ? (
@@ -149,8 +149,8 @@ export default function ResetPasswordPage() {
               <p className="mb-6 text-sm text-neutral-500">Your password has been changed successfully.</p>
               <button
                 type="button"
-                onClick={() => router.replace("/")}
-                className="flex w-full items-center justify-center rounded-full bg-[#3B82F6] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#2563EB]"
+                onClick={() => router.replace("/studio")}
+                className="flex w-full items-center justify-center rounded-full bg-[#5B7AF5] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#4059EB]"
               >
                 Open Sherpa
               </button>
@@ -181,7 +181,7 @@ export default function ResetPasswordPage() {
                     required
                     minLength={8}
                     autoComplete="new-password"
-                    className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-500 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
+                    className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-500 outline-none transition focus:border-[#5B7AF5] focus:ring-2 focus:ring-[#5B7AF5]/25"
                   />
                 </div>
                 <div>
@@ -195,13 +195,13 @@ export default function ResetPasswordPage() {
                     required
                     minLength={8}
                     autoComplete="new-password"
-                    className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-500 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
+                    className="w-full rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 placeholder:text-neutral-500 outline-none transition focus:border-[#5B7AF5] focus:ring-2 focus:ring-[#5B7AF5]/25"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-[#3B82F6] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#2563EB] disabled:opacity-60"
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-[#5B7AF5] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#4059EB] disabled:opacity-60"
                 >
                   {saving && (
                     <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">

@@ -86,12 +86,12 @@ function SidebarPageButton({
       aria-current={isSelected ? "page" : undefined}
       data-selected={isSelected ? "true" : undefined}
       className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition ${
-        isSelected ? "bg-[#3B82F6]/10" : "hover:bg-neutral-50"
+        isSelected ? "bg-[#5B7AF5]/10" : "hover:bg-neutral-50"
       }`}
     >
       <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${
         isSelected
-          ? "border-[#3B82F6]/30 bg-[#3B82F6]/10 text-[#3B82F6]"
+          ? "border-[#5B7AF5]/30 bg-[#5B7AF5]/10 text-[#5B7AF5]"
           : "border-neutral-200 bg-white text-neutral-500"
       }`}>
         {page.kind === "hotspot" ? <HotspotPinIcon /> : <CardPageIcon />}
@@ -119,12 +119,12 @@ function SidebarFeatureItem({
       data-selected={isSelected ? "true" : undefined}
       className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition ${
         isSelected
-          ? "bg-[#3B82F6]/10"
+          ? "bg-[#5B7AF5]/10"
           : "hover:bg-neutral-50"
       }`}
     >
       <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${
-        isSelected ? "border-[#3B82F6]/30 bg-[#3B82F6]/10 text-[#3B82F6]" : "border-neutral-200 bg-white text-neutral-500"
+        isSelected ? "border-[#5B7AF5]/30 bg-[#5B7AF5]/10 text-[#5B7AF5]" : "border-neutral-200 bg-white text-neutral-500"
       }`}>
         <SidebarItemIcon type={feature.type} />
       </div>
@@ -166,7 +166,7 @@ function SidebarBlockItem({
       onDrop={(e) => { e.preventDefault(); onDrop(index); }}
     >
       {showDropLine && (
-        <div className="pointer-events-none absolute -top-1.5 inset-x-0 z-20 h-0.5 rounded-full bg-[#3B82F6]" />
+        <div className="pointer-events-none absolute -top-1.5 inset-x-0 z-20 h-0.5 rounded-full bg-[#5B7AF5]" />
       )}
       <div
         draggable
@@ -338,7 +338,7 @@ export function PageSidebar({
   };
 
   return (
-    <aside className={`flex h-full flex-col ${dk ? "bg-neutral-900 text-neutral-100" : "border-r border-neutral-200/60 bg-white/60"}`}>
+    <aside className={`flex h-full flex-col ${dk ? "bg-neutral-900 text-neutral-100" : "border-r border-[#e7dfd2] bg-[#fcfaf7] shadow-[0_22px_60px_rgba(15,23,42,0.14)]"}`}>
       <div ref={containerRef} className="min-h-0 flex-1 overflow-y-auto p-5">
         <div className="mb-6 flex items-center gap-2.5">
           <img src="/sherpa-icon.svg" alt="Sherpa" className="h-11 w-11 rounded-lg" draggable={false} />
@@ -407,18 +407,6 @@ export function PageSidebar({
                                 page={hotspot}
                               />
                             </div>
-                            {hasExpandable ? (
-                              <button
-                                type="button"
-                                onClick={() => toggleExpanded(hotspot.id)}
-                                aria-expanded={isExpanded}
-                                aria-controls={expandId}
-                                aria-label={`${isExpanded ? "Collapse" : "Expand"} contents of ${hotspot.title || "this hotspot"}`}
-                                className="flex shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-neutral-500 transition hover:bg-white hover:text-neutral-700"
-                              >
-                                <ChevronIcon expanded={isExpanded} />
-                              </button>
-                            ) : null}
                           </div>
                           {isExpanded && hasExpandable ? (
                             <ul id={expandId} className="space-y-1 border-l-2 border-neutral-100 pl-3 ml-2">

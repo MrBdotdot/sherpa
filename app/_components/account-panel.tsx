@@ -286,7 +286,7 @@ export function AccountPanel({
                 role="switch"
                 aria-checked={studioDarkMode}
                 onClick={() => onStudioDarkModeChange?.(!studioDarkMode)}
-                className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${studioDarkMode ? "bg-[#3B82F6]" : "bg-neutral-200"}`}
+                className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${studioDarkMode ? "bg-[#5B7AF5]" : "bg-neutral-200"}`}
               >
                 <span
                   className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${studioDarkMode ? "translate-x-4" : ""}`}

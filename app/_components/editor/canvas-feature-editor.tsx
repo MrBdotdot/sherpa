@@ -59,17 +59,24 @@ export function CanvasFeatureEditor({
     <div
       ref={containerRef}
       className={`rounded-2xl border bg-white p-4 transition ${
-        isSelected ? "border-[#3B82F6] ring-2 ring-[#3B82F6]/25" : "border-neutral-200"
+        isSelected ? "border-[#5B7AF5] ring-2 ring-[#5B7AF5]/25" : "border-neutral-200"
       }`}
     >
       <div className="mb-3 flex items-center justify-between gap-3">
-        <div>
-          <div className="text-sm font-medium text-neutral-900">
-            {feature.type === "locale"
-              ? "Language switcher"
-              : feature.label || feature.type}
+        <div className="flex items-start gap-2.5 min-w-0">
+          {isSelected && (
+            <span className="mt-0.5 w-[3px] self-stretch flex-shrink-0 rounded-full bg-[#5B7AF5]" aria-hidden="true" />
+          )}
+          <div className="min-w-0">
+            <div className={`text-xs font-semibold uppercase tracking-[0.16em] mb-0.5 ${isSelected ? "text-[#5B7AF5]" : "text-neutral-400"}`}>
+              Canvas element
+            </div>
+            <div className="text-sm font-medium text-neutral-900">
+              {feature.type === "locale"
+                ? "Language switcher"
+                : feature.label || feature.type}
+            </div>
           </div>
-          <div className="text-xs text-neutral-500 capitalize">{feature.type}</div>
         </div>
         <button
           type="button"

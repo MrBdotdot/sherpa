@@ -39,7 +39,7 @@ function AcceptInviteContent() {
         setGameId(data.gameId ?? null);
         setStatus("success");
         setTimeout(() => {
-          router.push("/");
+          router.push("/studio");
         }, 2500);
       } else {
         const data: { error?: string } = await res.json();

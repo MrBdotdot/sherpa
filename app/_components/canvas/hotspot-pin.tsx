@@ -118,7 +118,7 @@ export function HotspotPin({
           onClick={(e) => { e.stopPropagation(); if (!dragThresholdRef?.current) onSelectPage(page.id); }}
           className={`relative rounded-full px-3 py-1.5 text-xs font-semibold shadow transition ${fontThemeClass} ${
             isSelected
-              ? "bg-[#3B82F6] text-white"
+              ? "bg-[#5B7AF5] text-white"
               : "bg-white/90 text-neutral-900 hover:bg-white"
           }`}
           style={{

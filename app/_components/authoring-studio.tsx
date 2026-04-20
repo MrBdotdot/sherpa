@@ -34,7 +34,7 @@ import { usePaletteEntries } from "@/app/_hooks/usePaletteEntries";
 import { usePlan } from "@/app/_hooks/usePlan";
 import { PricingModal } from "@/app/_components/pricing-modal";
 
-const SIDEBAR_WIDTH = 300;
+const SIDEBAR_WIDTH = 260;
 const INSPECTOR_WIDTH = 380;
 const PANEL_HANDLE_WIDTH = 32;
 const SIDEBAR_WRAPPER_WIDTH = SIDEBAR_WIDTH + PANEL_HANDLE_WIDTH;
@@ -165,7 +165,7 @@ export function AuthoringStudio({
     layoutMode,
     onCollapseSidebar: panels.onCollapseSidebar,
     onCollapseInspector: panels.onCollapseInspector,
-    onCollapseHeader: panels.onCollapseHeader,
+    onCollapseHeader: panels.onCollapseTopNav,
   });
 
   const {
@@ -227,11 +227,13 @@ export function AuthoringStudio({
     layoutModeRef, isPreviewModeRef,
     isSidebarOpenRef: panels.isSidebarOpenRef,
     isInspectorOpenRef: panels.isInspectorOpenRef,
-    isHeaderOpenRef: panels.isHeaderOpenRef,
+    isTopNavOpenRef: panels.isTopNavOpenRef,
+    isBottomNavOpenRef: panels.isBottomNavOpenRef,
     setPages, setIsPreviewMode,
     setIsSidebarOpen: panels.setIsSidebarOpen,
     setIsInspectorOpen: panels.setIsInspectorOpen,
-    setIsHeaderOpen: panels.setIsHeaderOpen,
+    setIsTopNavOpen: panels.setIsTopNavOpen,
+    setIsBottomNavOpen: panels.setIsBottomNavOpen,
     setSelectedFeatureId, setSelectedPageId, setLayoutMode,
     setIsCommandPaletteOpen: modals.setIsCommandPaletteOpen,
   });
@@ -330,9 +332,9 @@ export function AuthoringStudio({
   const chromeBord  = dk ? "border-neutral-700" : "border-[#e7dfd2]";
   const chromeToggle = dk
     ? "border-neutral-700 bg-neutral-900 text-neutral-500 hover:text-neutral-200"
-    : "border-[#e7dfd2] bg-[#fcfaf7] text-neutral-500 hover:text-neutral-800";
+    : "border-[#e7dfd2] bg-[#fcfaf7] text-neutral-400 hover:text-neutral-700";
   const chromeShadow = "shadow-[0_22px_60px_rgba(15,23,42,0.14)]";
-  const chromeToggleShadow = "shadow-[0_18px_36px_rgba(15,23,42,0.14)]";
+  const chromeToggleShadow = "shadow-sm";
 
   const sharedEditorProps = {
     activePreviewPage,
@@ -492,12 +494,12 @@ export function AuthoringStudio({
     onStopConventionMode: handleStopConventionMode,
     hasBranding: hasBranding || conventionMode,
     studioChrome: {
-      headerOpen: panels.isHeaderOpen,
-      leftInset: panels.headerLeftInset,
-      rightInset: panels.headerRightInset,
-      topInset: 0,
-      onToggleHeader: () => panels.setIsHeaderOpen((prev) => !prev),
       darkMode: panels.studioDarkMode,
+      onOpenGameSwitcher: () => modals.setIsGameSwitcherOpen(true),
+      topChromeCollapsed: !panels.isTopNavOpen,
+      onTopChromeCollapsedChange: (v: boolean) => panels.setIsTopNavOpen(!v),
+      bottomChromeCollapsed: !panels.isBottomNavOpen,
+      onBottomChromeCollapsedChange: (v: boolean) => panels.setIsBottomNavOpen(!v),
     },
   } as const;
 
@@ -519,7 +521,7 @@ export function AuthoringStudio({
         <button
           type="button"
           onClick={() => panels.setIsSidebarOpen(true)}
-          className={`absolute left-0 top-1/2 z-50 -translate-y-1/2 rounded-r-2xl border border-l-0 px-2 py-3 ${chromeToggleShadow} transition ${chromeToggle}`}
+          className={`absolute left-0 top-1/2 z-50 -translate-y-1/2 rounded-r-2xl border border-l-0 px-1 py-5 ${chromeToggleShadow} transition ${chromeToggle}`}
           aria-label="Open sidebar"
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -539,7 +541,7 @@ export function AuthoringStudio({
           tabIndex={!isPreviewMode && panels.isSidebarOpen ? 0 : -1}
           aria-hidden={isPreviewMode || !panels.isSidebarOpen}
           style={{ right: PANEL_HANDLE_WIDTH }}
-          className={`absolute top-1/2 z-10 -translate-y-1/2 translate-x-full rounded-r-2xl border border-l-0 px-2 py-3 ${chromeToggleShadow} transition ${chromeToggle}`}
+          className={`absolute top-1/2 z-10 -translate-y-1/2 translate-x-full rounded-r-2xl border border-l-0 px-1 py-5 ${chromeToggleShadow} transition ${chromeToggle}`}
           aria-label="Close sidebar"
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -598,7 +600,7 @@ export function AuthoringStudio({
         <button
           type="button"
           onClick={() => panels.setIsInspectorOpen(true)}
-          className={`absolute right-0 top-1/2 z-50 -translate-y-1/2 rounded-l-2xl border border-r-0 px-2 py-3 ${chromeToggleShadow} transition ${chromeToggle}`}
+          className={`absolute right-0 top-1/2 z-50 -translate-y-1/2 rounded-l-2xl border border-r-0 px-1 py-5 ${chromeToggleShadow} transition ${chromeToggle}`}
           aria-label="Open editing panel"
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -618,7 +620,7 @@ export function AuthoringStudio({
           onClick={() => panels.setIsInspectorOpen(false)}
           tabIndex={!isPreviewMode && panels.isInspectorOpen ? 0 : -1}
           aria-hidden={isPreviewMode || !panels.isInspectorOpen}
-          className={`absolute left-0 top-1/2 z-10 -translate-x-full -translate-y-1/2 rounded-l-2xl border border-r-0 px-2 py-3 ${chromeToggleShadow} transition ${chromeToggle}`}
+          className={`absolute left-0 top-1/2 z-10 -translate-x-full -translate-y-1/2 rounded-l-2xl border border-r-0 px-1 py-5 ${chromeToggleShadow} transition ${chromeToggle}`}
           aria-label="Close editing panel"
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">

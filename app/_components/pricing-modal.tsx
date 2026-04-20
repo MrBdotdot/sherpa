@@ -231,7 +231,7 @@ export function PricingModal({ mode, onClose, onStartConventionMode, conventionL
             <ul className="mb-4 flex-1 space-y-2">
               {[
                 "Everything in Pro",
-                "3 team seats",
+                "10 team seats",
                 "Early access to new features",
               ].map((feature) => (
                 <li key={feature} className="flex items-start gap-2 text-sm text-neutral-600">
@@ -275,13 +275,7 @@ export function PricingModal({ mode, onClose, onStartConventionMode, conventionL
             </span>
             <span className="text-sm text-neutral-500">one-time</span>
             <p className="mt-0.5 text-xs text-neutral-500">
-              Single-user license. Need a team?{" "}
-              <a
-                href="mailto:hello@sherpa.so"
-                className="underline hover:text-neutral-600"
-              >
-                Contact us.
-              </a>
+              Pro features, forever — for one person. Unlimited games, permanent URLs, no branding.
             </p>
           </div>
           <button

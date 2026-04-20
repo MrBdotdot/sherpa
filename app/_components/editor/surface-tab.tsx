@@ -188,7 +188,7 @@ export function SurfaceTab({
                   )
                 }
                 className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
-                  isVisibleInCurrentLayout ? "bg-[#3B82F6]" : "bg-neutral-200"
+                  isVisibleInCurrentLayout ? "bg-[#5B7AF5]" : "bg-neutral-200"
                 }`}
               >
                 <span
@@ -224,38 +224,19 @@ export function SurfaceTab({
 
   return (
     <div className="space-y-6 p-5">
-      {/* Header: count + add button */}
+      {/* Header: label + add button */}
       <div className="sticky top-0 z-10 -mx-5 bg-neutral-50 px-5 py-2">
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <FieldLabel className="mb-0">{currentLayoutLabel} board</FieldLabel>
-            <div className="text-sm font-semibold text-neutral-900">
-              {guidance.visibleCount} element{guidance.visibleCount === 1 ? "" : "s"}
-            </div>
-          </div>
+          <FieldLabel className="mb-0">{currentLayoutLabel} board</FieldLabel>
           <button
             type="button"
             onClick={() => setPickerOpen(true)}
             disabled={guidance.isAtHardCap}
-            className="rounded-full bg-[#3B82F6] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-full bg-[#5B7AF5] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#4059EB] disabled:cursor-not-allowed disabled:opacity-40"
           >
             + Add element
           </button>
         </div>
-        {guidance.hasWarning ? (
-          <div
-            aria-live="polite"
-            className={`mt-2 rounded-lg px-3 py-2 text-xs leading-5 ${
-              guidance.isAtHardCap
-                ? "bg-amber-50 text-amber-700"
-                : "bg-sky-50 text-sky-700"
-            }`}
-          >
-            {guidance.isAtHardCap
-              ? `At the ${guidance.hardCap}-element cap. Remove one before adding another.`
-              : `Getting dense. Aim for ${guidance.warningCount} or fewer elements.`}
-          </div>
-        ) : null}
       </div>
 
       {/* Elements list */}

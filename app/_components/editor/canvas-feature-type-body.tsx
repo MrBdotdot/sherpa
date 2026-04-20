@@ -10,6 +10,7 @@ import { DropdownFeatureEditor } from "@/app/_components/editor/dropdown-feature
 import { PageLinkPicker } from "@/app/_components/editor/page-link-picker";
 import { SectionPicker } from "@/app/_components/editor/section-picker";
 import { FieldLabel, InputField, TextareaField, MonoInput } from "@/app/_components/editor/editor-ui";
+import { getQrImageUrl } from "@/app/_lib/label-utils";
 
 const LOGO_SIZE_MIN = 24;
 
@@ -134,7 +135,7 @@ function ImageFeatureBody({
                 aria-pressed={isActive}
                 className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
                   isActive
-                    ? "border-[#3B82F6] bg-[#3B82F6] text-white"
+                    ? "border-[#5B7AF5] bg-[#5B7AF5] text-white"
                     : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
                 }`}
               >
@@ -185,28 +186,48 @@ function QrFeatureBody({
   return (
     <>
       <div className="space-y-2">
-        <FieldLabel className="mb-0">QR image</FieldLabel>
-        <label className="inline-flex cursor-pointer items-center rounded-lg border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
-          Upload QR image
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(event) => onCanvasFeatureImageUpload(feature.id, event)}
-            className="hidden"
+        <FieldLabel className="mb-0">URL to encode</FieldLabel>
+        <InputField
+          type="url"
+          value={feature.linkUrl}
+          onChange={(e) => onCanvasFeatureChange(feature.id, "linkUrl", e.target.value)}
+          placeholder="https://…"
+          aria-label="URL to encode in QR code"
+        />
+        <div className="flex items-center gap-3">
+          <img
+            src={feature.imageUrl || getQrImageUrl(feature.linkUrl)}
+            alt="QR code preview"
+            className="h-14 w-14 shrink-0 rounded-lg border border-neutral-200 object-contain p-0.5"
           />
-        </label>
-        {feature.imageUrl ? (
-          <div className="flex items-center gap-2">
-            <img src={feature.imageUrl} alt="QR" className="h-12 w-12 rounded-lg border border-neutral-200 object-contain p-0.5" />
-            <button
-              type="button"
-              onClick={() => onCanvasFeatureChange(feature.id, "imageUrl", "")}
-              className="text-xs text-neutral-500 hover:text-red-500"
-            >
-              Remove
-            </button>
+          <div className="flex flex-col gap-1.5">
+            {feature.imageUrl ? (
+              <>
+                <p className="text-[11px] text-neutral-500">Custom image</p>
+                <button
+                  type="button"
+                  onClick={() => onCanvasFeatureChange(feature.id, "imageUrl", "")}
+                  className="text-[11px] text-neutral-500 hover:text-red-500 text-left"
+                >
+                  Remove — use generated QR
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-[11px] text-neutral-500">Auto-generated QR</p>
+                <label className="cursor-pointer text-[11px] text-[#5B7AF5] hover:underline">
+                  Upload custom image
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => onCanvasFeatureImageUpload(feature.id, event)}
+                    className="hidden"
+                  />
+                </label>
+              </>
+            )}
           </div>
-        ) : null}
+        </div>
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -222,7 +243,7 @@ function QrFeatureBody({
           onChange={(e) => onCanvasFeatureChange(feature.id, "qrSize", e.target.value)}
           aria-label="QR code size"
           aria-valuetext={`${feature.qrSize ?? 120}px`}
-          className="w-full accent-[#3B82F6]"
+          className="w-full accent-[#5B7AF5]"
         />
       </div>
       <div className="space-y-2">
@@ -267,7 +288,7 @@ function QrFeatureBody({
               value={feature.qrBgOpacity ?? 1}
               onChange={(e) => onCanvasFeatureChange(feature.id, "qrBgOpacity", e.target.value)}
               aria-label="QR background opacity"
-              className="w-full accent-[#3B82F6]"
+              className="w-full accent-[#5B7AF5]"
             />
           </div>
         ) : null}

@@ -185,7 +185,7 @@ export function BusinessSection({ metadata, onStudioNameChange }: BusinessSectio
           <select
             value={country}
             onChange={(e) => setCountry(e.target.value)}
-            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-500 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/25"
+            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-500 focus:border-[#5B7AF5] focus:ring-2 focus:ring-[#5B7AF5]/25"
           >
             <option value="">Select a country</option>
             {COUNTRIES.map((c) => <option key={c}>{c}</option>)}

@@ -206,7 +206,7 @@ export function StepRailBlockEditor({
               aria-pressed={data.orientation === o}
               className={`flex-1 rounded-xl border py-2 text-xs font-medium capitalize transition ${
                 data.orientation === o
-                  ? "border-[#3B82F6] bg-[#3B82F6] text-white"
+                  ? "border-[#5B7AF5] bg-[#5B7AF5] text-white"
                   : "border-neutral-300 text-neutral-600 hover:bg-neutral-50"
               }`}
             >
@@ -228,7 +228,7 @@ export function StepRailBlockEditor({
               aria-pressed={data.iconShape === s.value}
               className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition ${
                 data.iconShape === s.value
-                  ? "border-[#3B82F6] bg-[#3B82F6] text-white"
+                  ? "border-[#5B7AF5] bg-[#5B7AF5] text-white"
                   : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"
               }`}
             >

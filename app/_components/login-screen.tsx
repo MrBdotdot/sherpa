@@ -97,8 +97,8 @@ export function LoginScreen() {
       if (error) {
         setError(error.message);
       } else {
-        const returnUrl = searchParams.get("returnUrl");
-        if (returnUrl) router.push(returnUrl);
+        const returnUrl = searchParams.get("returnUrl") ?? "/studio";
+        router.push(returnUrl);
       }
     } else {
       const returnUrl = searchParams.get("returnUrl");
