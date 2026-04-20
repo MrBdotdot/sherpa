@@ -12,6 +12,7 @@ import { ContentModule } from "@/app/_components/canvas/content-module";
 import { IntroScreen } from "@/app/_components/canvas/intro-screen";
 import { FeaturePlacer } from "@/app/_components/canvas/preview-canvas-helpers";
 import { GuidePanel } from "@/app/_components/canvas/guide-panel";
+import { GuidedTourView } from "@/app/_components/canvas/guided-tour-view";
 
 const NOOP = () => {};
 const NOOP_PTR = () => {};
@@ -294,6 +295,102 @@ export function PlayerView({
         pages={localizedPages}
         onStart={() => setIntroVisible(false)}
       />
+    );
+  }
+
+  // Guided tour layout — sidebar + floating step card
+  if (guides.length > 0) {
+    const activeGuide = guides.find((g) => g.id === activeGuideId) ?? guides[0];
+    const sharedPinProps = {
+      isLayoutEditMode: false as const,
+      isPreviewMode: true as const,
+      accentColor,
+      fontThemeClass,
+      hotspotContainerSize,
+      hotspotDotSize,
+      hotspotLabelSize,
+      accentActiveStyle,
+      accentRingStyle,
+      onSelectPage: handleHotspotSelect,
+      onHotspotPointerDown: NOOP_PTR,
+      onDeleteHotspot: NOOP,
+    };
+    return (
+      <div className="sherpa-player fixed inset-0 flex overflow-hidden">
+        {systemSettings.customCss && (
+          <style>{`.sherpa-player { ${systemSettings.customCss} }`}</style>
+        )}
+        <GuidedTourView
+          gameName={homePage.title}
+          guide={activeGuide}
+          pages={localizedPages}
+          accentColor={accentColor || "#1e3a8a"}
+          activeStepIndex={activeStepIndex}
+          onStepChange={(i, step) => handleStepActivate(step, i)}
+        >
+          <CanvasBackground heroImage={homePage.heroImage ?? ""} isPreviewMode={true} />
+          <FeaturePlacer
+            features={features}
+            isLayoutEditMode={false}
+            accentColor={accentColor}
+            fontThemeClass={fontThemeClass}
+            surfaceStyleClass={surfaceStyleClass}
+            pages={localizedPages}
+            guides={guides}
+            activeLanguageCode={activeLanguageCode}
+            availableLanguages={localeLanguages}
+            isPreviewMode
+            onCanvasFeaturePointerDown={NOOP_PTR}
+            onSelectCanvasFeature={NOOP}
+            onLanguageChange={handleLanguageChange}
+            onSelectPage={handleSelectPage}
+            onSearch={(q) => posthog?.capture("search_performed", { gameId, query: q })}
+          />
+          {hotspotPages.map((page, i) => (
+            <HotspotPin
+              key={page.id}
+              page={page}
+              index={i}
+              isSelected={page.id === resolvedSelectedPageId}
+              isHighlighted={page.id === highlightedHotspotId}
+              {...sharedPinProps}
+            />
+          ))}
+        </GuidedTourView>
+
+        {modulePage && (
+          <ContentModule
+            page={modulePage}
+            pages={localizedPages}
+            isExiting={isModuleExiting}
+            onExitEnd={handleModuleExitEnd}
+            systemSettings={systemSettings}
+            accentColor={accentColor}
+            isLayoutEditMode={false}
+            isPreviewMode={true}
+            onDismissContent={handleDismissContent}
+            onNavigate={handleSelectPage}
+            onNavigateBack={handleNavigateBack}
+            canNavigateBack={navHistory.length > 0}
+            scrollContainerRef={contentScrollRef}
+            onContentCardPointerDown={NOOP_PTR}
+          />
+        )}
+
+        {hasBranding && (
+          <div className="pointer-events-none absolute bottom-4 left-1/2 z-50 -translate-x-1/2">
+            <a
+              href="https://sherpa.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-white/20 bg-black/60 px-3 py-1.5 text-xs font-medium text-white/80 backdrop-blur-sm transition hover:bg-black/75"
+              aria-label="Built with Sherpa"
+            >
+              Built with Sherpa
+            </a>
+          </div>
+        )}
+      </div>
     );
   }
 

@@ -6,6 +6,13 @@ export type PatchNote = {
 
 export const PATCH_NOTES: PatchNote[] = [
   {
+    version: "v0.26.5",
+    date: "2026-04-19",
+    changes: [
+      "New: guided tour layout — games with a guide now show a sidebar step list and floating step card instead of the overlay panel.",
+    ],
+  },
+  {
     version: "v0.26.4",
     date: "2026-04-19",
     changes: [
