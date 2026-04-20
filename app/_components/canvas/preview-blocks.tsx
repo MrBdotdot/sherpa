@@ -170,7 +170,7 @@ export function PreviewBlocks({
   }
 
   const blockList = (
-    <div className={hasHalfBlock ? "grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2 items-start" : "space-y-2"}>
+    <div className={hasHalfBlock ? "grid grid-cols-2 gap-2 items-start" : "space-y-2"}>
       {displayPage.blocks.map((block) => {
         const spanClass = hasHalfBlock && block.blockWidth !== "half" ? "col-span-2" : "";
         const selfAlign = hasHalfBlock ? selfAlignClass(block) : "";
