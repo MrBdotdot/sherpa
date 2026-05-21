@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { BlockRenderer } from "./block-renderer";
+import type { GameComplexity } from "@/app/_lib/authoring-types";
 import type { GalleryGame, GalleryCard } from "@/app/_lib/gallery-queries";
 
-const COMPLEXITY_DOT: Record<string, string> = {
+const COMPLEXITY_DOT: Record<GameComplexity, string> = {
   Light: "#22c55e",
   Medium: "#f59e0b",
   Heavy: "#ef4444",
@@ -38,7 +39,7 @@ export function ReadingPage({ game, cards }: { game: GalleryGame; cards: Gallery
         <div className="relative h-72 w-full overflow-hidden bg-neutral-900 sm:h-96">
           {heroSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={heroSrc} alt="" className="h-full w-full object-cover opacity-70" />
+            <img src={heroSrc} alt={game.title} className="h-full w-full object-cover opacity-70" />
           ) : (
             <div className="h-full w-full" style={{ background: "#293B9C" }} />
           )}
@@ -77,8 +78,8 @@ export function ReadingPage({ game, cards }: { game: GalleryGame; cards: Gallery
       </div>
 
       {/* Two-column body */}
-      <main className="mx-auto mt-12 grid max-w-5xl grid-cols-[200px_1fr] gap-12 px-6 pb-20">
-        <aside className="sticky top-16 self-start">
+      <main className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-6 px-6 pb-20 lg:grid-cols-[200px_1fr] lg:gap-12">
+        <aside className="lg:sticky lg:top-16 lg:self-start">
           <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">Contents</p>
           <nav>
             <ul className="space-y-1.5">
