@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { supabaseAdmin } from "@/app/_lib/supabase-admin";
 import type { GameMeta, GameComplexity, SystemSettings, ContentBlock } from "@/app/_lib/authoring-types";
 
@@ -118,57 +119,59 @@ export async function fetchPublishedGames(opts: FetchPublishedGamesOpts = {}): P
   return (data ?? []).map((row) => mapGameRowToGalleryGame(row as GameRow));
 }
 
-export async function fetchPublishedGame(id: string): Promise<{ game: GalleryGame; cards: GalleryCard[] } | null> {
-  const { data: gameData, error: gameErr } = await supabaseAdmin
-    .from("games")
-    .select("id, title, system_settings, featured, created_at, user_id")
-    .eq("id", id)
-    .eq("publish_status", "published")
-    .maybeSingle();
+export const fetchPublishedGame = cache(
+  async (id: string): Promise<{ game: GalleryGame; cards: GalleryCard[] } | null> => {
+    const { data: gameData, error: gameErr } = await supabaseAdmin
+      .from("games")
+      .select("id, title, system_settings, featured, created_at, user_id")
+      .eq("id", id)
+      .eq("publish_status", "published")
+      .maybeSingle();
 
-  if (gameErr) {
-    console.error("fetchPublishedGame (game) failed", gameErr);
-    return null;
+    if (gameErr) {
+      console.error("fetchPublishedGame (game) failed", gameErr);
+      return null;
+    }
+    if (!gameData) return null;
+
+    const game = mapGameRowToGalleryGame(gameData as GameRow);
+
+    // Home heroImage (for the gallery image fallback) and non-home cards are
+    // independent reads against the same table — parallelize them.
+    const [homeRes, cardRes] = await Promise.all([
+      supabaseAdmin
+        .from("cards")
+        .select("hero_image")
+        .eq("game_id", id)
+        .eq("kind", "home")
+        .maybeSingle(),
+      supabaseAdmin
+        .from("cards")
+        .select("id, kind, title, summary, hero_image, blocks, card_size")
+        .eq("game_id", id)
+        .neq("kind", "home")
+        .order("created_at", { ascending: true }),
+    ]);
+
+    if (homeRes.data?.hero_image) game.homeHeroImage = homeRes.data.hero_image as string;
+
+    const { data: cardData, error: cardsErr } = cardRes;
+
+    if (cardsErr) {
+      console.error("fetchPublishedGame (cards) failed", cardsErr);
+      return { game, cards: [] };
+    }
+
+    const cards: GalleryCard[] = (cardData ?? []).map((row: CardRow) => ({
+      id: row.id,
+      kind: row.kind,
+      title: row.title,
+      summary: row.summary,
+      heroImage: row.hero_image,
+      blocks: Array.isArray(row.blocks) ? row.blocks : [],
+      cardSize: row.card_size,
+    }));
+
+    return { game, cards };
   }
-  if (!gameData) return null;
-
-  const game = mapGameRowToGalleryGame(gameData as GameRow);
-
-  // Home heroImage (for the gallery image fallback) and non-home cards are
-  // independent reads against the same table — parallelize them.
-  const [homeRes, cardRes] = await Promise.all([
-    supabaseAdmin
-      .from("cards")
-      .select("hero_image")
-      .eq("game_id", id)
-      .eq("kind", "home")
-      .maybeSingle(),
-    supabaseAdmin
-      .from("cards")
-      .select("id, kind, title, summary, hero_image, blocks, card_size")
-      .eq("game_id", id)
-      .neq("kind", "home")
-      .order("created_at", { ascending: true }),
-  ]);
-
-  if (homeRes.data?.hero_image) game.homeHeroImage = homeRes.data.hero_image as string;
-
-  const { data: cardData, error: cardsErr } = cardRes;
-
-  if (cardsErr) {
-    console.error("fetchPublishedGame (cards) failed", cardsErr);
-    return { game, cards: [] };
-  }
-
-  const cards: GalleryCard[] = (cardData ?? []).map((row: CardRow) => ({
-    id: row.id,
-    kind: row.kind,
-    title: row.title,
-    summary: row.summary,
-    heroImage: row.hero_image,
-    blocks: Array.isArray(row.blocks) ? row.blocks : [],
-    cardSize: row.card_size,
-  }));
-
-  return { game, cards };
-}
+);
