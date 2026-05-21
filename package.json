@@ -25,6 +25,7 @@
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "resend": "^6.10.0",
+    "server-only": "^0.0.1",
     "stripe": "^22.0.1",
     "three": "^0.183.2",
     "workbox-window": "^7.4.0"
