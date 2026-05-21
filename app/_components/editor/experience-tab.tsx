@@ -314,6 +314,85 @@ export function ExperienceTab({
         </div>
       </EditorSection>
 
+      {/* Gallery listing */}
+      <EditorSection title="Gallery listing">
+        <EditorSubsection
+          title="What public viewers see"
+          description="Filled-in fields show on your gallery card and reading page. Empty fields are hidden."
+        >
+          <div className="space-y-4">
+            <InputField
+              label="Tagline"
+              value={systemSettings.gameMeta?.tagline ?? ""}
+              onChange={(e) => onSystemSettingChange("gameMeta", { ...systemSettings.gameMeta, tagline: e.target.value || undefined })}
+              placeholder="One sentence about your game"
+            />
+            <InputField
+              label="Designer"
+              value={systemSettings.gameMeta?.designer ?? ""}
+              onChange={(e) => onSystemSettingChange("gameMeta", { ...systemSettings.gameMeta, designer: e.target.value || undefined })}
+              placeholder="Your name or studio"
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <InputField
+                label="Players"
+                value={systemSettings.gameMeta?.playerCount ?? ""}
+                onChange={(e) => onSystemSettingChange("gameMeta", { ...systemSettings.gameMeta, playerCount: e.target.value || undefined })}
+                placeholder="2–4"
+              />
+              <InputField
+                label="Play time"
+                value={systemSettings.gameMeta?.playTime ?? ""}
+                onChange={(e) => onSystemSettingChange("gameMeta", { ...systemSettings.gameMeta, playTime: e.target.value || undefined })}
+                placeholder="60–90 min"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <SelectField
+                label="Complexity"
+                value={systemSettings.gameMeta?.complexity ?? ""}
+                onChange={(value) => onSystemSettingChange("gameMeta", {
+                  ...systemSettings.gameMeta,
+                  complexity: (value || undefined) as "Light" | "Medium" | "Heavy" | undefined,
+                })}
+                options={[
+                  { label: "Not set", value: "" },
+                  { label: "Light", value: "Light" },
+                  { label: "Medium", value: "Medium" },
+                  { label: "Heavy", value: "Heavy" },
+                ]}
+              />
+              <InputField
+                label="Age range"
+                value={systemSettings.gameMeta?.ageRange ?? ""}
+                onChange={(e) => onSystemSettingChange("gameMeta", { ...systemSettings.gameMeta, ageRange: e.target.value || undefined })}
+                placeholder="13+"
+              />
+            </div>
+            <InputField
+              label="Tags"
+              value={(systemSettings.gameMeta?.tags ?? []).join(", ")}
+              onChange={(e) => {
+                const tags = e.target.value
+                  .split(",")
+                  .map((t) => t.trim().toLowerCase())
+                  .filter(Boolean);
+                onSystemSettingChange("gameMeta", { ...systemSettings.gameMeta, tags: tags.length ? tags : undefined });
+              }}
+              placeholder="strategy, cooperative"
+            />
+            <div>
+              <FieldLabel>Gallery image URL</FieldLabel>
+              <InputField
+                value={systemSettings.gameMeta?.cardImage ?? ""}
+                onChange={(e) => onSystemSettingChange("gameMeta", { ...systemSettings.gameMeta, cardImage: e.target.value || undefined })}
+                placeholder="Defaults to your home card image"
+              />
+            </div>
+          </div>
+        </EditorSubsection>
+      </EditorSection>
+
       {/* Languages */}
       <EditorSection title="Languages">
         {localeFeature ? (

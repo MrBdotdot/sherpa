@@ -194,6 +194,26 @@ export type DragState = {
   pointerOffsetY: number;
 };
 
+export type GameComplexity = "Light" | "Medium" | "Heavy";
+
+export type GameMeta = {
+  /** One-liner shown on gallery card and reading page. */
+  tagline?: string;
+  /** Designer name; if blank, the gallery omits the line entirely. */
+  designer?: string;
+  /** Free-form, e.g. "2–4". */
+  playerCount?: string;
+  /** Free-form, e.g. "60–90 min". */
+  playTime?: string;
+  complexity?: GameComplexity;
+  /** Free-form, e.g. "13+". */
+  ageRange?: string;
+  /** Lower-cased tag slugs, e.g. ["strategy", "cooperative"]. */
+  tags?: string[];
+  /** Gallery thumbnail. Falls back to the home card's heroImage if blank. */
+  cardImage?: string;
+};
+
 export type SystemSettings = {
   fontTheme: "modern" | "editorial" | "friendly" | "mono" | "geometric" | "display";
   surfaceStyle: "glass" | "solid" | "contrast";
@@ -236,6 +256,8 @@ export type SystemSettings = {
   guides?: Guide[];
   activeGuideId?: string;
   guideNavPosition?: "left" | "top";
+  /** Gallery listing metadata — what the public gallery card and reading page show. */
+  gameMeta?: GameMeta;
 };
 
 export type PageTemplate = {
