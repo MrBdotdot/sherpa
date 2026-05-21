@@ -55,4 +55,15 @@ describe("renderBlockToString", () => {
     const html = renderBlockToString(block({ type: "text", value: "alpha\n\nbeta\n", blockFormat: "bullets" }));
     expect(html).toBe('<ul><li>alpha</li><li>beta</li></ul>');
   });
+  it("blocks image blocks with unsafe src protocols", () => {
+    expect(renderBlockToString(block({ type: "image", value: "javascript:alert(1)" }))).toBe("");
+    expect(renderBlockToString(block({ type: "image", value: "vbscript:x" }))).toBe("");
+    expect(renderBlockToString(block({ type: "image", value: "file:///etc/passwd" }))).toBe("");
+  });
+  it("allows http, https, data:image, and root-relative image src", () => {
+    expect(renderBlockToString(block({ type: "image", value: "http://example.com/a.jpg" }))).toContain("<figure>");
+    expect(renderBlockToString(block({ type: "image", value: "https://example.com/a.jpg" }))).toContain("<figure>");
+    expect(renderBlockToString(block({ type: "image", value: "data:image/png;base64,iVBORw0KGgo=" }))).toContain("<figure>");
+    expect(renderBlockToString(block({ type: "image", value: "/local/path.jpg" }))).toContain("<figure>");
+  });
 });

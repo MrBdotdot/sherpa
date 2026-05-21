@@ -21,6 +21,15 @@ function renderListItems(value: string): string {
     .join("");
 }
 
+/**
+ * Allow only http(s), data:image/, and root-relative URLs in user-supplied
+ * image src. Blocks javascript:, vbscript:, file:, etc. — defense in depth even
+ * though the author UI is sign-in gated.
+ */
+function isSafeImageSrc(src: string): boolean {
+  return /^(https?:\/\/|data:image\/|\/)/i.test(src);
+}
+
 export function renderBlockToString(block: ContentBlock): string {
   if (block.type === "text") {
     const value = block.value ?? "";
@@ -40,7 +49,7 @@ export function renderBlockToString(block: ContentBlock): string {
   }
   if (block.type === "image") {
     const src = block.value ?? "";
-    if (!src) return "";
+    if (!src || !isSafeImageSrc(src)) return "";
     const caption = block.imageCaption?.trim();
     const alt = caption ?? "";
     const figcap = caption ? `<figcaption>${escapeHtml(caption)}</figcaption>` : "";
