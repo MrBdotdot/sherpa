@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fetchPublishedGames, type GalleryGame } from "@/app/_lib/gallery-queries";
+import { fetchPublishedGames, PAGE_SIZE, type GalleryGame } from "@/app/_lib/gallery-queries";
 import { GalleryFilters } from "@/app/_components/gallery/gallery-filters";
 
 export const metadata = {
@@ -88,13 +88,13 @@ export default async function GalleryPage({
       ) : (
         <>
           {/* Card grid */}
-          <section className="grid gap-7 px-10 pb-12 pt-8" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+          <section className="grid grid-cols-1 gap-7 px-6 pb-12 pt-8 sm:px-8 md:grid-cols-2 md:px-10 lg:grid-cols-3">
             {featured ? <FeaturedCard game={featured} /> : null}
             {rest.map((g) => <GameCard key={g.id} game={g} />)}
           </section>
 
           {/* Pagination */}
-          {games.length === 60 ? (
+          {games.length === PAGE_SIZE ? (
             <div className="px-10 pb-20 text-center">
               <Link
                 href={{ pathname: "/gallery", query: { ...sp, page: page + 1 } }}
@@ -117,8 +117,8 @@ function FeaturedCard({ game }: { game: GalleryGame }) {
   return (
     <Link
       href={`/gallery/${game.id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] hover:shadow-[0_18px_40px_-24px_rgba(26,24,21,0.25)]"
-      style={{ gridRow: "span 2", background: "#fff", border: "1px solid #e8e4de" }}
+      className="group flex flex-col overflow-hidden rounded-2xl transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] hover:shadow-[0_18px_40px_-24px_rgba(26,24,21,0.25)] lg:row-span-2"
+      style={{ background: "#fff", border: "1px solid #e8e4de" }}
     >
       <div className="relative flex-1 overflow-hidden" style={{ minHeight: 0, aspectRatio: "3/5" }}>
         {img ? (

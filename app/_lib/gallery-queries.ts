@@ -3,7 +3,7 @@ import { cache } from "react";
 import { supabaseAdmin } from "@/app/_lib/supabase-admin";
 import type { GameMeta, GameComplexity, SystemSettings, ContentBlock } from "@/app/_lib/authoring-types";
 
-const PAGE_SIZE = 60;
+export const PAGE_SIZE = 60;
 
 export type GalleryGame = {
   id: string;
