@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { GALLERY_ENTRIES } from "@/app/_lib/gallery-data";
+import { fetchPublishedGames, type GalleryGame } from "@/app/_lib/gallery-queries";
 
 function ArrowR({ size = 12 }: { size?: number }) {
   return (
@@ -544,8 +544,34 @@ export function Feats() {
   );
 }
 
-export function Showcase() {
-  const entries = GALLERY_ENTRIES.slice(0, 6);
+function ShowcaseCard({ entry }: { entry: GalleryGame }) {
+  const meta = [entry.complexity?.toUpperCase(), entry.playerCount ? `${entry.playerCount} PLAYERS` : null]
+    .filter(Boolean)
+    .join(" · ");
+  return (
+    <Link className="sc-card" href={`/gallery/${entry.id}`}>
+      <div className="sc-thumb" style={{ background: "#293B9C" }}>
+        {entry.cardImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={entry.cardImage}
+            alt={entry.title}
+            loading="lazy"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : null}
+      </div>
+      <div className="sc-meta">
+        {meta ? <div className="k">{meta}</div> : null}
+        <h4>{entry.title}</h4>
+        {entry.tagline ? <p>{entry.tagline}</p> : null}
+      </div>
+    </Link>
+  );
+}
+
+export async function Showcase() {
+  const entries = (await fetchPublishedGames({ page: 0 })).slice(0, 6);
   return (
     <section id="showcase" className="section showcase">
       <div className="wrap showcase-head">
@@ -558,21 +584,7 @@ export function Showcase() {
       <div className="wrap" style={{padding: 0}}>
         <div className="showcase-scroll">
           {entries.map((entry) => (
-            <Link key={entry.id} className="sc-card" href={`/gallery/${entry.id}`}>
-              <div className="sc-thumb" style={{background: entry.accentColor}}>
-                <img
-                  src={entry.cardImage}
-                  alt={entry.title}
-                  loading="lazy"
-                  style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}
-                />
-              </div>
-              <div className="sc-meta">
-                <div className="k">{entry.complexity.toUpperCase()} · {entry.playerCount} PLAYERS</div>
-                <h4>{entry.title}</h4>
-                <p>{entry.tagline}</p>
-              </div>
-            </Link>
+            <ShowcaseCard key={entry.id} entry={entry} />
           ))}
         </div>
       </div>
