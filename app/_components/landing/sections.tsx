@@ -141,7 +141,7 @@ function HeroCanvas() {
 
 export function Hero() {
   const headline = 'Board game rules your table <em>actually reads</em>.';
-  const sub = "Sherpa turns your rulebook into an interactive learn-to-play that fits on a QR card. Drop it in the box, stick it on your convention table, share it with playtesters. Rules answer themselves.";
+  const sub = "Sherpa is a tool for board game designers. Turn your rulebook into something players actually read — import your PDF or Figma, drop hotspots on the board, and publish a QR card. Stick it in the box, on your convention table, or send it to playtesters. Rules answer themselves.";
 
   return (
     <section id="top" className="hero">
