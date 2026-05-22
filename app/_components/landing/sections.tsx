@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { fetchPublishedGames, type GalleryGame } from "@/app/_lib/gallery-queries";
+import { safeJsonLdScript } from "@/app/_lib/safe-jsonld";
 
 function ArrowR({ size = 12 }: { size?: number }) {
   return (
@@ -603,8 +604,22 @@ export function FAQ() {
     { q: "Who owns the rulebook content?", a: "You do. Your text, your images, your rules. You can export everything at any time, including a flat PDF for archival or publisher submission." },
   ];
 
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((it) => ({
+      "@type": "Question",
+      name: it.q,
+      acceptedAnswer: { "@type": "Answer", text: it.a },
+    })),
+  };
+
   return (
     <section id="faq" className="section faq">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLdScript(faqLd) }}
+      />
       <div className="wrap faq-grid">
         <div>
           <span className="kicker">Frequently asked</span>
