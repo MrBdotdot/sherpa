@@ -59,6 +59,33 @@ export function renderBlockToString(block: ContentBlock): string {
   return "";
 }
 
+/**
+ * Plain-text counterpart to renderBlockToString. Used by the HowToStep JSON-LD
+ * builder to feed AI engines actual rule prose. Returns "" for non-text blocks
+ * and empty values.
+ */
+export function extractBlockText(block: ContentBlock): string {
+  if (block.type !== "text") return "";
+  const value = (block.value ?? "").trim();
+  if (!value) return "";
+
+  switch (block.blockFormat) {
+    case "bullets":
+    case "steps":
+      return value
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => `• ${line}`)
+        .join("\n");
+    case "h2":
+    case "h3":
+    case "prose":
+    default:
+      return value;
+  }
+}
+
 export function BlockRenderer({ blocks }: { blocks: ContentBlock[] }) {
   const html = blocks.map(renderBlockToString).join("");
   return <div className="prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: html }} />;
