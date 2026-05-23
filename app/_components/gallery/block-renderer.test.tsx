@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { renderBlockToString } from "./block-renderer";
+import { renderBlockToString, extractBlockText } from "./block-renderer";
 import type { ContentBlock } from "@/app/_lib/authoring-types";
 
 function block(partial: Partial<ContentBlock> & { type: ContentBlock["type"] }): ContentBlock {
@@ -65,5 +65,46 @@ describe("renderBlockToString", () => {
     expect(renderBlockToString(block({ type: "image", value: "https://example.com/a.jpg" }))).toContain("<figure>");
     expect(renderBlockToString(block({ type: "image", value: "data:image/png;base64,iVBORw0KGgo=" }))).toContain("<figure>");
     expect(renderBlockToString(block({ type: "image", value: "/local/path.jpg" }))).toContain("<figure>");
+  });
+});
+
+describe("extractBlockText", () => {
+  it("returns the value of a prose text block as-is", () => {
+    expect(
+      extractBlockText({ id: "b", type: "text", value: "Hello world", blockFormat: "prose" })
+    ).toBe("Hello world");
+  });
+
+  it("includes h2 and h3 headings as raw text", () => {
+    expect(
+      extractBlockText({ id: "b", type: "text", value: "Setup", blockFormat: "h2" })
+    ).toBe("Setup");
+    expect(
+      extractBlockText({ id: "b", type: "text", value: "Detail", blockFormat: "h3" })
+    ).toBe("Detail");
+  });
+
+  it("prefixes bullet and step lines with '• ' and joins by newline", () => {
+    expect(
+      extractBlockText({ id: "b", type: "text", value: "alpha\nbeta\ngamma", blockFormat: "bullets" })
+    ).toBe("• alpha\n• beta\n• gamma");
+    expect(
+      extractBlockText({ id: "b", type: "text", value: "one\ntwo", blockFormat: "steps" })
+    ).toBe("• one\n• two");
+  });
+
+  it("returns empty string for non-text block types", () => {
+    expect(extractBlockText({ id: "b", type: "image", value: "https://x/y.jpg" })).toBe("");
+    expect(extractBlockText({ id: "b", type: "video", value: "https://yt/x" })).toBe("");
+    expect(extractBlockText({ id: "b", type: "carousel", value: "" })).toBe("");
+  });
+
+  it("trims whitespace and returns empty for blank values", () => {
+    expect(
+      extractBlockText({ id: "b", type: "text", value: "   ", blockFormat: "prose" })
+    ).toBe("");
+    expect(
+      extractBlockText({ id: "b", type: "text", value: "  Hello  ", blockFormat: "prose" })
+    ).toBe("Hello");
   });
 });
