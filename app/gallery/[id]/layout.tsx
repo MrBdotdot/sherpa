@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { fetchPublishedGame } from "@/app/_lib/gallery-queries";
+import { SITE_URL } from "@/app/_lib/site-config";
 
 export async function generateMetadata({
   params,
@@ -17,6 +18,7 @@ export async function generateMetadata({
   return {
     title: `${game.title} — Interactive Rulebook · Sherpa`,
     description,
+    alternates: { canonical: `${SITE_URL}/gallery/${id}` },
     openGraph: {
       title: game.title,
       description,
