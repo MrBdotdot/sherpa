@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildGameJsonLd } from "./json-ld";
+import { buildGameJsonLd, buildBreadcrumbListLd } from "./json-ld";
 import type { GalleryGame, GalleryCard } from "@/app/_lib/gallery-queries";
 
 const baseGame: GalleryGame = {
@@ -102,5 +102,24 @@ describe("buildGameJsonLd with richer HowToStep", () => {
     const step = (ld.mainEntity.step as Array<{ text: string }>)[0];
     expect(step.text.length).toBeLessThanOrEqual(1501);
     expect(step.text.endsWith("…")).toBe(true);
+  });
+});
+
+describe("buildBreadcrumbListLd", () => {
+  it("emits Home → Gallery → Game with positions 1/2/3 and full URLs", () => {
+    const ld = buildBreadcrumbListLd(baseGame, "https://sherpa.games");
+    expect(ld["@type"]).toBe("BreadcrumbList");
+    const items = ld.itemListElement as Array<{ position: number; name: string; item: string }>;
+    expect(items).toHaveLength(3);
+    expect(items[0]).toMatchObject({ position: 1, name: "Home", item: "https://sherpa.games/" });
+    expect(items[1]).toMatchObject({ position: 2, name: "Gallery", item: "https://sherpa.games/gallery" });
+    expect(items[2]).toMatchObject({ position: 3, name: "Ironveil", item: "https://sherpa.games/gallery/ironveil" });
+  });
+
+  it("uses the game title verbatim (no truncation)", () => {
+    const longTitle = { ...baseGame, title: "A Very Long Game Title That Should Survive Verbatim" };
+    const ld = buildBreadcrumbListLd(longTitle, "https://sherpa.games");
+    const items = ld.itemListElement as Array<{ name: string }>;
+    expect(items[2].name).toBe("A Very Long Game Title That Should Survive Verbatim");
   });
 });

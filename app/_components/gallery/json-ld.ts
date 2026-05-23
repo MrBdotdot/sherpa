@@ -68,3 +68,15 @@ export function buildGameJsonLd(game: GalleryGame, cards: GalleryCard[]): GameJs
 
   return ld;
 }
+
+export function buildBreadcrumbListLd(game: GalleryGame, siteUrl: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${siteUrl}/` },
+      { "@type": "ListItem", position: 2, name: "Gallery", item: `${siteUrl}/gallery` },
+      { "@type": "ListItem", position: 3, name: game.title, item: `${siteUrl}/gallery/${game.id}` },
+    ],
+  };
+}
