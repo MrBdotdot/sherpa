@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { fetchPublishedGames, PAGE_SIZE, type GalleryGame } from "@/app/_lib/gallery-queries";
 import { GalleryFilters } from "@/app/_components/gallery/gallery-filters";
+import { buildCollectionPageLd } from "@/app/_components/gallery/collection-jsonld";
+import { safeJsonLdScript } from "@/app/_lib/safe-jsonld";
+import { SITE_URL } from "@/app/_lib/site-config";
 
 export const metadata = {
   title: "Gallery — Sherpa",
   description: "Interactive rules experiences built with Sherpa.",
+  alternates: { canonical: `${SITE_URL}/gallery` },
 };
 
 export const dynamic = "force-dynamic";
@@ -36,8 +40,15 @@ export default async function GalleryPage({
   const featured = games.find((g) => g.featured);
   const rest = featured ? games.filter((g) => g.id !== featured.id) : games;
 
+  const collectionLd = buildCollectionPageLd(games, SITE_URL);
+
   return (
-    <div className="min-h-screen font-sans" style={{ background: "#fbf9f7", color: "#1a1815" }}>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLdScript(collectionLd) }}
+      />
+      <div className="min-h-screen font-sans" style={{ background: "#fbf9f7", color: "#1a1815" }}>
       {/* Top bar */}
       <header
         className="sticky top-0 z-10 flex items-center justify-between px-10 py-5"
@@ -107,7 +118,8 @@ export default async function GalleryPage({
           ) : null}
         </>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 
