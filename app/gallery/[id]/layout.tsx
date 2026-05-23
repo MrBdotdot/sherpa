@@ -13,7 +13,6 @@ export async function generateMetadata({
 
   const { game } = result;
   const description = game.tagline?.trim() || `Interactive rulebook for ${game.title}.`;
-  const image = game.cardImage || game.homeHeroImage;
 
   return {
     title: `${game.title} — Interactive Rulebook · Sherpa`,
@@ -22,14 +21,12 @@ export async function generateMetadata({
     openGraph: {
       title: game.title,
       description,
-      images: image ? [{ url: image }] : [],
       type: "article",
     },
     twitter: {
-      card: image ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title: game.title,
       description,
-      images: image ? [image] : [],
     },
   };
 }
