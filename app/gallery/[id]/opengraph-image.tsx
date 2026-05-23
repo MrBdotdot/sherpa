@@ -142,17 +142,22 @@ export default async function OGImage({
     );
   }
 
-  // Split layout (photo left, branded right).
+  // Split layout (photo left, branded right). Use an <img> element (not a CSS
+  // backgroundImage) because satori (next/og's renderer) handles <img> fetches
+  // more reliably than the `url(...)` CSS path — the latter intermittently 500s
+  // when the remote host negotiates a format satori can't decode.
   return new ImageResponse(
     (
       <div style={{ display: "flex", width: "100%", height: "100%" }}>
-        <div
+        <img
+          src={heroImage}
+          alt=""
+          width={600}
+          height={630}
           style={{
-            width: "50%",
-            height: "100%",
-            backgroundImage: `url(${heroImage})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
+            width: 600,
+            height: 630,
+            objectFit: "cover",
           }}
         />
         <div
