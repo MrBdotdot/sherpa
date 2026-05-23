@@ -172,22 +172,27 @@ function splitLayoutResponse(game: ImageGame, heroImage: string): ImageResponse 
 }
 
 /**
- * Probe a remote image URL with a HEAD request. Returns true only if the response
- * is OK and the content-type begins with "image/". Used to fall back to the
- * branded layout when an image is unreachable from Vercel's compute environment
- * (rather than letting satori 500 mid-render).
+ * Fetch a remote image and return it as a base64 data URL. Returns null on any
+ * failure (network error, non-OK response, non-image content type, timeout).
+ *
+ * Why: satori (next/og's renderer) does its own image fetching internally, and
+ * intermittently fails on remote URLs even when the URL is reachable — different
+ * User-Agent, no redirect handling, format negotiation surprises. Pre-fetching
+ * the bytes ourselves and embedding via data URL bypasses satori's fetcher
+ * entirely; satori just decodes the bytes we hand it.
  */
-async function canFetchImage(url: string): Promise<boolean> {
+async function fetchImageAsDataUrl(url: string): Promise<string | null> {
   try {
     const res = await fetch(url, {
-      method: "HEAD",
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(5000),
     });
-    if (!res.ok) return false;
+    if (!res.ok) return null;
     const ct = res.headers.get("content-type") ?? "";
-    return ct.startsWith("image/");
+    if (!ct.startsWith("image/")) return null;
+    const buf = Buffer.from(await res.arrayBuffer());
+    return `data:${ct};base64,${buf.toString("base64")}`;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -225,12 +230,13 @@ export default async function OGImage({
   const { game } = result;
   const heroImage = game.cardImage || game.homeHeroImage;
 
-  // If we don't have an image, OR we can't reach it from this server, render
-  // the branded-only layout. Avoids 500s when satori would fail to embed the
-  // remote image.
-  if (!heroImage || !(await canFetchImage(heroImage))) {
+  // Pre-fetch the image as a base64 data URL so satori never has to do a
+  // network fetch itself (which was 500ing intermittently). If our fetch fails,
+  // fall back to the branded layout — which is always reachable.
+  const heroDataUrl = heroImage ? await fetchImageAsDataUrl(heroImage) : null;
+  if (!heroDataUrl) {
     return brandedLayoutResponse(game);
   }
 
-  return splitLayoutResponse(game, heroImage);
+  return splitLayoutResponse(game, heroDataUrl);
 }
