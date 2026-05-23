@@ -31,6 +31,16 @@ type ImageGame = {
   playTime?: string;
 };
 
+/**
+ * Replace en-dash (U+2013) and em-dash (U+2014) with ASCII hyphen-minus.
+ * satori's default font doesn't include extended Unicode glyphs; rendering text
+ * with unsupported glyphs causes the response to fail. Replace before render.
+ * Long-term fix: load a Google Font with broader Unicode coverage (task #27).
+ */
+function ascii(s: string | undefined): string | undefined {
+  return s?.replace(/[–—]/g, "-");
+}
+
 function MetaRow({
   game,
   compact = false,
@@ -59,12 +69,12 @@ function MetaRow({
       ) : null}
       {game.playerCount ? (
         <div style={{ display: "flex", alignItems: "center" }}>
-          {game.playerCount} players
+          {ascii(game.playerCount)} players
         </div>
       ) : null}
       {game.playTime ? (
         <div style={{ display: "flex", alignItems: "center" }}>
-          {game.playTime}
+          {ascii(game.playTime)}
         </div>
       ) : null}
     </div>
@@ -92,7 +102,7 @@ function brandedLayoutResponse(game: ImageGame): ImageResponse {
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: 84, fontWeight: 700, lineHeight: 1.05 }}>
-            {game.title}
+            {ascii(game.title)}
           </div>
           {game.tagline ? (
             <div
@@ -104,7 +114,7 @@ function brandedLayoutResponse(game: ImageGame): ImageResponse {
                 maxWidth: 980,
               }}
             >
-              {game.tagline}
+              {ascii(game.tagline)}
             </div>
           ) : null}
         </div>
@@ -148,7 +158,7 @@ function splitLayoutResponse(game: ImageGame, heroImage: string): ImageResponse 
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ fontSize: 64, fontWeight: 700, lineHeight: 1.05 }}>
-              {game.title}
+              {ascii(game.title)}
             </div>
             {game.tagline ? (
               <div
@@ -159,7 +169,7 @@ function splitLayoutResponse(game: ImageGame, heroImage: string): ImageResponse 
                   lineHeight: 1.3,
                 }}
               >
-                {game.tagline}
+                {ascii(game.tagline)}
               </div>
             ) : null}
           </div>
