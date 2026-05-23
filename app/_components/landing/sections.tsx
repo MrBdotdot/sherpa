@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { fetchPublishedGames, type GalleryGame } from "@/app/_lib/gallery-queries";
+import { safeJsonLdScript } from "@/app/_lib/safe-jsonld";
 
 function ArrowR({ size = 12 }: { size?: number }) {
   return (
@@ -140,7 +141,7 @@ function HeroCanvas() {
 
 export function Hero() {
   const headline = 'Board game rules your table <em>actually reads</em>.';
-  const sub = "Sherpa turns your rulebook into an interactive learn-to-play that fits on a QR card. Drop it in the box, stick it on your convention table, share it with playtesters. Rules answer themselves.";
+  const sub = "Sherpa is a tool for board game designers. Turn your rulebook into something players actually read — import your PDF or Figma, drop hotspots on the board, and publish a QR card. Stick it in the box, on your convention table, or send it to playtesters. Rules answer themselves.";
 
   return (
     <section id="top" className="hero">
@@ -603,8 +604,22 @@ export function FAQ() {
     { q: "Who owns the rulebook content?", a: "You do. Your text, your images, your rules. You can export everything at any time, including a flat PDF for archival or publisher submission." },
   ];
 
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((it) => ({
+      "@type": "Question",
+      name: it.q,
+      acceptedAnswer: { "@type": "Answer", text: it.a },
+    })),
+  };
+
   return (
     <section id="faq" className="section faq">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLdScript(faqLd) }}
+      />
       <div className="wrap faq-grid">
         <div>
           <span className="kicker">Frequently asked</span>
