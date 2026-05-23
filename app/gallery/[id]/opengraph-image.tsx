@@ -23,6 +23,14 @@ type MetaGame = {
   playTime?: string;
 };
 
+type ImageGame = {
+  title: string;
+  tagline?: string;
+  complexity?: string;
+  playerCount?: string;
+  playTime?: string;
+};
+
 function MetaRow({
   game,
   compact = false,
@@ -63,89 +71,51 @@ function MetaRow({
   );
 }
 
-export default async function OGImage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const result = await fetchPublishedGame(id);
-
-  if (!result) {
-    return new ImageResponse(
-      (
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            background: BRAND_BLUE,
-            color: TEXT_PRIMARY,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 56,
-            fontWeight: 600,
-          }}
-        >
-          Sherpa
+function brandedLayoutResponse(game: ImageGame): ImageResponse {
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          background: BRAND_BLUE,
+          color: TEXT_PRIMARY,
+          padding: "80px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          fontFamily: "system-ui, -apple-system, sans-serif",
+        }}
+      >
+        <div style={{ fontSize: 28, color: TEXT_MUTED, letterSpacing: "0.1em" }}>
+          SHERPA
         </div>
-      ),
-      size
-    );
-  }
-
-  const { game } = result;
-  const heroImage = game.cardImage || game.homeHeroImage;
-
-  if (!heroImage) {
-    // Branded-only layout (no photo).
-    return new ImageResponse(
-      (
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            background: BRAND_BLUE,
-            color: TEXT_PRIMARY,
-            padding: "80px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            fontFamily: "system-ui, -apple-system, sans-serif",
-          }}
-        >
-          <div style={{ fontSize: 28, color: TEXT_MUTED, letterSpacing: "0.1em" }}>
-            SHERPA
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ fontSize: 84, fontWeight: 700, lineHeight: 1.05 }}>
+            {game.title}
           </div>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ fontSize: 84, fontWeight: 700, lineHeight: 1.05 }}>
-              {game.title}
+          {game.tagline ? (
+            <div
+              style={{
+                fontSize: 32,
+                marginTop: 32,
+                color: TEXT_DIM,
+                lineHeight: 1.3,
+                maxWidth: 980,
+              }}
+            >
+              {game.tagline}
             </div>
-            {game.tagline ? (
-              <div
-                style={{
-                  fontSize: 32,
-                  marginTop: 32,
-                  color: TEXT_DIM,
-                  lineHeight: 1.3,
-                  maxWidth: 980,
-                }}
-              >
-                {game.tagline}
-              </div>
-            ) : null}
-          </div>
-          <MetaRow game={game} />
+          ) : null}
         </div>
-      ),
-      size
-    );
-  }
+        <MetaRow game={game} />
+      </div>
+    ),
+    size
+  );
+}
 
-  // Split layout (photo left, branded right). Use an <img> element (not a CSS
-  // backgroundImage) because satori (next/og's renderer) handles <img> fetches
-  // more reliably than the `url(...)` CSS path — the latter intermittently 500s
-  // when the remote host negotiates a format satori can't decode.
+function splitLayoutResponse(game: ImageGame, heroImage: string): ImageResponse {
   return new ImageResponse(
     (
       <div style={{ display: "flex", width: "100%", height: "100%" }}>
@@ -162,8 +132,8 @@ export default async function OGImage({
         />
         <div
           style={{
-            width: "50%",
-            height: "100%",
+            width: 600,
+            height: 630,
             background: BRAND_BLUE,
             color: TEXT_PRIMARY,
             padding: "60px",
@@ -199,4 +169,68 @@ export default async function OGImage({
     ),
     size
   );
+}
+
+/**
+ * Probe a remote image URL with a HEAD request. Returns true only if the response
+ * is OK and the content-type begins with "image/". Used to fall back to the
+ * branded layout when an image is unreachable from Vercel's compute environment
+ * (rather than letting satori 500 mid-render).
+ */
+async function canFetchImage(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url, {
+      method: "HEAD",
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!res.ok) return false;
+    const ct = res.headers.get("content-type") ?? "";
+    return ct.startsWith("image/");
+  } catch {
+    return false;
+  }
+}
+
+export default async function OGImage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const result = await fetchPublishedGame(id);
+
+  if (!result) {
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            background: BRAND_BLUE,
+            color: TEXT_PRIMARY,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 56,
+            fontWeight: 600,
+          }}
+        >
+          Sherpa
+        </div>
+      ),
+      size
+    );
+  }
+
+  const { game } = result;
+  const heroImage = game.cardImage || game.homeHeroImage;
+
+  // If we don't have an image, OR we can't reach it from this server, render
+  // the branded-only layout. Avoids 500s when satori would fail to embed the
+  // remote image.
+  if (!heroImage || !(await canFetchImage(heroImage))) {
+    return brandedLayoutResponse(game);
+  }
+
+  return splitLayoutResponse(game, heroImage);
 }
